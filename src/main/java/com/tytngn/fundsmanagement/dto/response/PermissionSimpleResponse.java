@@ -11,5 +11,4 @@ import lombok.experimental.FieldDefaults;
 public class PermissionSimpleResponse {
     String id;
     String perm_name;
-    String description;
 }

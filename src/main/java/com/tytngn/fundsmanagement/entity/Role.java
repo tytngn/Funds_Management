@@ -16,14 +16,10 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
     @Column(length = 50)
     String roleName;
-
-    @Column(columnDefinition = "TEXT")
-    String description;
 
     //Relationships
     @ManyToMany(mappedBy = "roles")

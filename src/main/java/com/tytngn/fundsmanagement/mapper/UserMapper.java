@@ -5,6 +5,7 @@ import com.tytngn.fundsmanagement.dto.request.UserUpdateRequest;
 import com.tytngn.fundsmanagement.dto.response.UserResponse;
 import com.tytngn.fundsmanagement.entity.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import java.util.List;
@@ -20,5 +21,6 @@ public interface UserMapper {
 
 
     // Cập nhật user
+    @Mapping(target = "roles", ignore = true)
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
 }

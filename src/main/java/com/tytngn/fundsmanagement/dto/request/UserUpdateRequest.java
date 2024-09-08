@@ -1,10 +1,12 @@
 package com.tytngn.fundsmanagement.dto.request;
 
+import com.tytngn.fundsmanagement.validator.DobConstraint;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -29,6 +31,7 @@ public class UserUpdateRequest {
 
     @NotNull(message = "DOB_REQUIRED")
     @Past(message = "DOB_INVALID")
+    @DobConstraint(min = 18, message = "DOB_INVALID")
     LocalDate dob;
 
     int gender;
@@ -38,4 +41,6 @@ public class UserUpdateRequest {
 
     int status;
     LocalDate updatedDate;
+
+    List<String> roles;
 }

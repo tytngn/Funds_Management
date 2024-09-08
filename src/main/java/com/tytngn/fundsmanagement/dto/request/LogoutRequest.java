@@ -1,4 +1,4 @@
-package com.tytngn.fundsmanagement.dto.response;
+package com.tytngn.fundsmanagement.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,8 +8,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PermissionResponse {
-    String id;
-    String perm_name;
-    FunctionSimpleResponse function;
+public class LogoutRequest {
+    String token;
 }

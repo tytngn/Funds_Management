@@ -1,9 +1,8 @@
 package com.tytngn.fundsmanagement.controller;
 
 import com.nimbusds.jose.JOSEException;
-import com.tytngn.fundsmanagement.dto.request.ApiResponse;
-import com.tytngn.fundsmanagement.dto.request.AuthenticationRequest;
-import com.tytngn.fundsmanagement.dto.request.IntrospectRequest;
+import com.tytngn.fundsmanagement.dto.request.*;
+import com.tytngn.fundsmanagement.dto.response.ApiResponse;
 import com.tytngn.fundsmanagement.dto.response.AuthenticationResponse;
 import com.tytngn.fundsmanagement.dto.response.IntrospectResponse;
 import com.tytngn.fundsmanagement.service.AuthenticationService;
@@ -27,17 +26,41 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
+
         var result = authenticationService.authenticate(request);
         return ApiResponse.<AuthenticationResponse>builder()
                 .result(result)
+                .code(1000)
                 .build();
     }
 
     @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> authenticate(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
+    ApiResponse<IntrospectResponse> authenticate(@RequestBody IntrospectRequest request)
+            throws ParseException, JOSEException {
+
         var result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder()
                 .result(result)
+                .code(1000)
                 .build();
+    }
+
+    @PostMapping("/refresh")
+    ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest request)
+            throws ParseException, JOSEException {
+
+        var result = authenticationService.refresh(request);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
+                .code(1000)
+                .build();
+    }
+
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(@RequestBody LogoutRequest request)
+            throws ParseException, JOSEException {
+
+        authenticationService.logout(request);
+        return ApiResponse.<Void>builder().code(1000).build();
     }
 }

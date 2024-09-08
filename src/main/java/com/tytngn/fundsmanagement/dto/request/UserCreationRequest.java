@@ -1,5 +1,6 @@
 package com.tytngn.fundsmanagement.dto.request;
 
+import com.tytngn.fundsmanagement.validator.DobConstraint;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -29,6 +30,7 @@ public class UserCreationRequest {
 
     @NotNull(message = "DOB_REQUIRED")
     @Past(message = "DOB_INVALID")
+    @DobConstraint(min = 18, message = "DOB_INVALID")
     LocalDate dob;
 
     int gender;

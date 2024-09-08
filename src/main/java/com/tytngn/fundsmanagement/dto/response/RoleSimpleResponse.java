@@ -8,8 +8,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PermissionResponse {
+public class RoleSimpleResponse {
     String id;
-    String perm_name;
-    FunctionSimpleResponse function;
+    String roleName;
 }

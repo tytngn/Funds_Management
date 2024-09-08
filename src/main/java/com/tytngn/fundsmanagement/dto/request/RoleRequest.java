@@ -1,6 +1,5 @@
 package com.tytngn.fundsmanagement.dto.request;
 
-import com.tytngn.fundsmanagement.entity.Functions;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,8 +11,7 @@ import java.util.Set;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RoleRequest {
-    String name;
-    String description;
-
+    String id;
+    String roleName;
     Set<String> permissions;
 }

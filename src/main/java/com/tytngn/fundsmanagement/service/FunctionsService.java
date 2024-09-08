@@ -1,6 +1,5 @@
 package com.tytngn.fundsmanagement.service;
 
-import com.tytngn.fundsmanagement.dto.request.ApiResponse;
 import com.tytngn.fundsmanagement.dto.request.FunctionsRequest;
 import com.tytngn.fundsmanagement.dto.response.FunctionsResponse;
 import com.tytngn.fundsmanagement.entity.Functions;
@@ -47,10 +46,18 @@ public class FunctionsService {
         return functions;
     }
 
+//    public FunctionsResponse updateFunction(String id, FunctionsRequest request) {
+//        Functions function = functionsRepository.findById(id).orElseThrow(() ->
+//                new AppException(ErrorCode.FUNCTIONS_NOT_EXISTS));
+//
+//        functionsMapper.updateFunctions(function, request);
+//        return functionsMapper.toFunctionsResponse(functionsRepository.save(function));
+//    }
+
     public void deleteFunction(String functionId) {
-        if (functionsRepository.existsById(functionId)) {
-            throw new AppException(ErrorCode.FUNCTIONS_EXISTS);
-        }
+        functionsRepository.findById(functionId).orElseThrow(() ->
+                new AppException(ErrorCode.FUNCTIONS_NOT_EXISTS));
+
         functionsRepository.deleteById(functionId);
     }
 }

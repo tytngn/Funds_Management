@@ -37,12 +37,14 @@ public class User {
 
     LocalDate dob;
     int gender;
-    int status;
+
+    @Column(nullable = false)
+    int status = 1;
 
     @Column(updatable = false)
-    LocalDate createdDate;
+    LocalDate createdDate = LocalDate.now();
 
-    LocalDate updatedDate;
+    LocalDate updatedDate = LocalDate.now();
 
     //Relationships
     @ManyToMany
