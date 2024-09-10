@@ -1,33 +1,38 @@
 package com.tytngn.fundsmanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class FundTransaction {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    String id;
 
     @Column(nullable = false)
-    private String trans_type;
+    double amount = 0.0;
 
-    @Column(nullable = false)
-    private double amount = 0.0;
-
-    private LocalDate trans_date;
+    LocalDateTime transDate;
 
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+    User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fund_id", referencedColumnName = "id", nullable = false)
-    private Fund fund;
+    Fund fund;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "trans_type", referencedColumnName = "id", nullable = false)
+    TransactionType transactionType;
 }

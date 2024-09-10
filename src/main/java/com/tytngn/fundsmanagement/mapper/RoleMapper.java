@@ -5,6 +5,7 @@ import com.tytngn.fundsmanagement.dto.response.RoleResponse;
 import com.tytngn.fundsmanagement.entity.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface RoleMapper {
@@ -16,4 +17,6 @@ public interface RoleMapper {
     // map role về response
     RoleResponse toRoleResponse(Role role);
 
+    @Mapping(target = "permissions", ignore = true)
+    void updateRole(@MappingTarget Role role, RoleRequest request);
 }

@@ -5,14 +5,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Set;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FunctionsRequest {
+public class TransactionTypeRequest {
     @NotBlank(message = "BLANK_NAME")
     String name;
+
+    @NotNull(message = "DATA_INVALID")
+    int status;
 }

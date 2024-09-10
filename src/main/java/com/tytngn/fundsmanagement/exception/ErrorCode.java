@@ -67,7 +67,7 @@ public enum ErrorCode {
     DEPARTMENT_NOT_EXISTS(1020, "Department not found.", HttpStatus.NOT_FOUND),
 
     // không hợp lệ
-    INVALID(1021, "Invalid request.", HttpStatus.BAD_REQUEST),
+    DATA_INVALID(1021, "Data invalid request.", HttpStatus.BAD_REQUEST),
 
     // tài khoản ngân hàng đã tồn tại
     BANK_ACCOUNT_EXISTS(1022, "Bank account already exists.", HttpStatus.CONFLICT),
@@ -75,6 +75,28 @@ public enum ErrorCode {
     BANK_ACCOUNT_NOT_EXISTS(1023, "Bank account not found.", HttpStatus.NOT_FOUND),
     // user đã có tài khoản ngân hàng
     USER_HAS_BANK_ACCOUNT(1024, "User has bank account.", HttpStatus.CONFLICT),
+
+    // quỹ không tồn tại
+    FUND_NOT_EXISTS(1025, "Fund not exists.", HttpStatus.NOT_FOUND),
+    // quỹ đã tồn tại
+    FUND_EXISTS(1026, "Fund already exists.", HttpStatus.CONFLICT),
+
+    // loại giao dịch đã tồn tại
+    TRANSACTION_TYPE_EXISTS(1027, "Transaction type already exists.", HttpStatus.CONFLICT),
+    // loại giao dịch không tồn tại
+    TRANSACTION_TYPE_NOT_EXISTS(1028, "Transaction type not found.", HttpStatus.NOT_FOUND),
+
+    // giao dịch không tồn tại
+    FUND_TRANSACTION_NOT_EXISTS(1029, "Fund transaction not found.", HttpStatus.NOT_FOUND),
+    // giao dịch đã tồn tại
+    FUND_TRANSACTION_EXISTS(1030, "Fund transaction already exists.", HttpStatus.CONFLICT),
+    // giao dịch không đủ số dư
+    INSUFFICIENT_FUNDS_TRANSACTION(1031, "Insufficient funds transaction.", HttpStatus.CONFLICT),
+
+    // danh mục thanh toán đã tồn tại
+    PAYMENT_CATEGORY_EXISTS(1032, "Payment category already exists.", HttpStatus.CONFLICT),
+    // danh mục thanh toán không tồn tại
+    PAYMENT_CATEGORY_NOT_EXISTS(1033, "Payment category not found.", HttpStatus.NOT_FOUND),
     ;
 
     private int code;

@@ -70,9 +70,6 @@ public class User {
     Set<FundTransaction> fundTransactions = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
-    Set<Contribution> contributions = new HashSet<>();
-
-    @OneToMany(mappedBy = "user")
     Set<BudgetEstimate> budgetEstimates = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.EAGER)

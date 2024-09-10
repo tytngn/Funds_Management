@@ -93,5 +93,17 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // xử lý lỗi logic nghiệp vụ số dư không đủ
+    @ExceptionHandler(value = InsufficientBalanceException.class)
+    ResponseEntity<ApiResponse> handleInsufficientBalanceException(InsufficientBalanceException exception) {
+        ErrorCode errorCode = ErrorCode.INSUFFICIENT_FUNDS_TRANSACTION;
+
+        return ResponseEntity.status(errorCode.getHttpStatusCode())
+                             .body(ApiResponse.builder()
+                                     .code(errorCode.getCode())
+                                     .message(errorCode.getMessage())
+                                     .build());
+    }
+
 
 }

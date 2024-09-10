@@ -15,7 +15,7 @@ public class BankAccountRequest {
     @NotBlank(message = "BLANK_NAME")
     String bankName;
 
-    @NotBlank(message = "INVALID")
+    @NotBlank(message = "DATA_INVALID")
     String accountNumber;
 
     @NotBlank(message = "BLANK_NAME")

@@ -52,7 +52,7 @@ public class RoleService {
     public RoleResponse updateRole(String id, RoleRequest request) {
 
         Role role = roleRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTS));
-        roleMapper.toRole(request);
+        roleMapper.updateRole(role, request);
 
         var permissions = permissionRepository.findAllById(request.getPermissions());
         role.setPermissions(new HashSet<>(permissions));

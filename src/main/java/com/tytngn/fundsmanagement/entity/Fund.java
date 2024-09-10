@@ -2,45 +2,45 @@ package com.tytngn.fundsmanagement.entity;
 
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Fund {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    String id;
 
     @Column(nullable = false)
-    private String fundName;
+    String fundName;
 
     @Column(nullable = false)
-    private double balance = 0.0;
+    double balance = 0.0;
 
     @Column(nullable = false)
-    private int status = 0;
+    int status = 1;
 
     @Column(columnDefinition = "TEXT")
-    private String description;
+    String description;
 
-    private LocalDate createDate;
+    LocalDate createDate;
 
     // Relationships
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id",nullable = false)
-    private User user;
+    User user;
 
     @OneToMany(mappedBy = "fund")
-    private Set<FundTransaction> fundTransactions = new HashSet<>();
-
-    @OneToMany(mappedBy = "fund")
-    private Set<Contribution> contributions = new HashSet<>();
+    Set<FundTransaction> fundTransactions = new HashSet<>();
 }

@@ -44,6 +44,6 @@ public class UserUpdateRequest {
 
     List<String> roles;
 
-    @NotBlank(message = "BLANK_NAME")
+    @NotBlank(message = "DATA_INVALID")
     String departmentId;
 }

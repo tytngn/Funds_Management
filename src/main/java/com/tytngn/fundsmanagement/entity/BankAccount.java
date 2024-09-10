@@ -1,33 +1,37 @@
 package com.tytngn.fundsmanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BankAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    String id;
 
     @Column(nullable = false)
-    private String bankName;
+    String bankName;
 
     @Column(nullable = false)
-    private String accountNumber;
+    String accountNumber;
 
     @Column(nullable = false)
-    private String accountName;
+    String accountName;
 
-    private LocalDate createdDate;
+    LocalDate createdDate;
 
     // Relationships
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+    User user;
 
 }

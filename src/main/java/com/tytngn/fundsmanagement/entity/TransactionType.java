@@ -14,18 +14,18 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PaymentCategory {
+public class TransactionType {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false)
     String name;
 
-    @Column(columnDefinition = "TEXT")
-    String description;
+    @Column(nullable = false)
+    int status;
 
     // Relationships
-    @OneToMany(mappedBy = "category")
-    Set<PaymentRequest> paymentRequests = new HashSet<>();
+    @OneToMany(mappedBy = "transactionType")
+    Set<FundTransaction> fundTransactions = new HashSet<>();
 }
