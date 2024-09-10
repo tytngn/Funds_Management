@@ -1,7 +1,5 @@
 package com.tytngn.fundsmanagement.dto.response;
 
-import com.tytngn.fundsmanagement.entity.Role;
-import jakarta.persistence.Column;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -27,4 +25,6 @@ public class UserResponse {
     LocalDate updatedDate;
 
     Set<RoleSimpleResponse> roles;
+    DepartmentSimpleResponse department;
+    BankAccountSimpleResponse account;
 }

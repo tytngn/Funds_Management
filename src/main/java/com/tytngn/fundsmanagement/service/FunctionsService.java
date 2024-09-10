@@ -41,7 +41,8 @@ public class FunctionsService {
 
         var functions = functionsRepository.findAll()
                 .stream()
-                .map(function -> functionsMapper.toFunctionsResponse(function)).toList();
+                .map(function -> functionsMapper.toFunctionsResponse(function))
+                .toList();
 
         return functions;
     }

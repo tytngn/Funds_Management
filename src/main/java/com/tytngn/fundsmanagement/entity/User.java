@@ -58,7 +58,7 @@ public class User {
     Set<Report> reports = new HashSet<>();
 
     @OneToOne(mappedBy = "user")
-    Account account;
+    BankAccount account;
 
     @OneToMany(mappedBy = "user")
     Set<PaymentRequest> paymentRequests = new HashSet<>();
@@ -74,4 +74,9 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     Set<BudgetEstimate> budgetEstimates = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "department", referencedColumnName = "id", nullable = false)
+    Department department;
+
 }

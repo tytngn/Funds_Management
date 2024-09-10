@@ -8,6 +8,7 @@ import com.tytngn.fundsmanagement.entity.User;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
 import com.tytngn.fundsmanagement.mapper.UserMapper;
+import com.tytngn.fundsmanagement.repository.DepartmentRepository;
 import com.tytngn.fundsmanagement.repository.RoleRepository;
 import com.tytngn.fundsmanagement.repository.UserRepository;
 import lombok.AccessLevel;
@@ -34,6 +35,7 @@ public class UserService {
     UserMapper userMapper;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
+    DepartmentRepository departmentRepository;
 
     // tạo User
     public UserResponse createUser(UserCreationRequest request) {
@@ -54,6 +56,10 @@ public class UserService {
 
         user.setStatus(1);
         user.setCreatedDate(LocalDate.now());
+
+        var department = departmentRepository.findById(request.getDepartmentId()).orElseThrow(() ->
+                new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS));
+        user.setDepartment(department);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -102,6 +108,10 @@ public class UserService {
         var roles = roleRepository.findAllById(request.getRoles());
         user.setRoles(new HashSet<>(roles));
         user.setUpdatedDate(LocalDate.now());
+
+        var department = departmentRepository.findById(request.getDepartmentId()).orElseThrow(() ->
+                new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS));
+        user.setDepartment(department);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }

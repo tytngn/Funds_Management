@@ -60,6 +60,21 @@ public enum ErrorCode {
 
     // quyền không tồn tại
     PERMISSION_NOT_EXISTS(1018, "Permission not exists.", HttpStatus.NOT_FOUND),
+
+    // phòng ban đã tồn tại
+    DEPARTMENT_EXISTS(1019, "Department already exists.", HttpStatus.CONFLICT),
+    // phòng ban không tồn tại
+    DEPARTMENT_NOT_EXISTS(1020, "Department not found.", HttpStatus.NOT_FOUND),
+
+    // không hợp lệ
+    INVALID(1021, "Invalid request.", HttpStatus.BAD_REQUEST),
+
+    // tài khoản ngân hàng đã tồn tại
+    BANK_ACCOUNT_EXISTS(1022, "Bank account already exists.", HttpStatus.CONFLICT),
+    // tài khoản ngân hàng không tồn tại
+    BANK_ACCOUNT_NOT_EXISTS(1023, "Bank account not found.", HttpStatus.NOT_FOUND),
+    // user đã có tài khoản ngân hàng
+    USER_HAS_BANK_ACCOUNT(1024, "User has bank account.", HttpStatus.CONFLICT),
     ;
 
     private int code;

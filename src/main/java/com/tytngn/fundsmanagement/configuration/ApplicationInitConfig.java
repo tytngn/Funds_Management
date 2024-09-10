@@ -1,7 +1,11 @@
 package com.tytngn.fundsmanagement.configuration;
 
+import com.tytngn.fundsmanagement.entity.Department;
 import com.tytngn.fundsmanagement.entity.Role;
 import com.tytngn.fundsmanagement.entity.User;
+import com.tytngn.fundsmanagement.exception.AppException;
+import com.tytngn.fundsmanagement.exception.ErrorCode;
+import com.tytngn.fundsmanagement.repository.DepartmentRepository;
 import com.tytngn.fundsmanagement.repository.RoleRepository;
 import com.tytngn.fundsmanagement.repository.UserRepository;
 import lombok.AccessLevel;
@@ -26,6 +30,7 @@ public class ApplicationInitConfig {
 
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
+    DepartmentRepository departmentRepository;
 
     @Bean
     ApplicationRunner applicationRunner(UserRepository userRepository){
@@ -49,6 +54,15 @@ public class ApplicationInitConfig {
                     roles.add(role);
                     user.setRoles(roles);
                 }
+
+                if(departmentRepository.existsById("f289ef6a-95aa-4956-b577-aef8ae11f397")){
+                    Department department = Department.builder()
+                            .id("f289ef6a-95aa-4956-b577-aef8ae11f397")
+                            .name("Admin Department")
+                            .build();
+                    user.setDepartment(department);
+                }
+
                 userRepository.save(user);
                 log.warn("admin user has been created with default password: admin, please change it");
             }

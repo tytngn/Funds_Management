@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-public class Account {
+public class BankAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;

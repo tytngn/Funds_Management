@@ -43,4 +43,7 @@ public class UserUpdateRequest {
     LocalDate updatedDate;
 
     List<String> roles;
+
+    @NotBlank(message = "BLANK_NAME")
+    String departmentId;
 }

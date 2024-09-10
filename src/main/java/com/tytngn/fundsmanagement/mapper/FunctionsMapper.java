@@ -20,5 +20,4 @@ public interface FunctionsMapper {
 
     FunctionSimpleResponse toFunctionOnlyResponse(Functions functions);
 
-    void updateFunctions(@MappingTarget Functions functions, FunctionsRequest request);
 }

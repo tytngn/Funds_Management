@@ -1,6 +1,5 @@
 package com.tytngn.fundsmanagement.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -15,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Functions {
+public class Department {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
@@ -24,6 +23,6 @@ public class Functions {
     String name;
 
     // Relationships
-    @OneToMany(mappedBy = "functions")
-    Set<Permission> permissions = new HashSet<>();
+    @OneToMany(mappedBy = "department")
+    Set<User> users = new HashSet<>();
 }

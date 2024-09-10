@@ -41,4 +41,7 @@ public class UserCreationRequest {
     int status;
     LocalDate createdDate;
     LocalDate updatedDate;
+
+    @NotBlank(message = "BLANK_NAME")
+    String departmentId;
 }

@@ -19,6 +19,8 @@ target/
 *.iml
 *.ipr
 *.yaml
+.DS_Store
+
 
 ### NetBeans ###
 /nbproject/private/
