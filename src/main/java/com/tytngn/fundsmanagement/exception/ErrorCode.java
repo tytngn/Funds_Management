@@ -80,6 +80,8 @@ public enum ErrorCode {
     FUND_NOT_EXISTS(1025, "Fund not exists.", HttpStatus.NOT_FOUND),
     // quỹ đã tồn tại
     FUND_EXISTS(1026, "Fund already exists.", HttpStatus.CONFLICT),
+    // quỹ ngưng hoạt động
+    INACTIVE_FUND (1045, "Inactive fund.", HttpStatus.GONE),
 
     // loại giao dịch đã tồn tại
     TRANSACTION_TYPE_EXISTS(1027, "Transaction type already exists.", HttpStatus.CONFLICT),
@@ -97,6 +99,34 @@ public enum ErrorCode {
     PAYMENT_CATEGORY_EXISTS(1032, "Payment category already exists.", HttpStatus.CONFLICT),
     // danh mục thanh toán không tồn tại
     PAYMENT_CATEGORY_NOT_EXISTS(1033, "Payment category not found.", HttpStatus.NOT_FOUND),
+
+    // đề nghị thanh toán không tồn tại
+    PAYMENT_REQUEST_NOT_EXISTS(1034, "Payment request not found.", HttpStatus.NOT_FOUND),
+    // đề nghị thanh toán đã tồn tại
+    PAYMENT_REQUEST_EXISTS(1035, "Payment request already exists.", HttpStatus.CONFLICT),
+    // đề nghị thanh toán đã được gửi, không thể chỉnh sửa
+    PAYMENT_REQUEST_NOT_EDITABLE(1036, "Payment request is not editable", HttpStatus.FORBIDDEN),
+
+    // hoá đơn không tồn tại
+    INVOICE_NOT_EXISTS(1037, "Invoice not exists.", HttpStatus.NOT_FOUND),
+    // hoá đơn đã tồn tại
+    INVOICE_EXISTS(1038, "Invoice already exists.", HttpStatus.CONFLICT),
+    // hoá đơn không thể xoá
+    INVOICE_CANNOT_BE_DELETED(1039, "Invoice cannot be deleted.", HttpStatus.CONFLICT),
+    // hoá đơn cuối cùng không thể xoá
+    LAST_INVOICE_CANNOT_BE_DELETED(1039, "Cannot delete the last invoice from the payment request.", HttpStatus.CONFLICT),
+
+    // dự trù ngân sách không tồn tại
+    BUDGET_ESTIMATE_NOT_EXISTS(1040, "Budget estimate not exists.", HttpStatus.NOT_FOUND),
+    // dự trù ngân sách đã được gửi, không thể chỉnh sửa
+    BUDGET_ESTIMATE_NOT_EDITABLE(1041, "Budget estimate is not editable.", HttpStatus.CONFLICT),
+
+    // hoạt động dự trù không tồn tại
+    BUDGET_ACTIVITY_NOT_EXISTS(1042, "Budget activity not exists.", HttpStatus.NOT_FOUND),
+    // hoạt động dự trù không thể xoá
+    BUDGET_ACTIVITY_CANNOT_BE_DELETE(1043, "Budget activity cannot be deleted.", HttpStatus.CONFLICT),
+    // hoạt động dự trù cuối cùng không thể xoá
+    LAST_BUDGET_ACTIVITY_CANNOT_BE_DELETE(1044, "Cannot delete the last budget activity from the budget estimate.", HttpStatus.CONFLICT),
     ;
 
     private int code;

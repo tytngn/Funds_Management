@@ -1,41 +1,48 @@
 package com.tytngn.fundsmanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BudgetActivity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    String id;
 
     @Column(nullable = false)
-    private String activityName;
+    String name;
 
-    private LocalDate activityDate;
-
-    @Column(nullable = false)
-    private double amount = 0.0;
+    LocalDate activityDate;
 
     @Column(nullable = false)
-    private int status = 0;
-
-    @Column(nullable = false, length = 50)
-    private String unit;
+    double amount = 0.0;
 
     @Column(nullable = false)
-    private float quantity = 0.0f;
+    int status = 0; // 0: chưa thực hiện, 1: hoàn thành
+
+    @Column(length = 50)
+    String unit;
+
+    float quantity = 0.0f;
 
     @Column(columnDefinition = "TEXT")
-    private String description;
+    String description;
 
     // Relationships
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "be_id", referencedColumnName = "id", nullable = false)
-    private BudgetEstimate budgetEstimate;
+    BudgetEstimate budgetEstimate;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "paymentReq_id", referencedColumnName = "id")
+    PaymentReq paymentReq;
 }

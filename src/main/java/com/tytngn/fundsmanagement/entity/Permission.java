@@ -23,7 +23,7 @@ public class Permission {
 
     //Relationships
     @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "functions_id", nullable = false)
+    @JoinColumn(name = "functions_id", nullable = false)
     Functions functions;
 
     @ManyToMany(mappedBy = "permissions")

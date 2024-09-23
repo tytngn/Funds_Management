@@ -39,7 +39,7 @@ public class User {
     int gender;
 
     @Column(nullable = false)
-    int status = 1;
+    int status = 1; // 0: vô hiệu hoá, 1: đang hoạt động
 
     @Column(updatable = false)
     LocalDate createdDate = LocalDate.now();
@@ -61,7 +61,7 @@ public class User {
     BankAccount account;
 
     @OneToMany(mappedBy = "user")
-    Set<PaymentRequest> paymentRequests = new HashSet<>();
+    Set<PaymentReq> paymentReqs = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
     Set<Fund> funds = new HashSet<>();

@@ -27,5 +27,5 @@ public class PaymentCategory {
 
     // Relationships
     @OneToMany(mappedBy = "category")
-    Set<PaymentRequest> paymentRequests = new HashSet<>();
+    Set<PaymentReq> paymentRequests = new HashSet<>();
 }

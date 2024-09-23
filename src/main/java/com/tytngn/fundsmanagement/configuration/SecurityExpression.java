@@ -24,24 +24,41 @@ public class SecurityExpression { // Định nghĩa phương thức dùng cho x�
     RoleRepository roleRepository;
     UserRepository userRepository;
 
-    public boolean hasPermission(List<String> permissions) {
-        // lấy thông tin người dùng hiện tại
+    // Phương thức lấy userId từ JWT token
+    public String getUserId() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) auth.getPrincipal();
-        String id = jwt.getClaimAsString("userId");
+        return jwt.getClaimAsString("userId");
+    }
+
+    // Phương thức lấy quyền hạn (scope) từ JWT token
+    public List<String> getUserScope() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) auth.getPrincipal();
+        return jwt.getClaimAsStringList("scope");
+    }
+
+    // Phương thức kiểm tra quyền hạn dựa trên danh sách permissions
+    public boolean hasPermission(List<String> permissions) {
+
+        // Lấy userId từ JWT
+        String id = getUserId();
+
+        // Tìm kiếm người dùng trong cơ sở dữ liệu
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
+        // Kiểm tra nếu là admin đặc biệt
         if((user.getUsername().equals("admin")) && (user.getStatus() == 9999))
             return true;
 
+        // Lấy danh sách roleIds của user
         var roleIds = roleRepository.findByUserId(id).stream().map(Role::getId).toList();
         roleIds.forEach(roleId -> log.info("Role: " + roleId));
 
+        // Kiểm tra quyền hạn của user
         boolean result = roleRepository.existsByRoleIdsAndPermissionIds(roleIds, permissions);
         log.warn(String.valueOf(result));
         return roleRepository.existsByRoleIdsAndPermissionIds(roleIds, permissions);
-
     }
-
 }

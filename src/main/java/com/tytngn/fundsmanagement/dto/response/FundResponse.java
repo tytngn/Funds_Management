@@ -17,6 +17,7 @@ public class FundResponse {
     int status;
     String description;
     LocalDate createDate;
+    LocalDate updateDate;
 
     // người quản lý
     UserSimpleResponse user;

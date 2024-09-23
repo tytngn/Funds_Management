@@ -1,0 +1,67 @@
+  /* @import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap"); */
+
+  /* h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Space Grotesk", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+  }
+
+  .table,
+  p {
+    font-family: "Nunito Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "wdth" 100, "YTLC" 500;
+  }
+
+  .btn,
+  a {
+    font-family: "Space Grotesk", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+  }
+
+  /* CSS để ẩn cột 'luuy' */
+  /* .hide-column {
+    display: none;
+  }
+
+  /* CSS để thay đổi màu cả dòng nếu 'luuy' là 1 */
+  /* .xacnhan {
+    background-color: #86b8db !important;
+  } */
+
+  /* .luuy-1 {
+    background-color: #f19c9c !important;
+  }
+
+  .luuy-2 {
+    background-color: #a6f19c !important;
+  } */ 
+
+  /* .dataTables_paginate{
+    font-size: 1rem;
+    line-height: 14px;
+  } */
+/* 
+  .custom-paginate {
+    padding: 8px 12px !important
+  }
+
+  #fund-table_paginate{
+    padding-top: 1px;
+    margin-top: 5px;
+  } */
+
+
+  td.wrap {
+    white-space: normal; /* Cho phép nội dung xuống dòng */
+    word-wrap: break-word !important; /* Ngắt dòng khi từ dài */
+  }

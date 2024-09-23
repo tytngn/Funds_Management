@@ -29,12 +29,13 @@ public class Fund {
     double balance = 0.0;
 
     @Column(nullable = false)
-    int status = 1;
+    int status = 1; // 0: ngưng hoạt động, 1: hoạt động
 
     @Column(columnDefinition = "TEXT")
     String description;
 
     LocalDate createDate;
+    LocalDate updateDate;
 
     // Relationships
     @ManyToOne(fetch = FetchType.EAGER)
@@ -43,4 +44,7 @@ public class Fund {
 
     @OneToMany(mappedBy = "fund")
     Set<FundTransaction> fundTransactions = new HashSet<>();
+
+    @OneToMany(mappedBy = "fund")
+    Set<BudgetEstimate> budgetEstimates = new HashSet<>();
 }

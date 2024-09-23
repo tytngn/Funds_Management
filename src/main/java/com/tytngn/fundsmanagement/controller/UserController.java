@@ -5,6 +5,7 @@ import com.tytngn.fundsmanagement.dto.request.UserCreationRequest;
 import com.tytngn.fundsmanagement.dto.request.UserUpdateRequest;
 import com.tytngn.fundsmanagement.dto.response.UserResponse;
 import com.tytngn.fundsmanagement.service.UserService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

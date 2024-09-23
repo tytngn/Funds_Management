@@ -1,5 +1,6 @@
 package com.tytngn.fundsmanagement.service;
 
+import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
@@ -32,22 +33,27 @@ public class FundTransactionService {
     UserRepository userRepository;
     FundRepository fundRepository;
     TransactionTypeRepository transactionTypeRepository;
+    SecurityExpression securityExpression;
 
     @Transactional
     public FundTransactionResponse create(FundTransactionRequest request) {
 
         FundTransaction fundTransaction = fundTransactionMapper.toFundTransaction(request);
-
         fundTransaction.setTransDate(LocalDateTime.now());
 
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
         // người thực hiện giao dịch
-        var user = userRepository.findById(request.getUser()).orElseThrow(() ->
+        var user = userRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTS));
         fundTransaction.setUser(user);
 
         // quỹ được giao dịch
         var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS));
+        // Nếu quỹ ngưng hoạt động
+        if(fund.getStatus() == 0)
+            throw new AppException(ErrorCode.INACTIVE_FUND);
         fundTransaction.setFund(fund);
 
         // loại giao dịch
@@ -83,6 +89,7 @@ public class FundTransactionService {
         return fundTransaction;
     }
 
+    @Transactional
     public FundTransactionResponse update(String id, FundTransactionRequest request) {
         FundTransaction fundTransaction = fundTransactionRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_TRANSACTION_NOT_EXISTS));
@@ -91,14 +98,19 @@ public class FundTransactionService {
 
         fundTransaction.setTransDate(LocalDateTime.now());
 
+        // Lấy thông tin người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
         // người thực hiện giao dịch
-        var user = userRepository.findById(request.getUser()).orElseThrow(() ->
+        var user = userRepository.findById(userId).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTS));
         fundTransaction.setUser(user);
 
         // quỹ được giao dịch
         var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS));
+        // Nếu quỹ ngưng hoạt động
+        if(fund.getStatus() == 0)
+            throw new AppException(ErrorCode.INACTIVE_FUND);
         fundTransaction.setFund(fund);
 
         // loại giao dịch
@@ -109,6 +121,7 @@ public class FundTransactionService {
         return fundTransactionMapper.toFundTransactionResponse(fundTransactionRepository.save(fundTransaction));
     }
 
+    @Transactional
     public void delete(String id) {
         var fundTransaction = fundTransactionRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS));

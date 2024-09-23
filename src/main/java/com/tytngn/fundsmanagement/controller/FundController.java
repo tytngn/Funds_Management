@@ -4,6 +4,7 @@ import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.service.FundService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,15 @@ public class FundController {
         return ApiResponse.<List<FundResponse>>builder()
                 .code(1000)
                 .result(fundService.getAll())
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_BY_ID'})")
+    ApiResponse<FundResponse> getFundById(@PathVariable String id) {
+        return ApiResponse.<FundResponse>builder()
+                .code(1000)
+                .result(fundService.getById(id))
                 .build();
     }
 

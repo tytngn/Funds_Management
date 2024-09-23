@@ -23,7 +23,7 @@ public class TransactionType {
     String name;
 
     @Column(nullable = false)
-    int status;
+    int status; // 0: rút quỹ, 1: đóng góp quỹ
 
     // Relationships
     @OneToMany(mappedBy = "transactionType")

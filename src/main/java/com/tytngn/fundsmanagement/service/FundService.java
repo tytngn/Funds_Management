@@ -1,6 +1,7 @@
 package com.tytngn.fundsmanagement.service;
 
 
+import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.entity.Fund;
@@ -27,18 +28,22 @@ public class FundService {
     FundRepository fundRepository;
     FundMapper fundMapper;
     UserRepository userRepository;
+    SecurityExpression securityExpression;
 
     public FundResponse create(FundRequest request) {
 
-        var fund = fundMapper.toFund(request);
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
 
+        // Tìm kiếm người dùng trong cơ sở dữ liệu
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        // tạo quỹ mới
+        var fund = fundMapper.toFund(request);
         fund.setBalance(0.0);
         fund.setStatus(1);
         fund.setCreateDate(LocalDate.now());
-
-        var user = userRepository.findById(request.getUser())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-
         fund.setUser(user);
 
         return fundMapper.toFundResponse(fundRepository.save(fund));
@@ -49,21 +54,35 @@ public class FundService {
         return funds.stream().map(fund -> fundMapper.toFundResponse(fund)).toList();
     }
 
+    public FundResponse getById(String id) {
+        return fundMapper.toFundResponse(fundRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.FUND_NOT_EXISTS)));
+    }
+
     public FundResponse update(String id, FundRequest request) {
+
+        // kiểm tra quỹ có tồn tại không
         Fund fund = fundRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS));
 
-        var user = userRepository.findById(request.getUser())
+        // Lấy thông tin người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        // Tìm kiếm người dùng trong cơ sở dữ liệu
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
+        // cập nhật quỹ
         fundMapper.updateFund(fund, request);
+        fund.setUpdateDate(LocalDate.now());
         fund.setUser(user);
 
         return fundMapper.toFundResponse(fundRepository.save(fund));
-
     }
 
     public void delete(String id) {
+
+        // kiểm tra quỹ có tồn tại không
         var fund = fundRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.FUNCTIONS_NOT_EXISTS));
 

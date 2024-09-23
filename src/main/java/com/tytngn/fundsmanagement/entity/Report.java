@@ -22,7 +22,7 @@ public class Report {
     @Column(nullable = false)
     private String type;
 
-    private LocalDateTime createdDate = LocalDateTime.now();
+    private LocalDateTime createdDate;
 
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
