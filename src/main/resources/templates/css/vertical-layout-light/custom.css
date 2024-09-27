@@ -65,3 +65,46 @@
     white-space: normal; /* Cho phép nội dung xuống dòng */
     word-wrap: break-word !important; /* Ngắt dòng khi từ dài */
   }
+
+/* Tăng kích thước cho checkbox */
+.form-check-input {
+  width: 13px;
+  height: 13px;
+  transform: scale(1.5); /* Phóng to checkbox */
+  margin-right: 10px; /* Khoảng cách giữa checkbox và label */
+}
+
+/* Khi checkbox, radio chưa được chọn */
+input[type="checkbox"] {
+  accent-color: #4B49AC; /* Thay đổi màu dấu tích */
+}
+input[type="radio"] {
+  accent-color: #4B49AC; /* Thay đổi màu dấu tích */
+}
+
+.col-form-label {
+  padding-top: calc(0.875rem + 0.5px) !important;
+
+}
+
+/* Chỉnh sửa kiểu dropdown */
+.dataTables_length label {
+  display: flex;
+  align-items: center;
+}
+.dataTables_length select {
+  margin: 0 5px;
+  min-width: 40px !important;
+  height: 30px !important; /* Giảm kích thước chiều rộng của dropdown */
+  padding: 2px 5px; /* Điều chỉnh khoảng cách padding bên trong dropdown */
+  font-size: 14px; /* Điều chỉnh kích thước font chữ */
+  color: black; /* Màu chữ đen trong dropdown */
+  background-color: white; /* Màu nền trắng */
+}
+.dataTables_length label::before {
+  margin-right: 5px;
+}
+.dataTables_length label::after {
+  margin-left: 5px;
+}
+

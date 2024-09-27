@@ -16,6 +16,12 @@ public class FundTransactionRequest {
     @PositiveOrZero(message = "DATA_INVALID")
     double amount;
 
+    @NotNull(message = "DATA_INVALID")
+    int status = 1;
+
+    @NotNull(message = "DATA_INVALID")
+    String description;
+
     String fund;
     String transactionType;
 }

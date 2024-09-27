@@ -1,6 +1,7 @@
 package com.tytngn.fundsmanagement.mapper;
 
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
+import com.tytngn.fundsmanagement.dto.response.FundContributionResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import org.mapstruct.Mapper;
@@ -24,4 +25,6 @@ public interface FundTransactionMapper {
     @Mapping(target = "fund", ignore = true)
     @Mapping(target = "transactionType", ignore = true)
     void updateFundTransaction(@MappingTarget FundTransaction fundTransaction, FundTransactionRequest request);
+
+    FundContributionResponse toFundContributionResponse(String fullname, String transactionType, Double total);
 }

@@ -21,6 +21,12 @@ public class FundTransaction {
     @Column(nullable = false)
     double amount = 0.0;
 
+    @Column(nullable = false)
+    int status; // 0: từ chối, 1: chờ duyệt, 2: đã duyệt
+
+    @Column(columnDefinition = "TEXT")
+    String description;
+
     LocalDateTime transDate;
 
     // Relationships

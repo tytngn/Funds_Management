@@ -1,7 +1,9 @@
 package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
+import com.tytngn.fundsmanagement.dto.request.FundContributionRequest;
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
+import com.tytngn.fundsmanagement.dto.response.FundContributionResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import com.tytngn.fundsmanagement.exception.AppException;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -39,6 +42,7 @@ public class FundTransactionService {
     public FundTransactionResponse create(FundTransactionRequest request) {
 
         FundTransaction fundTransaction = fundTransactionMapper.toFundTransaction(request);
+        fundTransaction.setStatus(1); // Chờ duyệt
         fundTransaction.setTransDate(LocalDateTime.now());
 
         // Lấy thông tin người dùng đang đăng nhập
@@ -61,19 +65,6 @@ public class FundTransactionService {
                 new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS));
         fundTransaction.setTransactionType(transactionType);
 
-        // nếu là giao dịch đóng góp quỹ
-        if(transactionType.getStatus() == 1){
-            fund.setBalance(fund.getBalance() + request.getAmount());
-        }
-        // nếu là giao dịch rút quỹ
-        if(transactionType.getStatus() == 0) {
-            // nếu số dư không đủ
-            if(fund.getBalance() < request.getAmount()){
-                throw new AppException(ErrorCode.INSUFFICIENT_FUNDS_TRANSACTION);
-            }
-            fund.setBalance(fund.getBalance() - request.getAmount());
-        }
-
         fundTransaction = fundTransactionRepository.save(fundTransaction);
 
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
@@ -87,6 +78,40 @@ public class FundTransactionService {
                 .toList();
 
         return fundTransaction;
+    }
+
+    public FundTransactionResponse getById(String id) {
+        return fundTransactionMapper.toFundTransactionResponse(fundTransactionRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.FUND_NOT_EXISTS)));
+    }
+
+    // Tính tổng số tiền đóng góp của user vào fund
+//    public FundContributionResponse getTotalContribution(FundContributionRequest request) {
+//        double total = fundTransactionRepository.findTotalContributionByUserAndFund(request.getUserId(), request.getFundId());
+//
+//        return fundTransactionMapper.toFundContributionResponse(request.getUserId(), request.getFundId(), total);
+//    }
+
+//    public FundContributionResponse getTotalAmountByUserAndFund(FundContributionRequest request) {
+//        Double total = fundTransactionRepository.getTotalAmountByUserAndFund(request.getUserId(), request.getFundId());
+//        if(total == null) {
+//            total = 0.0;
+//        }
+//        return fundTransactionMapper.toFundContributionResponse(request.getUserId(), request.getFundId(), total);
+//    }
+
+    public List<FundContributionResponse> getFundTransactionSummary(FundContributionRequest request) {
+        List<Object[]> results = fundTransactionRepository.getFundTransactionSummary(request.getFundId());
+        List<FundContributionResponse> responseList = new ArrayList<>();
+
+        for (Object[] result : results) {
+            String fullname = (String) result[0];
+            Double totalAmount = (Double) result[1];
+            String transactionType = (String) result[2];
+            responseList.add(fundTransactionMapper.toFundContributionResponse(fullname, transactionType, totalAmount));
+        }
+
+        return responseList;
     }
 
     @Transactional
@@ -120,6 +145,58 @@ public class FundTransactionService {
 
         return fundTransactionMapper.toFundTransactionResponse(fundTransactionRepository.save(fundTransaction));
     }
+
+    // Duyệt giao dịch
+    @Transactional
+    public FundTransactionResponse approveTransaction(String id) {
+        FundTransaction fundTransaction = fundTransactionRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.FUND_TRANSACTION_NOT_EXISTS));
+
+        // Chỉ duyệt các giao dịch đang chờ duyệt
+        if (fundTransaction.getStatus() != 1) {
+            throw new AppException(ErrorCode.TRANSACTION_ALREADY_PROCESSED);
+        }
+
+        var fund = fundTransaction.getFund();
+        var transactionType = fundTransaction.getTransactionType();
+
+        // Nếu là giao dịch đóng góp quỹ
+        if (transactionType.getStatus() == 1) {
+            fund.setBalance(fund.getBalance() + fundTransaction.getAmount());
+        }
+
+        // nếu là giao dịch rút quỹ
+        if (transactionType.getStatus() == 0) {
+            // nếu số dư không đủ
+            if (fund.getBalance() < fundTransaction.getAmount()) {
+                throw new AppException(ErrorCode.INSUFFICIENT_FUNDS_TRANSACTION);
+            }
+            fund.setBalance(fund.getBalance() - fundTransaction.getAmount());
+        }
+
+        fundTransaction.setStatus(2); // Đánh dấu đã duyệt
+        fundTransaction = fundTransactionRepository.save(fundTransaction);
+        return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
+    }
+
+    // Từ chối giao dịch
+    @Transactional
+    public FundTransactionResponse rejectTransaction(String id) {
+        FundTransaction fundTransaction = fundTransactionRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.FUND_TRANSACTION_NOT_EXISTS));
+
+        // Chỉ từ chối các giao dịch đang chờ duyệt
+        if (fundTransaction.getStatus() != 1) {
+            throw new AppException(ErrorCode.TRANSACTION_ALREADY_PROCESSED);
+        }
+
+        // Đặt trạng thái thành từ chối
+        fundTransaction.setStatus(0); // Từ chối
+
+        fundTransaction = fundTransactionRepository.save(fundTransaction);
+        return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
+    }
+
 
     @Transactional
     public void delete(String id) {

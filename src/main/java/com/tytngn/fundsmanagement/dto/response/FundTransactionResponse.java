@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 public class FundTransactionResponse {
     String id;
     double amount;
+    String description;
+    int status;
     LocalDateTime transDate;
 
     UserSimpleResponse user;
