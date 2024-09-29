@@ -12,6 +12,7 @@ var dataTable;
 let selectedData; // Biến lưu dữ liệu quỹ đã chọn
 var token;
 
+// Hiển thị bảng danh sách giao dịch rút quỹ
 $(document).ready(function () {
     utils.introspect();
     // token = utils.getCookie('authToken');
@@ -169,12 +170,12 @@ $("#btn-add-withdraw").on("click", function () {
     $("#modal-body").append(`
         <div class="form-group">
             <label for="modal_fund_name">Tên quỹ</label>
-            <select class="form-control" id="modal_fund_name"></select>
+            <select class="form-control" id="modal_fund_name" style="width: 100%;"></select>
         </div>
 
         <div class="form-group">
             <label for="modal_transaction_type">Loại giao dịch</label>
-            <select class="form-control" id="modal_transaction_type"></select>
+            <select class="form-control" id="modal_transaction_type" style="width: 100%;"></select>
         </div>
 
         <div class="form-group">
@@ -197,6 +198,24 @@ $("#btn-add-withdraw").on("click", function () {
             <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
         </button>
     `);
+
+    $('#modal_fund_name').select2({
+        placeholder: "Chọn quỹ",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    })
+
+    $('#modal_transaction_type').select2({
+        placeholder: "Chọn loại giao dịch",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    })
+
+    // Đặt lại giá trị của select-dropdown về null
+    $('#modal_fund_name').append("<option disabled selected >Chọn quỹ</option>");
+    $('#modal_transaction_type').append("<option disabled selected >Chọn loại giao dịch</option>");
 
     $("#modal-id").modal("show");
 
@@ -406,16 +425,14 @@ $("#btn-confirm-withdraw").on("click", function () {
                             </div>
 
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" style="font-size: 0.9rem;" for="modal_transaction_status">Trạng thái</label>
-
-                                <div class="col-sm-4">
+                                <div class="col-sm-6">
                                     <div class="form-check">
                                         <input type="radio" class="form-check-input ml-0" name="modal_transaction_status" id="approve" value="approve">
                                         <label class="form-check-label">Duyệt</label>
                                     </div>
                                 </div>
 
-                                <div class="col-sm-4">
+                                <div class="col-sm-6">
                                     <div class="form-check">
                                         <input type="radio" class="form-check-input ml-0" name="modal_transaction_status" id="reject" value="reject">
                                         <label class="form-check-label">Từ chối</label>

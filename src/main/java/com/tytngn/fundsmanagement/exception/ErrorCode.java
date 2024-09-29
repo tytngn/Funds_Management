@@ -85,50 +85,52 @@ public enum ErrorCode {
     // quỹ ngưng hoạt động
     INACTIVE_FUND (1030, "Inactive fund.", HttpStatus.GONE),
 
-    // quan hệ giữa user và fund không tồn tại
-    USERFUNDS_NOT_EXISTS(1031, "User funds not exists.", HttpStatus.NOT_FOUND),
+    // Phân quyền giao dịch quỹ cho người dùng đã tồn tại
+    FUND_PERMISSION_EXISTS(1031, "Permission already exists for user", HttpStatus.CONFLICT),
+    // Phân quyền giao dịch quỹ cho người dùng không tồn tại
+    FUND_PERMISSION_NOT_EXISTS(1032, "No permission found for user", HttpStatus.NOT_FOUND),
 
     // giao dịch không tồn tại
-    FUND_TRANSACTION_NOT_EXISTS(1032, "Fund transaction not found.", HttpStatus.NOT_FOUND),
+    FUND_TRANSACTION_NOT_EXISTS(1033, "Fund transaction not found.", HttpStatus.NOT_FOUND),
     // giao dịch đã tồn tại
-    FUND_TRANSACTION_EXISTS(1033, "Fund transaction already exists.", HttpStatus.CONFLICT),
+    FUND_TRANSACTION_EXISTS(1034, "Fund transaction already exists.", HttpStatus.CONFLICT),
     // giao dịch không đủ số dư
-    INSUFFICIENT_FUNDS_TRANSACTION(1034, "Insufficient funds transaction.", HttpStatus.CONFLICT),
+    INSUFFICIENT_FUNDS_TRANSACTION(1035, "Insufficient funds transaction.", HttpStatus.CONFLICT),
     // giao dịch đã được xử lý
-    TRANSACTION_ALREADY_PROCESSED(1035, "Transaction already processed.", HttpStatus.CONFLICT),
+    TRANSACTION_ALREADY_PROCESSED(1036, "Transaction already processed.", HttpStatus.CONFLICT),
 
     // danh mục thanh toán đã tồn tại
-    PAYMENT_CATEGORY_EXISTS(1036, "Payment category already exists.", HttpStatus.CONFLICT),
+    PAYMENT_CATEGORY_EXISTS(1037, "Payment category already exists.", HttpStatus.CONFLICT),
     // danh mục thanh toán không tồn tại
-    PAYMENT_CATEGORY_NOT_EXISTS(1037, "Payment category not found.", HttpStatus.NOT_FOUND),
+    PAYMENT_CATEGORY_NOT_EXISTS(1038, "Payment category not found.", HttpStatus.NOT_FOUND),
 
     // đề nghị thanh toán không tồn tại
-    PAYMENT_REQUEST_NOT_EXISTS(1038, "Payment request not found.", HttpStatus.NOT_FOUND),
+    PAYMENT_REQUEST_NOT_EXISTS(1039, "Payment request not found.", HttpStatus.NOT_FOUND),
     // đề nghị thanh toán đã tồn tại
-    PAYMENT_REQUEST_EXISTS(1039, "Payment request already exists.", HttpStatus.CONFLICT),
+    PAYMENT_REQUEST_EXISTS(1040, "Payment request already exists.", HttpStatus.CONFLICT),
     // đề nghị thanh toán đã được gửi, không thể chỉnh sửa
-    PAYMENT_REQUEST_NOT_EDITABLE(1040, "Payment request is not editable", HttpStatus.FORBIDDEN),
+    PAYMENT_REQUEST_NOT_EDITABLE(1041, "Payment request is not editable", HttpStatus.FORBIDDEN),
 
     // hoá đơn không tồn tại
-    INVOICE_NOT_EXISTS(1041, "Invoice not exists.", HttpStatus.NOT_FOUND),
+    INVOICE_NOT_EXISTS(1042, "Invoice not exists.", HttpStatus.NOT_FOUND),
     // hoá đơn đã tồn tại
-    INVOICE_EXISTS(1042, "Invoice already exists.", HttpStatus.CONFLICT),
+    INVOICE_EXISTS(1043, "Invoice already exists.", HttpStatus.CONFLICT),
     // hoá đơn không thể xoá
-    INVOICE_CANNOT_BE_DELETED(1043, "Invoice cannot be deleted.", HttpStatus.CONFLICT),
+    INVOICE_CANNOT_BE_DELETED(1044, "Invoice cannot be deleted.", HttpStatus.CONFLICT),
     // hoá đơn cuối cùng không thể xoá
-    LAST_INVOICE_CANNOT_BE_DELETED(1044, "Cannot delete the last invoice from the payment request.", HttpStatus.CONFLICT),
+    LAST_INVOICE_CANNOT_BE_DELETED(1045, "Cannot delete the last invoice from the payment request.", HttpStatus.CONFLICT),
 
     // dự trù ngân sách không tồn tại
-    BUDGET_ESTIMATE_NOT_EXISTS(1045, "Budget estimate not exists.", HttpStatus.NOT_FOUND),
+    BUDGET_ESTIMATE_NOT_EXISTS(1046, "Budget estimate not exists.", HttpStatus.NOT_FOUND),
     // dự trù ngân sách đã được gửi, không thể chỉnh sửa
-    BUDGET_ESTIMATE_NOT_EDITABLE(1046, "Budget estimate is not editable.", HttpStatus.CONFLICT),
+    BUDGET_ESTIMATE_NOT_EDITABLE(1047, "Budget estimate is not editable.", HttpStatus.CONFLICT),
 
     // hoạt động dự trù không tồn tại
-    BUDGET_ACTIVITY_NOT_EXISTS(1047, "Budget activity not exists.", HttpStatus.NOT_FOUND),
+    BUDGET_ACTIVITY_NOT_EXISTS(1048, "Budget activity not exists.", HttpStatus.NOT_FOUND),
     // hoạt động dự trù không thể xoá
-    BUDGET_ACTIVITY_CANNOT_BE_DELETE(1048, "Budget activity cannot be deleted.", HttpStatus.CONFLICT),
+    BUDGET_ACTIVITY_CANNOT_BE_DELETE(1049, "Budget activity cannot be deleted.", HttpStatus.CONFLICT),
     // hoạt động dự trù cuối cùng không thể xoá
-    LAST_BUDGET_ACTIVITY_CANNOT_BE_DELETE(1049, "Cannot delete the last budget activity from the budget estimate.", HttpStatus.CONFLICT),
+    LAST_BUDGET_ACTIVITY_CANNOT_BE_DELETE(1050, "Cannot delete the last budget activity from the budget estimate.", HttpStatus.CONFLICT),
 
     ;
 

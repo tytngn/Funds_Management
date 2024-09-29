@@ -15,5 +15,4 @@ public class FundSimpleResponse {
     String fundName;
     int status;
     String description;
-
 }

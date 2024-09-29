@@ -4,16 +4,21 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserFundRequest {
+public class FundPermissionRequest {
 
-    String userId;
+    List<String> userId;
     String fundId;
 
     @NotNull(message = "DATA_INVALID")
-    int status;
+    boolean canContribute;
+
+    @NotNull(message = "DATA_INVALID")
+    boolean canWithdraw;
 }

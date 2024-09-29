@@ -2,7 +2,6 @@ package com.tytngn.fundsmanagement.mapper;
 
 import com.tytngn.fundsmanagement.dto.request.UserCreationRequest;
 import com.tytngn.fundsmanagement.dto.request.UserUpdateRequest;
-import com.tytngn.fundsmanagement.dto.response.FundMemberResponse;
 import com.tytngn.fundsmanagement.dto.response.UserResponse;
 import com.tytngn.fundsmanagement.dto.response.UserSimpleResponse;
 import com.tytngn.fundsmanagement.entity.User;
@@ -24,8 +23,6 @@ public interface UserMapper {
 
     UserSimpleResponse toUserSimpleResponse(User user);
 
-    @Mapping(target = "status", ignore = true)
-    FundMemberResponse toFundMemberResponse(User user);
 
     // Cập nhật user
     @Mapping(target = "roles", ignore = true)

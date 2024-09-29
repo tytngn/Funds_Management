@@ -44,31 +44,32 @@ const ErrorCode = {
     FUND_EXISTS: { code: 1029, message: "Quỹ đã tồn tại", statusCode: 409 },
     INACTIVE_FUND: { code: 1030, message: "Quỹ ngưng hoạt động", statusCode: 410 },
 
-    USERFUNDS_NOT_EXISTS: { code: 1031, message: "Mối quan hệ giữa người dùng và quỹ không tồn tại", statusCode: 404 },
+    FUND_PERMISSION_EXISTS: { code: 1031, message: "Phân quyền giao dịch quỹ cho người dùng đã tồn tại", statusCode: 409 },
+    FUND_PERMISSION_NOT_EXISTS: { code: 1032, message: "Không tìm thấy quyền cho người dùng", statusCode: 404 },
 
-    FUND_TRANSACTION_NOT_EXISTS: { code: 1032, message: "Giao dịch không tồn tại", statusCode: 404 },
-    FUND_TRANSACTION_EXISTS: { code: 1033, message: "Giao dịch đã tồn tại", statusCode: 409 },
-    INSUFFICIENT_FUNDS_TRANSACTION: { code: 1034, message: "Giao dịch không đủ số dư", statusCode: 409 },
-    TRANSACTION_ALREADY_PROCESSED: { code: 1035, message: "Giao dịch đã được xử lý", statusCode: 409 },
+    FUND_TRANSACTION_NOT_EXISTS: { code: 1033, message: "Giao dịch không tồn tại", statusCode: 404 },
+    FUND_TRANSACTION_EXISTS: { code: 1034, message: "Giao dịch đã tồn tại", statusCode: 409 },
+    INSUFFICIENT_FUNDS_TRANSACTION: { code: 1035, message: "Giao dịch không đủ số dư", statusCode: 409 },
+    TRANSACTION_ALREADY_PROCESSED: { code: 1036, message: "Giao dịch đã được xử lý", statusCode: 409 },
 
-    PAYMENT_CATEGORY_EXISTS: { code: 1036, message: "Danh mục thanh toán đã tồn tại", statusCode: 409 },
-    PAYMENT_CATEGORY_NOT_EXISTS: { code: 1037, message: "Danh mục thanh toán không tồn tại", statusCode: 404 },
+    PAYMENT_CATEGORY_EXISTS: { code: 1037, message: "Danh mục thanh toán đã tồn tại", statusCode: 409 },
+    PAYMENT_CATEGORY_NOT_EXISTS: { code: 1038, message: "Danh mục thanh toán không tồn tại", statusCode: 404 },
 
-    PAYMENT_REQUEST_NOT_EXISTS: { code: 1038, message: "Đề nghị thanh toán không tồn tại", statusCode: 404 },
-    PAYMENT_REQUEST_EXISTS: { code: 1039, message: "Đề nghị thanh toán đã tồn tại", statusCode: 409 },
-    PAYMENT_REQUEST_NOT_EDITABLE: { code: 1040, message: "Đề nghị thanh toán không thể chỉnh sửa", statusCode: 403 },
+    PAYMENT_REQUEST_NOT_EXISTS: { code: 1039, message: "Đề nghị thanh toán không tồn tại", statusCode: 404 },
+    PAYMENT_REQUEST_EXISTS: { code: 1040, message: "Đề nghị thanh toán đã tồn tại", statusCode: 409 },
+    PAYMENT_REQUEST_NOT_EDITABLE: { code: 1041, message: "Đề nghị thanh toán không thể chỉnh sửa", statusCode: 403 },
 
-    INVOICE_NOT_EXISTS: { code: 1041, message: "Hoá đơn không tồn tại", statusCode: 404 },
-    INVOICE_EXISTS: { code: 1042, message: "Hoá đơn đã tồn tại", statusCode: 409 },
-    INVOICE_CANNOT_BE_DELETED: { code: 1043, message: "Hoá đơn không thể xoá", statusCode: 409 },
-    LAST_INVOICE_CANNOT_BE_DELETED: { code: 1044, message: "Không thể xoá hoá đơn cuối cùng của đề nghị thanh toán", statusCode: 409 },
+    INVOICE_NOT_EXISTS: { code: 1042, message: "Hoá đơn không tồn tại", statusCode: 404 },
+    INVOICE_EXISTS: { code: 1043, message: "Hoá đơn đã tồn tại", statusCode: 409 },
+    INVOICE_CANNOT_BE_DELETED: { code: 1044, message: "Hoá đơn không thể xoá", statusCode: 409 },
+    LAST_INVOICE_CANNOT_BE_DELETED: { code: 1045, message: "Không thể xoá hoá đơn cuối cùng của đề nghị thanh toán", statusCode: 409 },
 
-    BUDGET_ESTIMATE_NOT_EXISTS: { code: 1045, message: "Dự trù ngân sách không tồn tại", statusCode: 404 },
-    BUDGET_ESTIMATE_NOT_EDITABLE: { code: 1046, message: "Dự trù ngân sách không thể chỉnh sửa", statusCode: 409 },
+    BUDGET_ESTIMATE_NOT_EXISTS: { code: 1046, message: "Dự trù ngân sách không tồn tại", statusCode: 404 },
+    BUDGET_ESTIMATE_NOT_EDITABLE: { code: 1047, message: "Dự trù ngân sách không thể chỉnh sửa", statusCode: 409 },
 
-    BUDGET_ACTIVITY_NOT_EXISTS: { code: 1047, message: "Hoạt động dự trù không tồn tại", statusCode: 404 },
-    BUDGET_ACTIVITY_CANNOT_BE_DELETE: { code: 1048, message: "Hoạt động dự trù không thể xoá", statusCode: 409 },
-    LAST_BUDGET_ACTIVITY_CANNOT_BE_DELETE: { code: 1049, message: "Không thể xoá hoạt động dự trù cuối cùng của dự trù ngân sách", statusCode: 409 }
+    BUDGET_ACTIVITY_NOT_EXISTS: { code: 1048, message: "Hoạt động dự trù không tồn tại", statusCode: 404 },
+    BUDGET_ACTIVITY_CANNOT_BE_DELETE: { code: 1049, message: "Hoạt động dự trù không thể xoá", statusCode: 409 },
+    LAST_BUDGET_ACTIVITY_CANNOT_BE_DELETE: { code: 1050, message: "Không thể xoá hoạt động dự trù cuối cùng của dự trù ngân sách", statusCode: 409 }
 
 }
 

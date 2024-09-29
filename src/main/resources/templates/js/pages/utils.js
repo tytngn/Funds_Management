@@ -197,3 +197,22 @@ export function getErrorMessage(code) {
     }
     return "Mã lỗi không xác định";
 }
+
+// xử lý lỗi Ajax
+function handleAjaxError(xhr) {
+    var message = 'Lỗi không xác định, không có mã lỗi';
+    try {
+        var response = JSON.parse(xhr.responseText);
+        if (response.code) {
+            message = getErrorMessage(response.code);
+        }
+    } catch (e) {
+        // Lỗi khi parse JSON
+        console.log("JSON parse error");
+        message = 'Lỗi không xác định, không có mã lỗi';
+    }
+    Toast.fire({
+        icon: "error",
+        title: message
+    });
+}

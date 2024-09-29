@@ -8,10 +8,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FundMemberResponse {
+public class FundPermissionResponse {
     String id;
-    String username;
-    String email;
-    String fullname;
-    int status;
+    UserSimpleResponse user;
+    FundSimpleResponse fund;
+    boolean canContribute;
+    boolean canWithdraw;
 }

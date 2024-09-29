@@ -14,4 +14,5 @@ public class UserSimpleResponse {
     String username;
     String email;
     String fullname;
+    DepartmentSimpleResponse department;
 }
