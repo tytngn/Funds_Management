@@ -36,7 +36,7 @@ public class User {
     String phone;
 
     LocalDate dob;
-    int gender;
+    int gender; // 0: nam, 1: nữ, 2: khác
 
     @Column(nullable = false)
     int status = 1; // 0: vô hiệu hoá, 1: đang hoạt động

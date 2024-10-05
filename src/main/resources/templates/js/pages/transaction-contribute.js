@@ -1,4 +1,5 @@
 import * as utils from "/js/pages/utils.js";
+utils.introspect();
 
 // sử dụng SweetAlert2
 var Toast = Swal.mixin({
@@ -9,51 +10,328 @@ var Toast = Swal.mixin({
 });
 
 var dataTable;
-let selectedData; // Biến lưu dữ liệu quỹ đã chọn
+let selectedData; // Biến lưu dữ liệu đã chọn
+var fundOption = [];
+var transTypeOption = [];
+var fundId;
+var transTypeId;
+var startDate;
+var endDate;
 
 $(document).ready(function () {
-    utils.introspect();
-    // token = utils.getCookie('authToken');
-    utils.setAjax();
 
-    dataTable = $("#transaction-contribute-table").DataTable({
-        fixedHeader: true,
-        processing: true,
-        paging: true,
-        pagingType: "simple_numbers",
-        searching: false,
-        ordering: true,
-        lengthChange: true,
-        responsive: true,
+    // Nạp dữ liệu lên mảng fundOption
+    // Gọi api để lấy tên quỹ
+    $.ajax({
+        type: "GET",
+        url: "/api/funds/active",
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if (res.code === 1000) {
+                let funds = res.result;
+                let fundNameDropdown = $("#fund-select");
+                fundOption = [];
+                $('#fund-select').append("<option disabled selected >Chọn quỹ</option>");
+                // Thêm các quỹ vào dropdown
+                funds.forEach(function(fund) {
+                    fundOption.push({
+                        id: fund.id,
+                        text: fund.fundName,
+                    })
+                    fundNameDropdown.append($('<option>', {
+                        value: fund.id, // Gán giá trị cho thuộc tính value
+                        text: fund.fundName // Gán văn bản hiển thị
+                    }));
+                });
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: "Không thể lấy danh sách quỹ<br>" + res.message,
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            var err = utils.handleAjaxError(xhr);
+            Toast.fire({
+                icon: "error",
+                title: err.message
+            });
+        }
+    });
+    // Select "Tên quỹ"
+    $('#fund-select').select2({
+        placeholder: "Chọn quỹ",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    });
 
-        // Gọi AJAX đến server để lấy dữ liệu
-        ajax: {
-            url: "/api/fundTransactions", // Đường dẫn API
+    
+    // Nạp dữ liệu lên mảng transTypeOption
+    // Gọi api để lấy loại giao dịch
+    $.ajax({
+        type: "GET",
+        url: "/api/transactionTypes/contribute",
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if (res.code === 1000) {
+                let transactionTypes = res.result;
+                let transactionTypeDropdown = $("#trans-type-select");
+                transTypeOption = [];
+                $('#trans-type-select').append("<option disabled selected >Chọn loại giao dịch</option>");
+                
+                // Thêm các loại giao dịch vào dropdown
+                transactionTypes.forEach(function(transactionType) {
+                    transTypeOption.push({
+                        id: transactionType.id,
+                        text: transactionType.name,
+                    })
+                    transactionTypeDropdown.append($('<option>', {
+                        value: transactionType.id, // Gán giá trị cho thuộc tính value
+                        text: transactionType.name // Gán văn bản hiển thị
+                    }));
+                });
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: "Không thể lấy danh sách loại giao dịch<br>" + res.message,
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            var err = utils.handleAjaxError(xhr);
+            Toast.fire({
+                icon: "error",
+                title: err.message
+            });
+        }
+    });
+    // Select "Loại giao dịch"
+    $('#trans-type-select').select2({
+        placeholder: "Chọn loại giao dịch",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    });
+
+
+    // Select "Loại bộ lọc"
+    $('#filter-type-select').select2({
+        placeholder: "Chọn loại bộ lọc",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    });
+    // Select "Phòng ban"
+    $('#department-select').select2({
+        placeholder: "Chọn phòng ban",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    });
+    // Select "Cá nhân"
+    $('#individual-select').select2({
+        placeholder: "Chọn cá nhân",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    });
+
+    // Bắt sự kiện thay đổi giá trị select "Loại bộ lọc"
+    $('#filter-type-select').on('change', function() {
+        var filterType = $(this).val();
+
+        // Reset class về mặc định trước
+        $('.form-group .col-sm-2').removeClass('col-sm-2').addClass('col-sm-3');
+
+        // Ẩn tất cả các trường trước
+        $('#trans-times-div').prop("hidden", true);
+        $('#department-div').prop("hidden", true);
+        $('#individual-div').prop("hidden", true);
+        $('#individual-select').prop('disabled', true);
+
+        // Hiển thị trường tương ứng với loại bộ lọc đã chọn
+        if (filterType === 'time') {
+            $('#trans-times-div').prop("hidden", false); // Hiển thị Date Range Picker
+        } else if (filterType === 'department') {
+            $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
+            loadDepartments();
+        }
+         else if (filterType === 'individual') {
+            // Thay đổi class từ col-sm-3 sang col-sm-2 chỉ cho các thẻ không phải là "Tên quỹ" và "Loại giao dịch"
+            $('.form-group .col-sm-3').not('#fund-select-div, #trans-type-select-div').removeClass('col-sm-3').addClass('col-sm-2');
+
+            $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
+            $('#department-select').append("<option disabled selected >Chọn phòng ban</option>");
+            $('#individual-div').prop("hidden", false); // Hiển thị Select Cá Nhân nhưng sẽ disabled cho đến khi chọn phòng ban
+            $('#individual-select').append("<option disabled selected >Chọn cá nhân</option>");
+
+            loadDepartments();
+        }
+    });
+
+    // Date Range Picker
+    $('input[name="datefilter"]').daterangepicker({
+        autoUpdateInput: false,
+        showDropdowns: true,
+        linkedCalendars: false,
+        locale: {
+            cancelLabel: 'Huỷ',
+            applyLabel: 'Áp dụng'
+        }
+    });
+    // Nút "Áp dụng" trong Date Range Picker
+    $('input[name="datefilter"]').on('apply.daterangepicker', function(ev, picker) {
+        // Hiển thị lên ô input
+        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+
+        startDate = picker.startDate.format('YYYY-MM-DD');
+        endDate = picker.endDate.format('YYYY-MM-DD');
+    });
+    // Nút "Huỷ" trong Date Range Picker
+    $('input[name="datefilter"]').on('cancel.daterangepicker', function(ev, picker) {
+        startDate = '';
+        endDate = '';
+        $(this).val('');
+    });
+
+    // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
+    function loadDepartments() {
+        $.ajax({
             type: "GET",
-            dataType: "json",
-            dataSrc: function (res) {
+            url: "/api/departments",
+            headers: utils.defaultHeaders(),
+            success: function (res) {
+                if (res.code === 1000) {
+                    let departments = res.result;
+                    let departmentDropdown = $("#department-select");
+                    let userDropdown = $("#individual-select");
+
+                    departmentDropdown.empty();
+                    departmentDropdown.append("<option disabled selected >Chọn phòng ban</option>");
+    
+                    // Thêm các phòng ban vào dropdown
+                    departments.forEach(function(department) {
+                        departmentDropdown.append(`
+                            <option value="${department.id}">${department.name}</option>
+                        `);              
+                    });
+                    
+                    // Gắn sự kiện khi chọn phòng ban
+                    departmentDropdown.on("change", function(){
+                        let selectedDepartmentId = $(this).val();
+
+                        userDropdown.prop("disabled", false);
+    
+                        // Xóa các thành viên cũ trong dropdown
+                        userDropdown.empty();
+    
+                        // Tìm phòng ban đã chọn
+                        let selectedDepartment = departments.find(dept => dept.id === selectedDepartmentId);
+    
+                        // Thêm các thành viên của phòng ban đã chọn vào dropdown
+                        if (selectedDepartment && selectedDepartment.users) {
+                            selectedDepartment.users.forEach(function(user) {
+                                userDropdown.append(`
+                                    <option value="${user.id}">${user.fullname}</option>
+                                `);
+                            });
+                        } else {
+                            // Nếu không có thành viên nào
+                            userDropdown.append(`
+                                <option value="">Không có thành viên</option>
+                            `);
+                        }
+                        userDropdown.select2({
+                            placeholder: "Chọn cá nhân",
+                            allowClear: true,
+                            theme: "bootstrap",
+                            closeOnSelect: true,
+                        });
+                    });
+
+                    // Áp dụng Select2 với placeholder cho phòng ban
+                    departmentDropdown.select2({
+                        placeholder: "Chọn phòng ban",
+                        allowClear: true,
+                        theme: "bootstrap",
+                        closeOnSelect: true,
+                    });
+    
+                } else {
+                    Toast.fire({
+                        icon: "error",
+                        title: "Không thể lấy danh sách phòng ban<br>" + res.message,
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+            }
+        });
+    }
+
+
+    // Bắt sự kiện khi chọn giá trị từ select quỹ, loại giao dịch
+    $('#fund-select, #trans-type-select').on("change", function(){
+        fundId = $('#fund-select').val(); // Lấy giá trị của select quỹ
+        transTypeId = $('#trans-type-select').val(); // Lấy giá trị của select loại giao dịch
+    });
+
+
+    // Nhấn nút "Xem"
+    $("#btn-view-contribute").on("click", function () {    
+        // Nếu không có giá trị thì gán ''
+        fundId = fundId || '';
+        transTypeId = transTypeId || '';
+        startDate = startDate || ''; 
+        endDate = endDate || ''; 
+        
+        if (fundId == '' && transTypeId == '' && startDate == '' && endDate == ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn quỹ hoặc loại giao dịch!",
+            });
+            return;
+        }
+
+        console.log("quỹ " + fundId);
+        console.log("loại " + transTypeId);
+        console.log("bắt đầu " + startDate);
+        console.log("kết thúc " + endDate );
+       
+        // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
+        $.ajax({
+            url: "/api/fundTransactions/contribution?fundId=" + fundId + "&transTypeId=" + transTypeId + "&startDate=" + startDate + "&endDate=" + endDate, // Đường dẫn API của bạn
+            type: "GET",
+            headers: utils.defaultHeaders(),
+            success: function(res) {
                 if (res.code == 1000) {
                     console.log("success");
                     
                     var data = [];
                     var counter = 1;
                     res.result.forEach(function (transaction) {
-                        if (transaction.transactionType.status === 1) {
-                            data.push({
-                                number: counter++, // Số thứ tự tự động tăng
-                                amount: transaction.amount, 
-                                description: transaction.description,
-                                status: transaction.status,
-                                transDate: formatDate(transaction.transDate),
-                                trader: transaction.user.fullname,
-                                fund: transaction.fund.fundName,
-                                transactionType: transaction.transactionType.name,
-                                id: transaction.id, // ID của transaction 
-                            });
-                        }
+                        data.push({
+                            number: counter++, // Số thứ tự tự động tăng
+                            amount: transaction.amount, 
+                            description: transaction.description,
+                            status: transaction.status,
+                            transDate: formatDate(transaction.transDate),
+                            trader: transaction.user.fullname,
+                            fund: transaction.fund.fundName,
+                            transactionType: transaction.transactionType.name,
+                            id: transaction.id, // ID của transaction 
+                        });
                     });
+    
+                    dataTable.clear().rows.add(data).draw();
                 
-                    return data; // Trả về dữ liệu đã được xử lý
+                    // return data; // Trả về dữ liệu đã được xử lý
                 } else {
                     Toast.fire({
                         icon: "error",
@@ -61,19 +339,45 @@ $(document).ready(function () {
                     });
                 }
             },
-        },
+            error: function (xhr, status, error) {
+                if (xhr.status == 401 || xhr.status == 403){
+                    Toast.fire ({
+                        icon: "error",
+                        title: "Bạn không có quyền truy cập!",
+                        timer: 1500,
+                        didClose: function() {
+                            window.location.href = "/";
+                        }
+                    });
+                }
+            },
+        });
+    });
+
+    // Bảng đóng góp quỹ        
+    dataTable = $('#transaction-contribute-table').DataTable({
+        fixedHeader: true,
+        processing: true,
+        paging: true,
+        pagingType: "simple_numbers",
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        responsive: true,
+        dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
+
         columnDefs: [
             {
-              targets: '_all', // Áp dụng cho tất cả các cột
-              className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
+                targets: '_all', // Áp dụng cho tất cả các cột
+                className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
             }
         ],
+
         columns: [
             { data: "number" },
             { data: "fund" },
             { data: "transactionType" },
             { data: "amount" },
-            { data: "description" },
             { data: "trader" },
             { data: "transDate" },
             { 
@@ -113,17 +417,20 @@ $(document).ready(function () {
             var api = this.api();
             var start = api.page.info().start;
             api
-              .column(0, { page: "current" })
-              .nodes()
-              .each(function (cell, i) {
+                .column(0, { page: "current" })
+                .nodes()
+                .each(function (cell, i) {
                 cell.innerHTML = start + i + 1;
-              });
+                });
         },
         initComplete: function() {
             $("a.paginate_button").addClass("custom-paginate");
         },
+
     });
+
 });
+
 
 // Bắt sự kiện khi chọn dòng
 $('#transaction-contribute-table tbody').on('click', 'tr', function () {
@@ -133,6 +440,7 @@ $('#transaction-contribute-table tbody').on('click', 'tr', function () {
     selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
     console.log(selectedData.id);
 });
+
 
 // Hàm định dạng ngày tháng
 function formatDate(dateString) {
@@ -151,12 +459,21 @@ function formatDate(dateString) {
     return `${hours}:${minutes}:${seconds} ${datePart}`;
 }
 
+
 // Clear modal
 function clear_modal() {
     $("#modal-title").empty();
     $("#modal-body").empty();
     $("#modal-footer").empty();
 }
+
+
+// Bắt sự kiện keyup "Tìm kiếm"
+$("#search-input").on("keyup", function () {
+    console.log("tìm kiếm");
+    dataTable.search(this.value).draw();
+});
+
 
 // Nhấn nút "Thêm mới"
 $("#btn-add-contribute").on("click", function () {
@@ -166,23 +483,23 @@ $("#btn-add-contribute").on("click", function () {
   
     $("#modal-body").append(`
         <div class="form-group">
-            <label for="modal_fund_name">Tên quỹ</label>
-            <select class="form-control" id="modal_fund_name" style="width: 100%;"></select>
+            <label for="modal-fund-name">Tên quỹ</label>
+            <select class="form-control" id="modal-fund-name" style="width: 100%;"></select>
         </div>
 
         <div class="form-group">
-            <label for="modal_transaction_type">Loại giao dịch</label>
-            <select class="form-control" id="modal_transaction_type" style="width: 100%;"></select>
+            <label for="modal-transaction-type">Loại giao dịch</label>
+            <select class="form-control" id="modal-transaction-type" style="width: 100%;"></select>
         </div>
 
         <div class="form-group">
-            <label for="modal_transaction_amount_input">Số tiền</label>
-            <input type="text" class="form-control" id="modal_transaction_amount_input" placeholder="Nhập số tiền giao dịch">
+            <label for="modal-transaction-amount-input">Số tiền</label>
+            <input type="text" class="form-control" id="modal-transaction-amount-input" placeholder="Nhập số tiền giao dịch">
         </div>
 
         <div class="form-group">
-            <label for="modal_transaction_description_input">Ghi chú</label>
-            <textarea class="form-control" id="modal_transaction_description_input" rows="4"></textarea>
+            <label for="modal-transaction-description-input">Ghi chú</label>
+            <textarea class="form-control" id="modal-transaction-description-input" rows="4"></textarea>
         </div>
       
     `);
@@ -196,91 +513,39 @@ $("#btn-add-contribute").on("click", function () {
         </button>
     `);
 
-    $('#modal_fund_name').select2({
+    $('#modal-fund-name').select2({
         placeholder: "Chọn quỹ",
         allowClear: true,
         theme: "bootstrap",
         closeOnSelect: true,
+        data: fundOption
     });
 
-    $('#modal_transaction_type').select2({
+    $('#modal-transaction-type').select2({
         placeholder: "Chọn loại giao dịch",
         allowClear: true,
         theme: "bootstrap",
         closeOnSelect: true,
+        data: transTypeOption
     });
 
     // Đặt lại giá trị của select-dropdown về null
-    $('#modal_fund_name').append("<option disabled selected >Chọn quỹ</option>");
-    $('#modal_transaction_type').append("<option disabled selected >Chọn loại giao dịch</option>");
+    $('#modal-fund-name').append("<option disabled selected >Chọn quỹ</option>");
+    $('#modal-transaction-type').append("<option disabled selected >Chọn loại giao dịch</option>");
 
     $("#modal-id").modal("show");
-    // Gọi api để lấy tên quỹ
-    $.ajax({
-        type: "GET",
-        url: "/api/funds",
-        success: function (res) {
-            if (res.code === 1000) {
-                let funds = res.result;
-                let fundNameDropdown = $("#modal_fund_name");
-                
-                // Thêm các quỹ vào dropdown
-                funds.forEach(function(fund) {
-                    
-                    // Nếu quỹ đang hoạt động
-                    if (fund.status === 1) {
-                        fundNameDropdown.append(`
-                            <option value="${fund.id}">${fund.fundName}</option>
-                        `);
-                    }                  
-                });
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: "Không thể lấy danh sách quỹ<br>" + res.message,
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            utils.handleAjaxError(xhr);
-        }
-    });
 
-    // Gọi api để lấy loại giao dịch
-    $.ajax({
-        type: "GET",
-        url: "/api/transactionTypes",
-        success: function (res) {
-            if (res.code === 1000) {
-                let transactionTypes = res.result;
-                let transactionTypeDropdown = $("#modal_transaction_type");
-                
-                // Thêm các loại giao dịch vào dropdown
-                transactionTypes.forEach(function(transactionType) {
-                    if(transactionType.status === 1){
-                        transactionTypeDropdown.append(`
-                            <option value="${transactionType.id}">${transactionType.name}</option>
-                        `);
-                    }
-                });
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: "Không thể lấy danh sách loại giao dịch<br>" + res.message,
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            utils.handleAjaxError(xhr);
-        }
-    });
-
+    
     // Lưu thông tin giao dịch
     $("#modal-submit-btn").click(function () {
-        let fund = $("#modal_fund_name").val();
-        let transactionType = $("#modal_transaction_type").val();
-        let amount = $("#modal_transaction_amount_input").val();
-        let description = $("#modal_transaction_description_input").val();
+        let fund = $("#modal-fund-name").val();
+        let transactionType = $("#modal-transaction-type").val();
+        let amount = $("#modal-transaction-amount-input").val();
+        let description = $("#modal-transaction-description-input").val();
+
+        console.log(fund);
+        console.log(transactionType);
+        
     
         if(amount == null || amount.trim()==""){
             Toast.fire({
@@ -298,7 +563,8 @@ $("#btn-add-contribute").on("click", function () {
             $.ajax({
                 type: "POST",
                 url: "/api/fundTransactions",
-                contentType: "application/json",
+                headers: utils.defaultHeaders(),
+                // contentType: "application/json",
                 data: JSON.stringify({
                     amount: amount,
                     description: description,
@@ -319,29 +585,19 @@ $("#btn-add-contribute").on("click", function () {
                             title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
                         });
                     }
-                    // Tải lại bảng chức năng
-                    dataTable.ajax.reload();
-
-                    // Reset form 
-                    var form = $('#modal-id')[0];
-                    if (form && typeof form.reset === 'function') {
-                        form.reset(); // Reset form nếu có
-                    } else {
-                        // Nếu không có form hoặc không hỗ trợ reset, xoá dữ liệu thủ công
-                        $('#modal-id').find('input, textarea, select').val('');
-                    }
-
-                    // Đóng modal
-                    $("#modal-id").modal('hide');
                 },
                 error: function (xhr, status, error) {
+                    var err = utils.handleAjaxError(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: "Lỗi! Thực hiện không thành công",
+                        title: err.message
                     });
                 },
             });
-            $("#modal_id").modal("hide");
+            $("#modal-id").modal("hide");
+            $("#modal-id").on('hidden.bs.modal', function () {
+                $("#btn-view-contribute").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
+            });
         }
     });
 
@@ -372,6 +628,7 @@ $("#btn-confirm-contribute").on("click", function () {
         $.ajax({
             type: "GET",
             url: "/api/fundTransactions/" + fundTransactionId,
+            headers: utils.defaultHeaders(),
             success: function (res) {
                 if (res.code === 1000) {
                     let fundTransaction = res.result;
@@ -391,41 +648,41 @@ $("#btn-confirm-contribute").on("click", function () {
                     $("#modal-body").append(`
                         <form class="forms-sample">
                             <div class="form-group">
-                                <label for="modal_fund_name_input">Tên quỹ</label>
-                                <input type="text" class="form-control" id="modal_fund_name_input" value="${fundTransaction.fund.fundName}" readonly>
+                                <label for="modal-fund-name-input">Tên quỹ</label>
+                                <input type="text" class="form-control" id="modal-fund-name-input" value="${fundTransaction.fund.fundName}" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="modal_transaction_type">Loại giao dịch</label>
-                                <input type="text" class="form-control" id="modal_transaction_type" value="${fundTransaction.transactionType.name}" readonly>
+                                <label for="modal-transaction-type">Loại giao dịch</label>
+                                <input type="text" class="form-control" id="modal-transaction-type" value="${fundTransaction.transactionType.name}" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="modal_transaction_amount">Số tiền</label>
-                                <input type="text" class="form-control" id="modal_transaction_amount" value="${fundTransaction.amount}" readonly>
+                                <label for="modal-transaction-amount">Số tiền</label>
+                                <input type="text" class="form-control" id="modal-transaction-amount" value="${fundTransaction.amount}" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="modal_transaction_time">Thời gian giao dịch</label>
-                                <input type="text" class="form-control" id="modal_transaction_time" value="${formatDate(fundTransaction.transDate)}" readonly>
+                                <label for="modal-transaction-time">Thời gian giao dịch</label>
+                                <input type="text" class="form-control" id="modal-transaction-time" value="${formatDate(fundTransaction.transDate)}" readonly>
                             </div>
 
                             <div class="form-group">
-                                <label for="modal_transaction_description">Mô tả</label>
-                                <textarea class="form-control" id="modal_transaction_description" rows="4" readonly>${fundTransaction.description}</textarea>
+                                <label for="modal-transaction-description">Mô tả</label>
+                                <textarea class="form-control" id="modal-transaction-description" rows="4" readonly>${fundTransaction.description}</textarea>
                             </div>
 
                             <div class="form-group row">
                                 <div class="col-sm-6">
                                     <div class="form-check">
-                                        <input type="radio" class="form-check-input ml-0" name="modal_transaction_status" id="approve" value="approve">
+                                        <input type="radio" class="form-check-input ml-0" name="modal-transaction-status" id="approve" value="approve">
                                         <label class="form-check-label">Duyệt</label>
                                     </div>
                                 </div>
 
                                 <div class="col-sm-6">
                                     <div class="form-check">
-                                        <input type="radio" class="form-check-input ml-0" name="modal_transaction_status" id="reject" value="reject">
+                                        <input type="radio" class="form-check-input ml-0" name="modal-transaction-status" id="reject" value="reject">
                                         <label class="form-check-label">Từ chối</label>
                                     </div>
                                 </div>
@@ -450,7 +707,7 @@ $("#btn-confirm-contribute").on("click", function () {
                     $("#modal-submit-btn").click(function () {
                 
                         // Lấy giá trị từ radio button
-                        let transactionStatus = $("input[name='modal_transaction_status']:checked").val();
+                        let transactionStatus = $("input[name='modal-transaction-status']:checked").val();
     
                         if (!transactionStatus) {
                             Toast.fire({
@@ -469,7 +726,8 @@ $("#btn-confirm-contribute").on("click", function () {
                             $.ajax({
                                 type: "PUT",
                                 url: apiUrl,
-                                contentType: "application/json",
+                                headers: utils.defaultHeaders(),
+                                // contentType: "application/json",
                                 data: JSON.stringify({
                                     id: fundTransactionId
                                 }),
@@ -485,18 +743,20 @@ $("#btn-confirm-contribute").on("click", function () {
                                     title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
                                     });
                                 }
-                                // Tải lại bảng chức năng
-                                dataTable.ajax.reload();
                                 },
                                 error: function (xhr, status, error) {
-                                Toast.fire({
-                                    icon: "error",
-                                    title: "Lỗi! Thực hiện không thành công",
-                                });
+                                    var err = utils.handleAjaxError(xhr);
+                                    Toast.fire({
+                                        icon: "error",
+                                        title: err.message
+                                    });
                                 },
                             });
-                            $("#modal-id").modal("hide");
                         }
+                        $("#modal-id").modal("hide");
+                        $("#modal-id").on('hidden.bs.modal', function () {
+                            $("#btn-view-contribute").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
+                        });
                     });
 
                     // Khi nhấn nút "Huỷ bỏ"
@@ -511,9 +771,10 @@ $("#btn-confirm-contribute").on("click", function () {
                 }
             },
             error: function (xhr, status, error) {
+                var err = utils.handleAjaxError(xhr);
                 Toast.fire({
-                icon: "error",
-                title: "Lỗi! Không thể lấy thông tin giao dịch",
+                    icon: "error",
+                    title: err.message
                 });
             }
         });
@@ -526,3 +787,6 @@ $("#btn-confirm-contribute").on("click", function () {
     }
     
 });
+
+
+

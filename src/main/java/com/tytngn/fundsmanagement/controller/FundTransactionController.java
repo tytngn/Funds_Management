@@ -62,6 +62,42 @@ public class FundTransactionController {
                 .build();
     }
 
+    // Lấy danh sách giao dịch đóng góp quỹ theo quỹ, theo loại giao dịch và theo thời gian
+    @GetMapping("/contribution")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_CONTRIBUTION_BY_FUND_TYPE_AND_DATE'})")
+    public ApiResponse<List<FundTransactionResponse>> getContributionByFundTypeAndDate(
+            @RequestParam (required = false) String fundId,
+            @RequestParam (required = false) String transTypeId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+
+        fundId = (fundId != null && !fundId.isEmpty()) ? fundId : null;
+        transTypeId = (transTypeId != null && !transTypeId.isEmpty()) ? transTypeId : null;
+
+        return ApiResponse.<List<FundTransactionResponse>>builder()
+                .code(1000)
+                .result(fundTransactionService.getContributionByFundTypeAndDate(fundId, transTypeId, startDate, endDate))
+                .build();
+    }
+
+    // Lấy danh sách giao dịch rút quỹ theo quỹ, theo loại giao dịch và theo thời gian
+    @GetMapping("/withdraw")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_WITHDRAW_BY_FUND_TYPE_AND_DATE'})")
+    public ApiResponse<List<FundTransactionResponse>> getWithdrawByFundTypeAndDate(
+            @RequestParam (required = false) String fundId,
+            @RequestParam (required = false) String transTypeId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+
+        fundId = (fundId != null && !fundId.isEmpty()) ? fundId : null;
+        transTypeId = (transTypeId != null && !transTypeId.isEmpty()) ? transTypeId : null;
+
+        return ApiResponse.<List<FundTransactionResponse>>builder()
+                .code(1000)
+                .result(fundTransactionService.getWithdrawByFundTypeAndDate(fundId, transTypeId, startDate, endDate))
+                .build();
+    }
+
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND_TRANSACTION'})")
     ApiResponse<FundTransactionResponse> updateTransaction(@RequestParam String id,

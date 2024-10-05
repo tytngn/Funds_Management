@@ -1,9 +1,7 @@
 package com.tytngn.fundsmanagement.controller;
 
-import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.request.TransactionTypeRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
-import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.dto.response.TransactionTypeResponse;
 import com.tytngn.fundsmanagement.service.TransactionTypeService;
 import jakarta.validation.Valid;
@@ -40,6 +38,26 @@ public class TransactionTypeController {
         return ApiResponse.<List<TransactionTypeResponse>>builder()
                 .code(1000)
                 .result(transactionTypeService.getAll())
+                .build();
+    }
+
+    // Lấy danh sách loại giao dịch đóng góp quỹ
+    @GetMapping("/contribute")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TRANSTYPE_BY_STATUS_CONTRIBUTE'})")
+    ApiResponse<List<TransactionTypeResponse>> getByStatusContribute() {
+        return ApiResponse.<List<TransactionTypeResponse>>builder()
+                .code(1000)
+                .result(transactionTypeService.getByStatusContribute())
+                .build();
+    }
+
+    // Lấy danh sách loại giao dịch rút quỹ
+    @GetMapping("/withdraw")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TRANSTYPE_BY_STATUS_WITHDRAW'})")
+    ApiResponse<List<TransactionTypeResponse>> getByStatusWithdraw() {
+        return ApiResponse.<List<TransactionTypeResponse>>builder()
+                .code(1000)
+                .result(transactionTypeService.getByStatusWithdraw())
                 .build();
     }
 

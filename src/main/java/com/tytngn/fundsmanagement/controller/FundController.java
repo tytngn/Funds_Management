@@ -51,6 +51,15 @@ public class FundController {
                 .build();
     }
 
+    @GetMapping("/active")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ACTIVE_FUNDS'})")
+    ApiResponse<List<FundResponse>> getActiveFunds() {
+        return ApiResponse.<List<FundResponse>>builder()
+                .code(1000)
+                .result(fundService.getActiveFunds())
+                .build();
+    }
+
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND'})")
     ApiResponse<FundResponse> updateFund(@RequestParam String id, @RequestBody @Valid FundRequest request) {

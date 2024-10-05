@@ -9,10 +9,7 @@ import com.tytngn.fundsmanagement.entity.FundTransaction;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
 import com.tytngn.fundsmanagement.mapper.FundTransactionMapper;
-import com.tytngn.fundsmanagement.repository.FundRepository;
-import com.tytngn.fundsmanagement.repository.FundTransactionRepository;
-import com.tytngn.fundsmanagement.repository.TransactionTypeRepository;
-import com.tytngn.fundsmanagement.repository.UserRepository;
+import com.tytngn.fundsmanagement.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,14 +35,17 @@ public class FundTransactionService {
     UserRepository userRepository;
     FundRepository fundRepository;
     TransactionTypeRepository transactionTypeRepository;
+    FundPermissionRepository fundPermissionRepository;
     SecurityExpression securityExpression;
 
+    // Tạo giao dịch
     @Transactional
     public FundTransactionResponse create(FundTransactionRequest request) {
 
+        // Tạo 1 giao dịch
         FundTransaction fundTransaction = fundTransactionMapper.toFundTransaction(request);
         fundTransaction.setStatus(1); // Chờ duyệt
-        fundTransaction.setTransDate(LocalDateTime.now());
+        fundTransaction.setTransDate(LocalDateTime.now()); // Thời gian giao dịch
 
         // Lấy thông tin người dùng đang đăng nhập
         String id = securityExpression.getUserId();
@@ -56,8 +58,9 @@ public class FundTransactionService {
         var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS));
         // Nếu quỹ ngưng hoạt động
-        if(fund.getStatus() == 0)
+        if(fund.getStatus() == 0) {
             throw new AppException(ErrorCode.INACTIVE_FUND);
+        }
         fundTransaction.setFund(fund);
 
         // loại giao dịch
@@ -65,11 +68,27 @@ public class FundTransactionService {
                 new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS));
         fundTransaction.setTransactionType(transactionType);
 
-        fundTransaction = fundTransactionRepository.save(fundTransaction);
+        // Kiểm tra quyền của người dùng đối với quỹ này
+        var fundPermission = fundPermissionRepository.findByUserIdAndFundId(user.getId(), fund.getId());
+        if (fundPermission == null) {
+            throw new AppException(ErrorCode.FUND_PERMISSION_NOT_EXISTS);
+        }
 
+        // Kiểm tra quyền đóng góp quỹ
+        if ((transactionType.getStatus() == 1) && !fundPermission.isCanContribute()) {
+            throw new AppException(ErrorCode.NO_CONTRIBUTION_PERMISSION);
+        }
+
+        // Kiểm tra quyền rút quỹ
+        if ((transactionType.getStatus() == 0) && !fundPermission.isCanWithdraw()) {
+            throw new AppException(ErrorCode.NO_WITHDRAW_PERMISSION);
+        }
+
+        fundTransaction = fundTransactionRepository.save(fundTransaction);
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
     }
 
+    // Lấy danh sách tất cả giao dịch
     public List<FundTransactionResponse> getAll() {
 
         var fundTransaction = fundTransactionRepository.findAll()
@@ -80,26 +99,83 @@ public class FundTransactionService {
         return fundTransaction;
     }
 
+    // Lấy giao dịch bằng ID
     public FundTransactionResponse getById(String id) {
         return fundTransactionMapper.toFundTransactionResponse(fundTransactionRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS)));
     }
 
-    // Tính tổng số tiền đóng góp của user vào fund
-//    public FundContributionResponse getTotalContribution(FundContributionRequest request) {
-//        double total = fundTransactionRepository.findTotalContributionByUserAndFund(request.getUserId(), request.getFundId());
-//
-//        return fundTransactionMapper.toFundContributionResponse(request.getUserId(), request.getFundId(), total);
-//    }
 
-//    public FundContributionResponse getTotalAmountByUserAndFund(FundContributionRequest request) {
-//        Double total = fundTransactionRepository.getTotalAmountByUserAndFund(request.getUserId(), request.getFundId());
-//        if(total == null) {
-//            total = 0.0;
+    // Lấy danh sách giao dịch theo quỹ, theo loại giao dịch và theo thời gian
+    public List<FundTransactionResponse> getContributionByFundTypeAndDate(String fundId, String transTypeId, String startDate, String endDate) {
+        // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        // Chuyển đổi tham số ngày tháng sang LocalDateTime
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            // Xử lý lỗi định dạng ngày tháng
+            throw new AppException(ErrorCode.DATA_INVALID);
+        }
+
+        List<FundTransaction> fundTransactions = fundTransactionRepository.
+                findTransactions(fundId, transTypeId, start, end);
+
+        // Xác định phương thức truy vấn dựa trên các tham số
+//        if (start != null && end != null) {
+//            fundTransactions = (fundId == null && transTypeId == null) ?
+//                    fundTransactionRepository.findByDateRange(start, end) :
+//                    fundTransactionRepository.findByFundIdAndTransactionTypeIdAndDateRange(fundId, transTypeId, start, end);
+//        } else {
+//            fundTransactions = fundTransactionRepository.findByFundIdAndTransactionTypeId(fundId, transTypeId);
 //        }
-//        return fundTransactionMapper.toFundContributionResponse(request.getUserId(), request.getFundId(), total);
-//    }
 
+        return fundTransactions.stream()
+                .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 1) // Lấy loại giao dịch đóng góp quỹ
+                .map(fundTrans -> fundTransactionMapper.toFundTransactionResponse(fundTrans))
+                .toList();
+    }
+
+
+    // Lấy danh sách giao dịch theo quỹ, theo loại giao dịch và theo thời gian
+    public List<FundTransactionResponse> getWithdrawByFundTypeAndDate(String fundId, String transTypeId, String startDate, String endDate) {
+        // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        // Chuyển đổi tham số ngày tháng sang LocalDateTime
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            // Xử lý lỗi định dạng ngày tháng
+            throw new AppException(ErrorCode.DATA_INVALID);
+        }
+
+        List<FundTransaction> fundTransactions = fundTransactionRepository.
+                findTransactions(fundId, transTypeId, start, end);
+
+        return fundTransactions.stream()
+                .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 0) // Lấy loại giao dịch đóng góp quỹ
+                .map(fundTrans -> fundTransactionMapper.toFundTransactionResponse(fundTrans))
+                .toList();
+    }
+
+
+    // Lấy tổng số tiền giao dịch của người dùng trong một quỹ
     public List<FundContributionResponse> getFundTransactionSummary(FundContributionRequest request) {
         List<Object[]> results = fundTransactionRepository.getFundTransactionSummary(request.getFundId());
         List<FundContributionResponse> responseList = new ArrayList<>();
@@ -114,14 +190,17 @@ public class FundTransactionService {
         return responseList;
     }
 
+    // Cập nhật giao dịch
     @Transactional
     public FundTransactionResponse update(String id, FundTransactionRequest request) {
+        // Kiểm tra giao dịch có tồn tại không
         FundTransaction fundTransaction = fundTransactionRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_TRANSACTION_NOT_EXISTS));
 
+        // Cập nhật giao dịch
         fundTransactionMapper.updateFundTransaction(fundTransaction, request);
 
-        fundTransaction.setTransDate(LocalDateTime.now());
+        fundTransaction.setTransDate(LocalDateTime.now()); // thời gian giao dịch
 
         // Lấy thông tin người dùng đang đăng nhập
         String userId = securityExpression.getUserId();
@@ -142,6 +221,22 @@ public class FundTransactionService {
         var transactionType = transactionTypeRepository.findById(request.getTransactionType()).orElseThrow(() ->
                 new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS));
         fundTransaction.setTransactionType(transactionType);
+
+        // Kiểm tra quyền của người dùng đối với quỹ này
+        var fundPermission = fundPermissionRepository.findByUserIdAndFundId(user.getId(), fund.getId());
+        if (fundPermission == null) {
+            throw new AppException(ErrorCode.FUND_PERMISSION_NOT_EXISTS);
+        }
+
+        // Kiểm tra quyền đóng góp quỹ
+        if ((transactionType.getStatus() == 1) && !fundPermission.isCanContribute()) {
+            throw new AppException(ErrorCode.NO_CONTRIBUTION_PERMISSION);
+        }
+
+        // Kiểm tra quyền rút quỹ
+        if ((transactionType.getStatus() == 0) && !fundPermission.isCanWithdraw()) {
+            throw new AppException(ErrorCode.NO_WITHDRAW_PERMISSION);
+        }
 
         return fundTransactionMapper.toFundTransactionResponse(fundTransactionRepository.save(fundTransaction));
     }
@@ -198,6 +293,7 @@ public class FundTransactionService {
     }
 
 
+    // Xoá giao dịch
     @Transactional
     public void delete(String id) {
         var fundTransaction = fundTransactionRepository.findById(id).orElseThrow(() ->

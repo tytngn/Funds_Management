@@ -4,6 +4,7 @@ package com.tytngn.fundsmanagement.service;
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
+import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.Fund;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
@@ -57,6 +58,12 @@ public class FundService {
     public FundResponse getById(String id) {
         return fundMapper.toFundResponse(fundRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS)));
+    }
+
+    // lấy danh sách các quỹ đang hoạt động
+    public List<FundResponse> getActiveFunds () {
+        var funds = fundRepository.findByStatus(1);
+        return funds.stream().map(fund -> fundMapper.toFundResponse(fund)).toList();
     }
 
     public FundResponse update(String id, FundRequest request) {

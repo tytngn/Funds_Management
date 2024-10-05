@@ -15,23 +15,23 @@ let selectedUser;
 
 $(document).ready(function () {
     utils.introspect();
-    // token = utils.getCookie('authToken');
-    utils.setAjax();
 
     dataTable = $("#fund-table").DataTable({
         fixedHeader: true,
         processing: true,
         paging: true,
         pagingType: "simple_numbers",
-        searching: false,
+        searching: true,
         ordering: true,
         lengthChange: true,
         responsive: true,
+        dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
         // Gọi AJAX đến server để lấy dữ liệu
         ajax: {
             url: "/api/funds", // Đường dẫn API
             type: "GET",
             dataType: "json",
+            headers: utils.defaultHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     console.log("success");
@@ -61,6 +61,20 @@ $(document).ready(function () {
             },
             error: function(xhr, status, error){
                 utils.handleAjaxError(xhr);
+            },
+            
+            // xử lý lỗi truy cập
+            error: function (xhr, status, error) {
+                if (xhr.status == 401 || xhr.status == 403){
+                    Toast.fire ({
+                        icon: "error",
+                        title: "Bạn không có quyền truy cập!",
+                        timer: 1500,
+                        didClose: function() {
+                            window.location.href = "/";
+                        }
+                    });
+                }
             },
         },
         columnDefs: [
@@ -143,6 +157,12 @@ function reset_form(){
     }
 }
 
+// Bắt sự kiện keyup "Tìm kiếm"
+$("#search-input").on("keyup", function () {
+    console.log("tìm kiếm");
+    dataTable.search(this.value).draw();
+});
+
 // Nhấn nút "Thêm mới"
 $("#btn-add-fund").on("click", function () {
     clear_modal();
@@ -190,7 +210,8 @@ $("#btn-add-fund").on("click", function () {
             $.ajax({
                 type: "POST",
                 url: "/api/funds",
-                contentType: "application/json",
+                // contentType: "application/json",
+                headers: utils.defaultHeaders(),
                 data: JSON.stringify({
                     fundName: ten,
                     description: description
@@ -219,7 +240,12 @@ $("#btn-add-fund").on("click", function () {
                     $("#modal-id").modal('hide');
                 },
                 error: function(xhr, status, error){
-                    utils.handleAjaxError(xhr);
+                    var err = utils.handleAjaxError(xhr);
+
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
                 },
             });
             $("#modal_id").modal("hide");
@@ -247,6 +273,7 @@ $("#btn-update-fund").on("click", function () {
         $.ajax({
             type: "GET",
             url: "/api/funds/" + fundId,
+            headers: utils.defaultHeaders(),
             success: function (res) {
                 if (res.code === 1000) {
                     let fund = res.result;
@@ -317,7 +344,8 @@ $("#btn-update-fund").on("click", function () {
                         await $.ajax({
                             type: "PUT",
                             url: "/api/funds?id=" + fundId,
-                            contentType: "application/json",
+                            // contentType: "application/json",
+                            headers: utils.defaultHeaders(),
                             data: JSON.stringify({
                                 fundName: name,
                                 status: status,
@@ -423,6 +451,7 @@ function showDataTable(fund) {
             url: "/api/fund-permissions?fundId=" + fund.id, // Đường dẫn API
             type: "GET",
             dataType: "json",
+            headers: utils.defaultHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     console.log("success");
@@ -578,6 +607,7 @@ $("#btn-add-fund-permission").on("click", function () {
     $.ajax({
         type: "GET",
         url: "/api/departments",
+        headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
                 let departments = res.result;
@@ -663,7 +693,8 @@ $("#btn-add-fund-permission").on("click", function () {
             $.ajax({
                 type: "POST",
                 url: "/api/fund-permissions",
-                contentType: "application/json",
+                // contentType: "application/json",
+                headers: utils.defaultHeaders(),
                 data: JSON.stringify({
                     userId: selectedUsers,
                     fundId: fundId,
@@ -732,6 +763,7 @@ $("#btn-update-fund-permission").on("click", function () {
         $.ajax({
             type: "GET",
             url: "/api/fund-permissions/" + fundPermissionId,
+            headers: utils.defaultHeaders(),
             success: function (res) {
                 if (res.code === 1000) {
                     let fundPermission = res.result;
@@ -811,7 +843,8 @@ $("#btn-update-fund-permission").on("click", function () {
                                     $.ajax({
                                         type: "DELETE",
                                         url: "/api/fund-permissions/" + fundPermission.id,
-                                        contentType: "application/json",
+                                        // contentType: "application/json",
+                                        headers: utils.defaultHeaders(),
                                         success: function (res) {
                                             if (res.code == 1000) {
                                                 Toast.fire({
@@ -838,7 +871,8 @@ $("#btn-update-fund-permission").on("click", function () {
                             $.ajax({
                                 type: "PUT",
                                 url: "/api/fund-permissions?userId=" + userId + "&fundId=" + fundId + "&canContribute=" + canContribute + "&canWithdraw=" + canWithdraw,
-                                contentType: "application/json",
+                                // contentType: "application/json",
+                                headers: utils.defaultHeaders(),
                                 success: function (res) {
                                     if (res.code == 1000) {
                                         Toast.fire({
@@ -905,7 +939,8 @@ $("#btn-revoke-fund-permission").on("click", function () {
                 $.ajax({
                     type: "DELETE",
                     url: "/api/fund-permissions/" + fundPermissionId,
-                    contentType: "application/json",
+                    // contentType: "application/json",
+                    headers: utils.defaultHeaders(),
                     success: function (res) {
                         if (res.code == 1000) {
                             Toast.fire({

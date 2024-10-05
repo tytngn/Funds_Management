@@ -1,10 +1,7 @@
 package com.tytngn.fundsmanagement.service;
 
-import com.tytngn.fundsmanagement.dto.request.FunctionsRequest;
 import com.tytngn.fundsmanagement.dto.request.TransactionTypeRequest;
-import com.tytngn.fundsmanagement.dto.response.FunctionsResponse;
 import com.tytngn.fundsmanagement.dto.response.TransactionTypeResponse;
-import com.tytngn.fundsmanagement.entity.Functions;
 import com.tytngn.fundsmanagement.entity.TransactionType;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
@@ -46,6 +43,24 @@ public class TransactionTypeService {
                 .map(type -> transactionTypeMapper.toTransactionTypeResponse(type))
                 .toList();
 
+        return transactionType;
+    }
+
+    // Lấy danh sách loại giao dịch đóng góp quỹ
+    public  List<TransactionTypeResponse> getByStatusContribute() {
+        var transactionType = transactionTypeRepository.findAllByStatus(1)
+                .stream()
+                .map(type -> transactionTypeMapper.toTransactionTypeResponse(type))
+                .toList();
+        return transactionType;
+    }
+
+    // Lấy danh sách loại giao dịch rút quỹ
+    public  List<TransactionTypeResponse> getByStatusWithdraw() {
+        var transactionType = transactionTypeRepository.findAllByStatus(0)
+                .stream()
+                .map(type -> transactionTypeMapper.toTransactionTypeResponse(type))
+                .toList();
         return transactionType;
     }
 

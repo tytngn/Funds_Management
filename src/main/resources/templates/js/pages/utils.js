@@ -1,3 +1,6 @@
+import ErrorCode from '/js/pages/ErrorCode.js';
+
+
 export const getCookie = (name) => {
     const cookieString = document.cookie;
     const cookies = cookieString.split("; ");
@@ -20,18 +23,11 @@ export const deleteCookie = (name) => {
     document.cookie = name + "=; Max-Age=-99999999; path=/";
 };
 
-// thiết lập AJAX mặc định với token xác thực người dùng
-export function setAjax() {
-    const authToken = getCookie("authToken");
-    // console.log(authToken);
-    if (authToken != null) {
-        $.ajaxSetup({
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${authToken}`,
-            },
-        });
-    }
+export function defaultHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + getCookie("authToken")
+    };
 }
 
 // kiểm tra token có hợp lệ hay không
@@ -199,20 +195,53 @@ export function getErrorMessage(code) {
 }
 
 // xử lý lỗi Ajax
-function handleAjaxError(xhr) {
+export function handleAjaxError(xhr) {
+    var code = 9999;
     var message = 'Lỗi không xác định, không có mã lỗi';
     try {
         var response = JSON.parse(xhr.responseText);
+
         if (response.code) {
-            message = getErrorMessage(response.code);
+            code = response.code;
+            message = getErrorMessage(code);
         }
     } catch (e) {
         // Lỗi khi parse JSON
         console.log("JSON parse error");
         message = 'Lỗi không xác định, không có mã lỗi';
     }
-    Toast.fire({
-        icon: "error",
-        title: message
-    });
+    return {
+        code: code,
+        message: message,
+    }
 }
+
+// Hàm kiểm tra role người dùng từ token
+// export function checkUserRole() {
+//     const authToken = getCookie("authToken");
+
+//     if (authToken) {
+//         try {
+//             // Giải mã token để lấy thông tin role
+//             const decodedToken = jwt_decode(authToken);
+//             const roles = decodedToken.scope || []; // Giả sử scope lưu các role
+            
+//             if (roles.includes("ROLE_Quản lý quỹ")) { 
+//                 console.log("Người dùng là quản lý");
+//                 return true;
+//             } else {
+//                 console.log("Bạn không có quyền truy cập");
+//                 return false;
+//             }
+//         } catch (error) {
+//             console.error("Lỗi khi giải mã token:", error);
+//             return false;
+//         }
+//     } else {
+//         // alert("Chưa đăng nhập");
+//         window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập nếu chưa có token
+//         return false;
+//     }
+// }
+
+

@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -24,4 +26,27 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
             "GROUP BY u.id, u.fullname, tt.name")
     List<Object[]> getFundTransactionSummary(@Param("fundId") String fundId);
 
+    @Query("SELECT f FROM FundTransaction f " +
+            "WHERE (:fundId IS NULL OR f.fund.id = :fundId) " +
+            "AND (:transactionTypeId IS NULL OR f.transactionType.id = :transactionTypeId)")
+    List<FundTransaction> findByFundIdAndTransactionTypeId(@Param("fundId") String fundId, @Param("transactionTypeId") String transactionTypeId);
+
+    @Query("SELECT ft FROM FundTransaction ft " +
+            "WHERE (:start IS NULL OR ft.transDate >= :start) " +
+            "AND (:end IS NULL OR ft.transDate <= :end)")
+    List<FundTransaction> findByDateRange(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT ft FROM FundTransaction ft WHERE "
+            + "(:fundId IS NULL OR ft.fund.id = :fundId) AND "
+            + "(:transTypeId IS NULL OR ft.transactionType.id = :transTypeId) AND "
+            + "(:start IS NULL OR ft.transDate >= :start) AND "
+            + "(:end IS NULL OR ft.transDate <= :end)")
+    List<FundTransaction> findTransactions(
+            @Param("fundId") String fundId,
+            @Param("transTypeId") String transTypeId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+
 }
+
