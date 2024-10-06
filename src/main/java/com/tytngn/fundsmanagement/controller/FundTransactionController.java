@@ -62,41 +62,59 @@ public class FundTransactionController {
                 .build();
     }
 
-    // Lấy danh sách giao dịch đóng góp quỹ theo quỹ, theo loại giao dịch và theo thời gian
-    @GetMapping("/contribution")
-    @PreAuthorize("@securityExpression.hasPermission({'GET_CONTRIBUTION_BY_FUND_TYPE_AND_DATE'})")
-    public ApiResponse<List<FundTransactionResponse>> getContributionByFundTypeAndDate(
+    // Lấy danh sách giao dịch đóng góp quỹ theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
+    @GetMapping("/contribution/filter")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_CONTRIBUTION_BY_FILTER'})")
+    public ApiResponse<List<FundTransactionResponse>> getContributionByFilter(
             @RequestParam (required = false) String fundId,
             @RequestParam (required = false) String transTypeId,
             @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate) {
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Integer status
+    )
+    {
 
         fundId = (fundId != null && !fundId.isEmpty()) ? fundId : null;
         transTypeId = (transTypeId != null && !transTypeId.isEmpty()) ? transTypeId : null;
+        departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
+        userId = (userId != null && !userId.isEmpty()) ? userId : null;
+        status = (status != null) ? status : null;
 
         return ApiResponse.<List<FundTransactionResponse>>builder()
                 .code(1000)
-                .result(fundTransactionService.getContributionByFundTypeAndDate(fundId, transTypeId, startDate, endDate))
+                .result(fundTransactionService.getContributionByFilter(fundId, transTypeId, startDate, endDate, departmentId, userId, status))
                 .build();
     }
 
-    // Lấy danh sách giao dịch rút quỹ theo quỹ, theo loại giao dịch và theo thời gian
-    @GetMapping("/withdraw")
-    @PreAuthorize("@securityExpression.hasPermission({'GET_WITHDRAW_BY_FUND_TYPE_AND_DATE'})")
-    public ApiResponse<List<FundTransactionResponse>> getWithdrawByFundTypeAndDate(
+
+    // Lấy danh sách giao dịch rút quỹ theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
+    @GetMapping("/withdraw/filter")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_WITHDRAW_BY_FILTER'})")
+    public ApiResponse<List<FundTransactionResponse>> getWithdrawByFilter(
             @RequestParam (required = false) String fundId,
             @RequestParam (required = false) String transTypeId,
             @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate) {
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Integer status
+    )
+    {
 
         fundId = (fundId != null && !fundId.isEmpty()) ? fundId : null;
         transTypeId = (transTypeId != null && !transTypeId.isEmpty()) ? transTypeId : null;
+        departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
+        userId = (userId != null && !userId.isEmpty()) ? userId : null;
+        status = status != null ? status : -1;
 
         return ApiResponse.<List<FundTransactionResponse>>builder()
                 .code(1000)
-                .result(fundTransactionService.getWithdrawByFundTypeAndDate(fundId, transTypeId, startDate, endDate))
+                .result(fundTransactionService.getWithdrawByFilter(fundId, transTypeId, startDate, endDate, departmentId, userId, status))
                 .build();
     }
+
 
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND_TRANSACTION'})")

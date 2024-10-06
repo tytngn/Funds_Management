@@ -88,6 +88,7 @@ public class FundTransactionService {
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
     }
 
+
     // Lấy danh sách tất cả giao dịch
     public List<FundTransactionResponse> getAll() {
 
@@ -99,6 +100,7 @@ public class FundTransactionService {
         return fundTransaction;
     }
 
+
     // Lấy giao dịch bằng ID
     public FundTransactionResponse getById(String id) {
         return fundTransactionMapper.toFundTransactionResponse(fundTransactionRepository.findById(id).orElseThrow(() ->
@@ -106,8 +108,12 @@ public class FundTransactionService {
     }
 
 
-    // Lấy danh sách giao dịch theo quỹ, theo loại giao dịch và theo thời gian
-    public List<FundTransactionResponse> getContributionByFundTypeAndDate(String fundId, String transTypeId, String startDate, String endDate) {
+    // Lấy danh sách giao dịch theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
+    public List<FundTransactionResponse> getContributionByFilter(String fundId, String transTypeId,
+                                                                 String startDate, String endDate,
+                                                                 String departmentId, String userId,
+                                                                 Integer status) {
+
         // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDateTime start = null;
@@ -127,16 +133,7 @@ public class FundTransactionService {
         }
 
         List<FundTransaction> fundTransactions = fundTransactionRepository.
-                findTransactions(fundId, transTypeId, start, end);
-
-        // Xác định phương thức truy vấn dựa trên các tham số
-//        if (start != null && end != null) {
-//            fundTransactions = (fundId == null && transTypeId == null) ?
-//                    fundTransactionRepository.findByDateRange(start, end) :
-//                    fundTransactionRepository.findByFundIdAndTransactionTypeIdAndDateRange(fundId, transTypeId, start, end);
-//        } else {
-//            fundTransactions = fundTransactionRepository.findByFundIdAndTransactionTypeId(fundId, transTypeId);
-//        }
+                filterTransactions(fundId, transTypeId, start, end, departmentId, userId, status);
 
         return fundTransactions.stream()
                 .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 1) // Lấy loại giao dịch đóng góp quỹ
@@ -145,8 +142,12 @@ public class FundTransactionService {
     }
 
 
-    // Lấy danh sách giao dịch theo quỹ, theo loại giao dịch và theo thời gian
-    public List<FundTransactionResponse> getWithdrawByFundTypeAndDate(String fundId, String transTypeId, String startDate, String endDate) {
+    // Lấy danh sách giao dịch theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
+    public List<FundTransactionResponse> getWithdrawByFilter(String fundId, String transTypeId,
+                                                                 String startDate, String endDate,
+                                                                 String departmentId, String userId,
+                                                                 Integer status) {
+
         // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDateTime start = null;
@@ -166,13 +167,14 @@ public class FundTransactionService {
         }
 
         List<FundTransaction> fundTransactions = fundTransactionRepository.
-                findTransactions(fundId, transTypeId, start, end);
+                filterTransactions(fundId, transTypeId, start, end, departmentId, userId, status);
 
         return fundTransactions.stream()
                 .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 0) // Lấy loại giao dịch đóng góp quỹ
                 .map(fundTrans -> fundTransactionMapper.toFundTransactionResponse(fundTrans))
                 .toList();
     }
+
 
 
     // Lấy tổng số tiền giao dịch của người dùng trong một quỹ
@@ -189,6 +191,7 @@ public class FundTransactionService {
 
         return responseList;
     }
+
 
     // Cập nhật giao dịch
     @Transactional

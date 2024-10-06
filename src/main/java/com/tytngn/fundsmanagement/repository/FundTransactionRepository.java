@@ -6,18 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface FundTransactionRepository extends JpaRepository<FundTransaction, String> {
-
-//    @Query("SELECT SUM(ft.amount) FROM FundTransaction ft WHERE ft.user.id = :userId AND ft.fund.id = :fundId AND ft.status = 2")
-//    double findTotalContributionByUserAndFund(@Param("userId") String userId, @Param("fundId") String fundId);
-
-//    @Query("SELECT SUM(ft.amount) FROM FundTransaction ft WHERE ft.user.id = :userId AND ft.fund.id = :fundId")
-//    Double getTotalAmountByUserAndFund(@Param("userId") String userId, @Param("fundId") String fundId);
 
     @Query("SELECT u.fullname, SUM(ft.amount) AS totalAmount, tt.name FROM FundTransaction ft " +
             "INNER JOIN ft.user u " +
@@ -47,6 +40,32 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
+
+//    @Query("SELECT t FROM FundTransaction t " +
+//            "WHERE (:fundId IS NULL OR t.fund.id = :fundId) " +
+//            "AND (:transTypeId IS NULL OR t.transactionType.id = :transTypeId) " +
+//            "AND (:start IS NULL OR t.transDate >= :start) " +
+//            "AND (:end IS NULL OR t.transDate <= :end) " +
+//            "AND (:departmentId IS NULL OR t.user.department.id = :departmentId) " +
+//            "AND (:userId IS NULL OR t.user.id = :userId)" +
+//            "AND (:status IS NULL OR t.status = :status)")
+
+    @Query("SELECT t FROM FundTransaction t " +
+            "WHERE (COALESCE(:fundId, '') = '' OR t.fund.id = :fundId) " +
+            "AND (COALESCE(:transTypeId, '') = '' OR t.transactionType.id = :transTypeId) " +
+            "AND (COALESCE(:start, null) IS NULL OR t.transDate >= :start) " +
+            "AND (COALESCE(:end, null) IS NULL OR t.transDate <= :end) " +
+            "AND (COALESCE(:departmentId, '') = '' OR t.user.department.id = :departmentId) " +
+            "AND (COALESCE(:userId, '') = '' OR t.user.id = :userId) " +
+            "AND (COALESCE(:status, -1) = -1 OR t.status = :status)")
+    List<FundTransaction> filterTransactions(@Param("fundId") String fundId,
+                                         @Param("transTypeId") String transTypeId,
+                                         @Param("start") LocalDateTime start,
+                                         @Param("end") LocalDateTime end,
+                                         @Param("departmentId") String departmentId,
+                                         @Param("userId") String userId,
+                                         @Param("status") Integer status
+    );
 
 }
 

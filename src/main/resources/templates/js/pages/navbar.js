@@ -9,6 +9,8 @@ var Toast = Swal.mixin({
 });
 
 $(document).ready(function(){
+
+    // Đăng xuất
     utils.checkLoginStatus().then(isValid => {
         if (isValid) {
             $("#logoutBtn").click(function (e) { 

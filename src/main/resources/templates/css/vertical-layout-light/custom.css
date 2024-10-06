@@ -87,24 +87,103 @@ input[type="radio"] {
 
 }
 
-/* Chỉnh sửa kiểu dropdown */
+/* Chỉnh sửa kiểu dropdown (lengthChange) */
 .dataTables_length label {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;
 }
 .dataTables_length select {
-  margin: 0 5px;
-  min-width: 40px !important;
+  margin: 0 5px ;
+  min-width: 40px ;
   height: 30px !important; /* Giảm kích thước chiều rộng của dropdown */
-  padding: 2px 5px; /* Điều chỉnh khoảng cách padding bên trong dropdown */
-  font-size: 14px; /* Điều chỉnh kích thước font chữ */
-  color: black; /* Màu chữ đen trong dropdown */
-  background-color: white; /* Màu nền trắng */
+  padding: 2px 5px !important; /* Điều chỉnh khoảng cách padding bên trong dropdown */
+  font-size: 14px !important; /* Điều chỉnh kích thước font chữ */
+  color: black !important; /* Màu chữ đen trong dropdown */
+  background-color: white !important; /* Màu nền trắng */
 }
 .dataTables_length label::before {
-  margin-right: 5px;
+  margin-right: 5px !important;
 }
 .dataTables_length label::after {
-  margin-left: 5px;
+  margin-left: 5px !important;
 }
+
+.dataTables_wrapper .dataTables_length select {
+  width: auto !important;
+}
+
+/* Áp dụng CSS phân trang cho DataTable */
+/* Cấu hình chung cho pagination */
+.custom-paginate {
+  position: relative;
+}
+/* CSS cho các link pagination trong custom-paginate */
+.custom-paginate a {
+  border-color: #ddd !important;
+  color: #4285F4 !important;
+  background: #fff !important;
+  padding: 10px 15px !important;
+  margin: 0 5px !important;
+  text-decoration: none !important;
+  border-radius: 0 !important;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* CSS hover cho link trong custom-paginate */
+.custom-paginate a:hover {
+  background: #eee !important;
+  color: #4285F4 !important;
+}
+
+/* CSS cho link active trong custom-paginate */
+.custom-paginate a.active, .custom-paginate a:active {
+  border-color: #4285F4 !important;
+  background: #4285F4 !important;
+  color: #fff !important;
+}
+
+/* Áp dụng border-radius cho nút đầu tiên và cuối cùng */
+.custom-paginate li:first-child a {
+  border-radius: 6px 0 0 6px !important;
+}
+
+.custom-paginate li:last-child a {
+  border-radius: 0 6px 6px 0 !important;
+}
+
+/* Hiệu ứng cho các nút phân trang */
+.custom-paginate .dataTables_paginate a {
+  padding: 10px 15px !important;
+  margin: 0 5px !important;
+  border-radius: 0 !important;
+  background-color: #fff !important;
+  color: #4285F4 !important;
+  transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+/* Hiệu ứng hover */
+.custom-paginate .dataTables_paginate a:hover {
+  background-color: #eee !important;
+  color: #4285F4 !important;
+}
+
+/* Thêm hiệu ứng cho nút hiện tại (active) */
+.custom-paginate .dataTables_paginate .current {
+  background-color: #4285F4 !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-color: #4285F4 !important;
+}
+
+/* Hiệu ứng cho nút phân trang disabled */
+.custom-paginate .dataTables_paginate .disabled a {
+  color: #ccc !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
+
+
+
+
+
 

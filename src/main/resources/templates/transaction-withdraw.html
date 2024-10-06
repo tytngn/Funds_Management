@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="vendors/feather/feather.css" />
     <link rel="stylesheet" href="vendors/ti-icons/css/themify-icons.css" />
     <link rel="stylesheet" href="vendors/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="vendors/mdi/css/materialdesignicons.min.css">
+
     <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css" />
     <link rel="stylesheet" href="/css/vertical-layout-light/custom.css">
 
@@ -27,6 +29,7 @@
     <link rel="shortcut icon" href="images/favicon-vnpt.ico" />
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.2.3/css/fixedHeader.dataTables.min.css">
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
@@ -118,19 +121,56 @@
                   <div class="card-body">
                     <div class="form-group row">
 
-                      <div class="col-sm-4">
+                      <div id="fund-select-div" class="col-sm-3">
                         <label for="fund-select">Tên quỹ</label>
                         <select class="form-control" id="fund-select" style="width: 100%;"></select>
                       </div>
 
-                      <div class="col-sm-4">
+                      <div id="trans-type-select-div" class="col-sm-3">
                         <label for="trans-type-select">Loại giao dịch</label>
                         <select class="form-control" id="trans-type-select" style="width: 100%;"></select>
                       </div>
 
-                      <div class="col-sm-4">
-                        <label for="trans_times">Thời gian giao dịch</label>
-                        <input class="form-control" id="trans_times" type="text" name="datefilter" style="height: 34px;"/>
+                      <div class="col-sm-3">
+                        <label for="filter-type-select">Loại bộ lọc</label>
+                        <select class="form-control" id="filter-type-select" style="width: 100%;">
+                          <option value="" disabled selected>Chọn loại bộ lọc</option>
+                          <option value="time">Theo thời gian</option>
+                          <option value="status">Theo trạng thái</option>
+                          <option value="department">Theo phòng ban</option>
+                          <option value="individual">Theo cá nhân</option>
+                        </select>
+                      </div>
+
+                      <!-- Date Range Picker -->
+                      <div id="trans-times-div" class="col-sm-3" hidden>
+                        <label for="trans-times">Thời gian giao dịch</label>
+                        <input class="form-control" id="trans-times" type="text" name="datefilter" style="height: 34px;"/>
+                      </div>
+
+                      <!-- Select Trạng thái giao dịch -->
+                      <div id="status-div" class="col-sm-3" hidden>
+                        <label for="status-select">Trạng thái giao dịch</label>
+                        <select class="form-control" id="status-select" style="width: 100%;">
+                          <option value="" disabled selected>Chọn trạng thái</option>
+                          <option value="1">Chờ duyệt</option>
+                          <option value="2">Đã duyệt</option>
+                          <option value="0">Từ chối</option>
+                        </select>
+                      </div>
+
+                      <!-- Select Phòng ban -->
+                      <div id="department-div" class="col-sm-3" hidden>
+                        <label for="department-select">Phòng ban</label>
+                        <select class="form-control" id="department-select" style="width: 100%;">
+                        </select>
+                      </div>
+
+                      <!-- Select Cá nhân -->
+                      <div  id="individual-div" class="col-sm-3" hidden>
+                        <label for="individual-select">Cá nhân</label>
+                        <select class="form-control" id="individual-select" style="width: 100%;">
+                        </select>
                       </div>
 
                     </div>
@@ -143,9 +183,10 @@
                           <tr>
                             <th style="text-align: center" width="3%;">STT</th>
                             <th style="text-align: center" width="30%;">Tên quỹ</th>
-                            <th style="text-align: center" width="40%;">Loại giao dịch</th>
+                            <th style="text-align: center" width="30%;">Loại giao dịch</th>
                             <th style="text-align: center" width="10%;">Số tiền</th>
                             <th style="text-align: center" width="10%;">Người thực hiện</th>
+                            <th style="text-align: center" width="10%;">Phòng ban</th>
                             <th style="text-align: center" width="10%;">Thời gian giao dịch</th>
                             <th style="text-align: center" width="5%;">Trạng thái</th>
                           </tr>
@@ -200,6 +241,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/fixedheader/3.2.3/js/dataTables.fixedHeader.min.js"></script>
+
     <!-- endinject -->
     <!-- Custom js for this page-->
     <script src="js/file-upload.js"></script>

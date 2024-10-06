@@ -18,14 +18,27 @@ $(document).ready(function () {
 
     dataTable = $("#fund-table").DataTable({
         fixedHeader: true,
+        autoWidth: false,
         processing: true,
         paging: true,
         pagingType: "simple_numbers",
+        language: {
+            paginate: {
+                next: "&raquo;",
+                previous: "&laquo;"
+            },
+            lengthMenu: "Số dòng: _MENU_",
+            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+            infoEmpty: "Không có dữ liệu để hiển thị",
+            infoFiltered: "(lọc từ _MAX_ mục)",
+        },
         searching: true,
         ordering: true,
+        info: true,
         lengthChange: true,
         responsive: true,
         dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
+
         // Gọi AJAX đến server để lấy dữ liệu
         ajax: {
             url: "/api/funds", // Đường dẫn API
@@ -42,7 +55,7 @@ $(document).ready(function () {
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
                             fundName: fund.fundName, 
-                            balance: fund.balance, 
+                            balance: fund.balance.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }), 
                             description: fund.description,
                             manager: fund.user.fullname,
                             createDate: formatDate(fund.createDate),
@@ -110,15 +123,14 @@ $(document).ready(function () {
             // Số thứ tự không thay đổi khi sort hoặc paginations
             var api = this.api();
             var start = api.page.info().start;
-            api
-              .column(0, { page: "current" })
+            api.column(0, { page: "current" })
               .nodes()
               .each(function (cell, i) {
                 cell.innerHTML = start + i + 1;
               });
         },
         initComplete: function() {
-            $("a.paginate_button").addClass("custom-paginate");
+            $('.dataTables_paginate').addClass('custom-paginate'); // phân trang của table
         },
     });
 });
@@ -437,11 +449,23 @@ function showDataTable(fund) {
     // Dữ liệu trong bảng
     fundPermissionTable = $("#fund-permission-table").DataTable({
         fixedHeader: true,
+        autoWidth: false,
         processing: true,
         paging: true,
         pagingType: "simple_numbers",
+        language: {
+            paginate: {
+                next: "&raquo;",
+                previous: "&laquo;"
+            },
+            lengthMenu: "Số dòng: _MENU_",
+            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+            infoEmpty: "Không có dữ liệu để hiển thị",
+            infoFiltered: "(lọc từ _MAX_ mục)",
+        },
         searching: false,
         ordering: true,
+        info: true,
         lengthChange: true,
         responsive: true,
         // scrollX: 50,
@@ -536,7 +560,7 @@ function showDataTable(fund) {
               });
         },
         initComplete: function() {
-            $("a.paginate_button").addClass("custom-paginate");
+            $('.dataTables_paginate').addClass('custom-paginate'); // phân trang của table
         },
     });
 }
