@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Service
@@ -33,6 +35,7 @@ public class PaymentReqService {
     BudgetActivityRepository budgetActivityRepository;
     SecurityExpression securityExpression;
 
+    // Tạo đề nghị thanh toán
     @Transactional
     public PaymentReqResponse create(PaymentReqRequest request) {
 
@@ -97,6 +100,7 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReq);
     }
 
+    // Lấy danh sách tất cả đề nghị thanh toán
     public List<PaymentReqResponse> getAll() {
 
         var paymentReq = paymentReqRepository.findAll()
@@ -107,6 +111,36 @@ public class PaymentReqService {
         return paymentReq;
     }
 
+    // Lấy danh sách đề nghị thanh toán theo bộ lọc (theo loại thanh toán, thời gian, trạng thái, phòng ban, cá nhân)
+    public List<PaymentReqResponse> filterPaymentRequests(String categoryId, String startDate, String endDate,
+                                                          Integer status, String departmentId, String userId)
+    {
+        // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        // Chuyển đổi tham số ngày tháng sang LocalDateTime
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            // Xử lý lỗi định dạng ngày tháng
+            throw new AppException(ErrorCode.DATA_INVALID);
+        }
+
+        List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequests(categoryId, start, end, status, departmentId, userId);
+        return paymentRequests.stream()
+                .map(paymentReqMapper::toPaymentReqResponse)
+                .toList();
+    }
+
+
+    // Cập nhật đề nghị thanh toán
     @Transactional
     public PaymentReqResponse update(String id, PaymentReqRequest request) {
 
@@ -168,6 +202,7 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
 
+    // Xoá đề nghị thanh toán
     @Transactional
     public void delete(String id) {
 

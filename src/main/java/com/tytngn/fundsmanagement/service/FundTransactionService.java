@@ -108,7 +108,7 @@ public class FundTransactionService {
     }
 
 
-    // Lấy danh sách giao dịch theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
+    // Lấy danh sách giao dịch theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái)
     public List<FundTransactionResponse> getContributionByFilter(String fundId, String transTypeId,
                                                                  String startDate, String endDate,
                                                                  String departmentId, String userId,

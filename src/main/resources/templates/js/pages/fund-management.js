@@ -158,16 +158,6 @@ function clear_modal() {
     $("#modal-footer").empty();
 }
 
-// Reset form
-function reset_form(){
-    var form = $('#modal-id')[0];
-    if (form && typeof form.reset === 'function') {
-        form.reset(); // Reset form nếu có
-    } else {
-        // Nếu không có form hoặc không hỗ trợ reset, xoá dữ liệu thủ công
-        $('#modal-id').find('input, textarea, select').val('');
-    }
-}
 
 // Bắt sự kiện keyup "Tìm kiếm"
 $("#search-input").on("keyup", function () {
@@ -245,9 +235,6 @@ $("#btn-add-fund").on("click", function () {
                     // Tải lại bảng chức năng
                     dataTable.ajax.reload();
 
-                    // Reset form 
-                    reset_form();
-
                     // Đóng modal
                     $("#modal-id").modal('hide');
                 },
@@ -266,9 +253,6 @@ $("#btn-add-fund").on("click", function () {
 
     // Khi nhấn nút "Huỷ bỏ"
     $("#modal-cancel-btn").click(function (){
-        // Reset form 
-        reset_form();
-
         // Đóng modal
         $("#modal-id").modal('hide');
     });
@@ -419,7 +403,7 @@ $('#fund-table tbody').off('dblclick', 'tr').on('dblclick', 'tr', function () {
     let selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
 
     if (selectedData){
-        $("#user-fund-wrapper").prop("hidden", false);
+        $("#fund-permission-wrapper").prop("hidden", false);
         $("#fund-wrapper").prop("hidden", true);
 
         // Cập nhật tên quỹ và mô tả
@@ -743,9 +727,6 @@ $("#btn-add-fund-permission").on("click", function () {
                     // Tải lại bảng chức năng
                     fundPermissionTable.ajax.reload();
 
-                    // Reset form 
-                    reset_form();
-
                     // Đóng modal
                     $("#modal-id").modal('hide');
                 },
@@ -759,9 +740,6 @@ $("#btn-add-fund-permission").on("click", function () {
 
     // Khi nhấn nút "Huỷ bỏ"
     $("#modal-cancel-btn").click(function (){
-        // Reset form 
-        reset_form();
-
         // Đóng modal
         $("#modal-id").modal('hide');
     });
@@ -1000,7 +978,7 @@ $("#btn-revoke-fund-permission").on("click", function () {
 
 // Nhấn nút "Trở về"
 $("#btn-back-fund").click(function (){
-    $("#user-fund-wrapper").prop("hidden", true);
+    $("#fund-permission-wrapper").prop("hidden", true);
     $("#fund-wrapper").prop("hidden", false);
     dataTable.$('tr.selected').removeClass('selected');
 });

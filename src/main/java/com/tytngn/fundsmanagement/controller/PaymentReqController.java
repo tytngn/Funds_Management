@@ -43,6 +43,27 @@ public class PaymentReqController {
                 .build();
     }
 
+    // Lấy danh sách đề nghị thanh toán theo bộ lọc
+    @GetMapping("/filter")
+    @PreAuthorize("@securityExpression.hasPermission({'FILTER_PAYMENT_REQUEST'})")
+    ApiResponse<List<PaymentReqResponse>> filterPaymentRequests(@RequestParam(required = false) String categoryId,
+                                                                @RequestParam(required = false) String start,
+                                                                @RequestParam(required = false) String end,
+                                                                @RequestParam(required = false) Integer status,
+                                                                @RequestParam(required = false) String departmentId,
+                                                                @RequestParam(required = false) String userId)
+    {
+        categoryId = (categoryId != null && !categoryId.isEmpty()) ? categoryId : null;
+        status = (status != null) ? status : null;
+        departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
+        userId = (userId != null && !userId.isEmpty()) ? userId : null;
+
+        return ApiResponse.<List<PaymentReqResponse>>builder()
+                .code(1000)
+                .result(paymentReqService.filterPaymentRequests(categoryId, start, end, status, departmentId, userId))
+                .build();
+    }
+
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_PAYMENT_REQUEST'})")
     ApiResponse<PaymentReqResponse> updatePaymentReq(@RequestParam String id,

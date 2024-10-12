@@ -190,7 +190,10 @@ $(document).ready(function () {
         linkedCalendars: false,
         locale: {
             cancelLabel: 'Huỷ',
-            applyLabel: 'Áp dụng'
+            applyLabel: 'Áp dụng',
+            daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+            monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+            firstDay: 1 // Đặt ngày đầu tuần là thứ 2
         }
     });
     // Nút "Áp dụng" trong Date Range Picker
@@ -684,14 +687,6 @@ $("#btn-add-withdraw").on("click", function () {
 
     // Khi nhấn nút "Huỷ bỏ"
     $("#modal-cancel-btn").click(function (){
-        var form = $('#modal-id')[0];
-        if (form && typeof form.reset === 'function') {
-            form.reset(); // Reset form nếu có
-        } else {
-            // Nếu không có form hoặc không hỗ trợ reset, xoá dữ liệu thủ công
-            $('#modal-id').find('input, textarea, select').val('');
-        }
-
         // Đóng modal
         $("#modal-id").modal('hide');
     });

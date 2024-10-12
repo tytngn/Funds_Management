@@ -11,10 +11,12 @@ import org.mapstruct.MappingTarget;
 public interface InvoiceMapper {
 
     @Mapping(target = "paymentReq", ignore = true)
+    @Mapping(target = "proofImage", ignore = true)
     Invoice toInvoice(InvoiceRequest request);
 
     InvoiceResponse toInvoiceResponse(Invoice invoice);
 
     @Mapping(target = "paymentReq", ignore = true)
+    @Mapping(target = "proofImage", ignore = true)
     void updateInvoice(@MappingTarget Invoice invoice, InvoiceRequest request);
 }
