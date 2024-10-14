@@ -115,7 +115,7 @@ input[type="radio"] {
 /* Áp dụng CSS phân trang cho DataTable */
 /* Cấu hình chung cho pagination */
 .custom-paginate {
-  position: relative;
+  position: relative !important;
 }
 /* CSS cho các link pagination trong custom-paginate */
 .custom-paginate a {

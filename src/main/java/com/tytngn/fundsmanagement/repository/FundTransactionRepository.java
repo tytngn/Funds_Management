@@ -40,16 +40,7 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
-
-//    @Query("SELECT t FROM FundTransaction t " +
-//            "WHERE (:fundId IS NULL OR t.fund.id = :fundId) " +
-//            "AND (:transTypeId IS NULL OR t.transactionType.id = :transTypeId) " +
-//            "AND (:start IS NULL OR t.transDate >= :start) " +
-//            "AND (:end IS NULL OR t.transDate <= :end) " +
-//            "AND (:departmentId IS NULL OR t.user.department.id = :departmentId) " +
-//            "AND (:userId IS NULL OR t.user.id = :userId)" +
-//            "AND (:status IS NULL OR t.status = :status)")
-
+    // Lấy danh sách giao dịch theo bộ lọc (theo quỹ, theo loại giao dịch, theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái
     @Query("SELECT t FROM FundTransaction t " +
             "WHERE (COALESCE(:fundId, '') = '' OR t.fund.id = :fundId) " +
             "AND (COALESCE(:transTypeId, '') = '' OR t.transactionType.id = :transTypeId) " +

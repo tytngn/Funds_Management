@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -47,6 +48,27 @@ public class FundPermissionController {
         return ApiResponse.<FundPermissionResponse>builder()
                 .code(1000)
                 .result(fundPermissionService.getUserPermissionInFund(id))
+                .build();
+    }
+
+    // Lấy danh sách phân quyền giao dịch theo quỹ, theo bộ lọc (theo thời gian, theo trạng thái, theo phòng ban, theo cá nhân)
+    @GetMapping("/filter")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_PERMISSIONS_BY_FILTER'})")
+    public ApiResponse<List<FundPermissionResponse>> filterFundPermissions(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) LocalDate start,
+            @RequestParam(required = false) LocalDate end,
+            @RequestParam(required = false) Boolean canContribute,
+            @RequestParam(required = false) Boolean canWithdraw,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) String userId)
+    {
+        List<FundPermissionResponse> filteredPermissions = fundPermissionService.filterFundPermissions(fundId, start, end,
+                canContribute, canWithdraw, departmentId, userId);
+
+        return ApiResponse.<List<FundPermissionResponse>>builder()
+                .code(1000)
+                .result(filteredPermissions)
                 .build();
     }
 

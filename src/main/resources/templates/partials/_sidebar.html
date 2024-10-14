@@ -183,10 +183,26 @@
 
     <!-- QUẢN LÝ QUỸ -->
     <li class="nav-item">
-      <a class="nav-link" href="fund-management.html">
+      <a class="nav-link" data-toggle="collapse" href="#funds" aria-expanded="false" aria-controls="funds" >
         <i class="icon-archive menu-icon"></i>
         <span class="menu-title">Quản lý quỹ</span>
+        <i class="menu-arrow"></i>
       </a>
+
+      <div class="collapse" id="funds">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="fund-management.html">Thông tin quỹ</a>
+          </li>
+        </ul>
+
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="fund-permission.html">Phân quyền giao dịch</a>
+          </li>
+        </ul>
+      </div>
+      
     </li>
 
     <!-- QUẢN LÝ GIAO DỊCH -->

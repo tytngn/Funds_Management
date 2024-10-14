@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -29,4 +31,6 @@ public class FundPermission {
 
     @Column(nullable = false)
     boolean canWithdraw = false; // quyền rút quỹ
+
+    LocalDate grantedDate; // ngày thêm quyền giao dịch
 }

@@ -112,7 +112,8 @@ public class FundTransactionService {
     public List<FundTransactionResponse> getContributionByFilter(String fundId, String transTypeId,
                                                                  String startDate, String endDate,
                                                                  String departmentId, String userId,
-                                                                 Integer status) {
+                                                                 Integer status)
+    {
 
         // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

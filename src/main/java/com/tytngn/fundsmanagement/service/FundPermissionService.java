@@ -19,6 +19,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,6 +60,7 @@ public class FundPermissionService {
             FundPermission fundPermission = fundPermissionMapper.toFundPermission(request);
             fundPermission.setUser(user);
             fundPermission.setFund(fund);
+            fundPermission.setGrantedDate(LocalDate.now());
             fundPermissionRepository.save(fundPermission);
 
             // Chuyển đổi sang FundPermissionResponse và thêm vào danh sách
@@ -92,6 +94,20 @@ public class FundPermissionService {
         return fundPermissionMapper.toResponse(fundPermission);
     }
 
+    // Lấy danh sách phân quyền giao dịch theo quỹ, theo bộ lọc (theo thời gian, theo trạng thái, theo phòng ban, theo cá nhân)
+    public List<FundPermissionResponse> filterFundPermissions(String fundId, LocalDate start, LocalDate end,
+                                                              Boolean canContribute, Boolean canWithdraw,
+                                                              String departmentId, String userId)
+    {
+        List<FundPermission> fundPermissions = fundPermissionRepository.filterFundPermissions(fundId, start, end,
+                canContribute, canWithdraw, departmentId, userId);
+
+        // Chuyển đổi danh sách FundPermission thành FundPermissionResponse
+        return fundPermissions.stream()
+                .map(fundPermissionMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     // Cập nhật quyền giao dịch của một người dùng
     @Transactional
     public FundPermissionResponse updateFundPermissions(String userId, String fundId, boolean canContribute, boolean canWithdraw) {
@@ -112,6 +128,7 @@ public class FundPermissionService {
         // Cập nhật quyền cho phép đóng góp và rút quỹ
         existingPermission.setCanContribute(canContribute);
         existingPermission.setCanWithdraw(canWithdraw);
+        existingPermission.setGrantedDate(LocalDate.now());
 
         return fundPermissionMapper.toResponse(fundPermissionRepository.save(existingPermission));
     }

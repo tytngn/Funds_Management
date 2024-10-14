@@ -123,17 +123,17 @@
 
                       <div id="fund-select-div" class="col-sm-3">
                         <label for="fund-select">Tên quỹ</label>
-                        <select class="form-control" id="fund-select" style="width: 100%;"></select>
+                        <select class="form-control select-2" id="fund-select" style="width: 100%;" data-placeholder="Chọn quỹ"></select>
                       </div>
 
                       <div id="trans-type-select-div" class="col-sm-3">
                         <label for="trans-type-select">Loại giao dịch</label>
-                        <select class="form-control" id="trans-type-select" style="width: 100%;"></select>
+                        <select class="form-control select-2" id="trans-type-select" style="width: 100%;" data-placeholder="Chọn loại giao dịch"></select>
                       </div>
 
                       <div class="col-sm-3">
                         <label for="filter-type-select">Loại bộ lọc</label>
-                        <select class="form-control" id="filter-type-select" style="width: 100%;">
+                        <select class="form-control select-2" id="filter-type-select" style="width: 100%;" data-placeholder="Chọn loại bộ lọc">
                           <option value="" disabled selected>Chọn loại bộ lọc</option>
                           <option value="time">Theo thời gian</option>
                           <option value="status">Theo trạng thái</option>
@@ -145,13 +145,13 @@
                       <!-- Date Range Picker -->
                       <div id="trans-times-div" class="col-sm-3" hidden>
                         <label for="trans-times">Thời gian giao dịch</label>
-                        <input class="form-control" id="trans-times" type="text" name="datefilter" style="height: 34px;"/>
+                        <input class="form-control" id="trans-times" type="text" name="datefilter" style="height: 34px;" placeholder="dd / mm / yyyy"/>
                       </div>
 
                       <!-- Select Trạng thái giao dịch -->
                       <div id="status-div" class="col-sm-3" hidden>
                         <label for="status-select">Trạng thái giao dịch</label>
-                        <select class="form-control" id="status-select" style="width: 100%;">
+                        <select class="form-control select-2" id="status-select" style="width: 100%;" data-placeholder="Chọn trạng thái">
                           <option value="" disabled selected>Chọn trạng thái</option>
                           <option value="1">Chờ duyệt</option>
                           <option value="2">Đã duyệt</option>
@@ -162,14 +162,14 @@
                       <!-- Select Phòng ban -->
                       <div id="department-div" class="col-sm-3" hidden>
                         <label for="department-select">Phòng ban</label>
-                        <select class="form-control" id="department-select" style="width: 100%;">
+                        <select class="form-control select-2" id="department-select" style="width: 100%;" data-placeholder="Chọn phòng ban">
                         </select>
                       </div>
 
                       <!-- Select Cá nhân -->
                       <div  id="individual-div" class="col-sm-3" hidden>
                         <label for="individual-select">Cá nhân</label>
-                        <select class="form-control" id="individual-select" style="width: 100%;">
+                        <select class="form-control select-2" id="individual-select" style="width: 100%;" data-placeholder="Chọn cá nhân">
                         </select>
                       </div>
 
@@ -181,14 +181,14 @@
                       <table id="transaction-withdraw-table" class="table table-striped">
                         <thead>
                           <tr>
-                            <th style="text-align: center" width="3%;">STT</th>
-                            <th style="text-align: center" width="30%;">Tên quỹ</th>
-                            <th style="text-align: center" width="30%;">Loại giao dịch</th>
-                            <th style="text-align: center" width="10%;">Số tiền</th>
-                            <th style="text-align: center" width="10%;">Người thực hiện</th>
-                            <th style="text-align: center" width="10%;">Phòng ban</th>
-                            <th style="text-align: center" width="10%;">Thời gian giao dịch</th>
-                            <th style="text-align: center" width="5%;">Trạng thái</th>
+                            <th style="text-align: center" min-width="3%;">STT</th>
+                            <th style="text-align: center">Tên quỹ</th>
+                            <th style="text-align: center" min-width="30%;">Loại giao dịch</th>
+                            <th style="text-align: center" min-width="10%;">Số tiền</th>
+                            <th style="text-align: center" min-width="10%;">Người thực hiện</th>
+                            <th style="text-align: center" min-width="10%;">Phòng ban</th>
+                            <th style="text-align: center" min-width="10%;">Thời gian giao dịch</th>
+                            <th style="text-align: center" min-width="5%;">Trạng thái</th>
                           </tr>
                         </thead>
                         <tbody>
