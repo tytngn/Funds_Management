@@ -116,6 +116,8 @@ input[type="radio"] {
 /* Cấu hình chung cho pagination */
 .custom-paginate {
   position: relative !important;
+  justify-content: flex-end !important; /* Căn lề phải cho các button */
+  z-index: 1 !important; /* Giúp phân trang nằm trên cùng */
 }
 /* CSS cho các link pagination trong custom-paginate */
 .custom-paginate a {
@@ -145,10 +147,12 @@ input[type="radio"] {
 /* Áp dụng border-radius cho nút đầu tiên và cuối cùng */
 .custom-paginate li:first-child a {
   border-radius: 6px 0 0 6px !important;
+  justify-content: flex-end !important; /* Căn lề phải cho các button */
 }
 
 .custom-paginate li:last-child a {
   border-radius: 0 6px 6px 0 !important;
+  justify-content: flex-end !important; /* Căn lề phải cho các button */
 }
 
 /* Hiệu ứng cho các nút phân trang */
@@ -200,6 +204,37 @@ input[type="file"] {
 }
 
 
+/* Phần breadcrumb trên thanh nav */
+.breadcrumb {
+  border: none !important;
+  font-size: x-large !important;
+}
+.breadcrumb-item.dropdown::after {
+  display: none; /* Ẩn mũi tên */
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+}
+.breadcrumb-item.dropdown:hover .dropdown-menu {
+  display: block;
+}
+.breadcrumb-item.dropdown > a {
+  color: #495057 !important;
+}
+.breadcrumb .breadcrumb-item {
+  font-size: medium !important;
+  font-weight: bold !important;
+}
 
 
+/* mở hình ảnh toàn màn hình */
+img:fullscreen {
+  object-fit: contain; /* Đảm bảo hình ảnh hiển thị đầy đủ trong màn hình */
+  width: 100%;
+  height: 100%;
+}
 

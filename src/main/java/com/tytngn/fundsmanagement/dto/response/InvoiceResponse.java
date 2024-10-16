@@ -1,9 +1,11 @@
 package com.tytngn.fundsmanagement.dto.response;
 
+import com.tytngn.fundsmanagement.entity.Image;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -16,7 +18,7 @@ public class InvoiceResponse {
     double amount;
     LocalDateTime issuedDate;
     String description;
-    byte[] proofImage;
     LocalDateTime createDate;
     LocalDateTime updateDate;
+    List<Image> images;
 }

@@ -111,7 +111,7 @@ $(document).ready(function () {
                     fundOption.push({
                         id: fund.id,
                         text: fund.fundName,
-                    })
+                    });
                     fundNameDropdown.append($('<option>', {
                         value: fund.id, // Gán giá trị cho thuộc tính value
                         text: fund.fundName // Gán văn bản hiển thị
@@ -272,16 +272,44 @@ $(document).ready(function () {
                 });
                 return;
             }
+            if (startDate === '' && endDate === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn thời gian!",
+                });
+                return;
+            }
         } 
         else if (filter === 'status') {
             status = $('#status-select').val() || ''; // Trạng thái
+            if(status === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn trạng thái!",
+                });
+                return;
+            } 
         } 
         else if (filter === 'department') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
+            if (departmentId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phòng ban!",
+                });
+                return;
+            }
         } 
         else if (filter === 'individual') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
             userId = $('#individual-select').val() || ''; // Cá nhân 
+            if (userId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn cá nhân!",
+                });
+                return;
+            }
         } 
 
         console.log("quỹ " + fundId);
@@ -298,7 +326,11 @@ $(document).ready(function () {
             url: "/api/fundTransactions/contribution/filter?fundId=" + fundId + "&transTypeId=" + transTypeId + "&startDate=" + startDate + "&endDate=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
             type: "GET",
             headers: utils.defaultHeaders(),
+            beforeSend: function(){
+                Swal.showLoading();
+            },
             success: function(res) {
+                Swal.close();
                 if (res.code == 1000) {
                     console.log("success");
                     
@@ -327,6 +359,7 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
+                Swal.close();
                 if (xhr.status == 401 || xhr.status == 403){
                     Toast.fire ({
                         icon: "error",
@@ -364,6 +397,8 @@ $(document).ready(function () {
         ordering: true,
         lengthChange: true,
         responsive: true,
+        scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
+        scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columnDefs: [
@@ -416,7 +451,7 @@ $(document).ready(function () {
                 }
             },
         ],
-        order: [[6, "asc"]], // Cột thứ 7 (transDate) sắp xếp tăng dần
+        order: [[7, "asc"]], // Cột thứ 8 (status) sắp xếp tăng dần
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
             var api = this.api();

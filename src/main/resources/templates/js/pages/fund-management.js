@@ -41,7 +41,6 @@ $(document).ready(function () {
         } 
         else if (filterType === 'status') {
             $('#status-div').prop("hidden", false); // Hiển thị Select Trạng thái 
-
         }
         else if (filterType === 'department') {
             $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
@@ -164,15 +163,45 @@ $(document).ready(function () {
         var userId = ''; 
         var status = '';
 
-        if (filter === 'status') {
+        if (filter === 'time') {
+            if (startDate === '' && endDate === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn thời gian!",
+                });
+                return;
+            }
+        }
+        else if (filter === 'status') {
             status = $('#status-select').val() || ''; // Trạng thái
+            if (status === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn trạng thái!",
+                });
+                return;
+            }
         } 
         else if (filter === 'department') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
+            if (departmentId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phòng ban!",
+                });
+                return;
+            }
         } 
         else if (filter === 'treasurer') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
             userId = $('#treasurer-select').val() || ''; // Thủ quỹ
+            if (userId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn thủ quỹ!",
+                });
+                return;
+            }
         } 
 
         console.log("bắt đầu " + startDate);
@@ -253,6 +282,8 @@ $(document).ready(function () {
         info: true,
         lengthChange: true,
         responsive: true,
+        scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
+        scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columnDefs: [

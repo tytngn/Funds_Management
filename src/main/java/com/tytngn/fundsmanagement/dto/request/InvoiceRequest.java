@@ -29,13 +29,8 @@ public class InvoiceRequest {
     LocalDateTime issuedDate;
 
     String description;
-    List<MultipartFile> proofImage;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime createDate;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime updateDate;
 
     String paymentReq;
+
+    List<byte[]> images;
 }

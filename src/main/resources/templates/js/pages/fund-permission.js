@@ -215,20 +215,22 @@ $(document).ready(function () {
         }
 
         if (filter === 'time') {
-            // Nếu chọn bộ lọc "theo thời gian" nhưng không chọn quỹ 
-            if (fundId == ''){
+            if (startDate === '' && endDate === ''){
                 Toast.fire({
                     icon: "warning",
-                    title: "Vui lòng chọn quỹ",
+                    title: "Vui lòng chọn thời gian",
                 });
                 return;
             }
         } 
         else if (filter === 'status') {
             status = $('#status-select').val() || ''; // Trạng thái
-            if(status == 0){
-                canContribute = true;
-                canWithdraw = true;
+            if(status === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phân quyền!",
+                });
+                return;
             } 
             else if (status == 1){
                 canContribute = true;
@@ -236,13 +238,31 @@ $(document).ready(function () {
             else if (status == 2) {
                 canWithdraw = true;
             }
+            else if (status == 0){
+                canContribute = true;
+                canWithdraw = true;
+            }
         } 
         else if (filter === 'department') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
+            if (departmentId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phòng ban!",
+                });
+                return;
+            }
         } 
         else if (filter === 'individual') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
             userId = $('#individual-select').val() || ''; // Cá nhân 
+            if (userId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn cá nhân!",
+                });
+                return;
+            }
         } 
 
         console.log("quỹ " + fundId);
@@ -324,6 +344,8 @@ $(document).ready(function () {
         ordering: true,
         lengthChange: true,
         responsive: true,
+        scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
+        scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columnDefs: [

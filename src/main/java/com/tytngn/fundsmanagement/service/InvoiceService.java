@@ -1,7 +1,7 @@
 package com.tytngn.fundsmanagement.service;
 
-import com.tytngn.fundsmanagement.dto.request.ImageUpLoad;
 import com.tytngn.fundsmanagement.dto.request.InvoiceRequest;
+import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.dto.response.InvoiceResponse;
 import com.tytngn.fundsmanagement.entity.Image;
 import com.tytngn.fundsmanagement.entity.Invoice;
@@ -15,13 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +35,7 @@ public class InvoiceService {
 
     // Tạo hoá đơn
     @Transactional
-    public InvoiceResponse create(InvoiceRequest request, ImageUpLoad files) throws IOException {
+    public InvoiceResponse create(InvoiceRequest request) throws IOException {
 
         // đề nghị thanh toán
         var paymentReq = paymentReqRepository.findById(request.getPaymentReq()).orElseThrow(() ->
@@ -52,24 +50,12 @@ public class InvoiceService {
         invoice.setCreateDate(LocalDateTime.now());
         invoice.setPaymentReq(paymentReq);
 
-        // Chuyển danh sách MultipartFile thành đối tượng lưu trữ hình ảnh
-//        if (request.getProofImage() != null && !request.getProofImage().isEmpty()) {
-//            for (MultipartFile proofImage : request.getProofImage()) {
-//                if (!proofImage.isEmpty()) {
-//                    byte[] imageBytes =proofImage.getBytes();
-//                    invoice.setProofImage(imageBytes);
-//                }
-//            }
-//        }
-
         // Tải lên nhiều ảnh minh chứng
         List<Image> savedImages = new ArrayList<>();
-        if (files != null && files.getFiles() != null) {
-            for (byte[] file : files.getFiles()) {
-                Image image = new Image();
-                image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
-                savedImages.add(imageRepository.save(image));
-            }
+        for (byte[] file : request.getImages()) {
+            Image image = new Image();
+            image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
+            savedImages.add(imageRepository.save(image));
         }
         invoice.setImages(savedImages);
 
@@ -107,6 +93,11 @@ public class InvoiceService {
                 .toList();
     }
 
+    // Lấy thông tin hoá đơn theo Id
+    public InvoiceResponse getById(String id) {
+        return invoiceMapper.toInvoiceResponse(invoiceRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.INVOICE_NOT_EXISTS)));
+    }
 
     // Cập nhật hoá đơn
     @Transactional
@@ -127,6 +118,15 @@ public class InvoiceService {
         invoiceMapper.updateInvoice(invoice, request);
         invoice.setUpdateDate(LocalDateTime.now());
         invoice.setPaymentReq(paymentReq);
+
+        // Tải lên nhiều ảnh minh chứng
+        List<Image> savedImages = new ArrayList<>();
+        for (byte[] file : request.getImages()) {
+            Image image = new Image();
+            image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
+            savedImages.add(imageRepository.save(image));
+        }
+        invoice.setImages(savedImages);
 
         // cập nhật tổng số tiền trong đề nghị thanh toán
         paymentReq.setAmount(paymentReq.getAmount() + request.getAmount());

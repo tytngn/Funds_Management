@@ -14,91 +14,21 @@ var invoicesTable; // bảng hoá đơn
 let selectedData; // Biến lưu dữ liệu đã chọn
 let selectedInvoice; // Biến lưu hoá đơn đã chọn
 
-var PaymentCategoryOption = [];
+var PaymentCategoryOption = []; // loại thanh toán
 
 var startDate;
 var endDate;
-var issuedTime;
+var issuedTime; // thời gian phát hành hoá đơn
 
 $(document).ready(function () {
+
+    // Select 
+    $('.select-2').select2({
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    });
     
-    // Nạp dữ liệu lên mảng PaymentCategoryOption
-    // Gọi api để lấy loại thanh toán
-    $.ajax({
-        type: "GET",
-        url: "/api/paymentCategory",
-        headers: utils.defaultHeaders(),
-        success: function (res) {
-            if (res.code === 1000) {
-                let paymentCategory = res.result;
-                let paymentCategoryDropdown = $("#payment-category-select");
-                PaymentCategoryOption = [];
-                $('#payment-category-select').append("<option disabled selected >Chọn danh mục thanh toán</option>");
-                
-                // Thêm các loại giao dịch vào dropdown
-                paymentCategory.forEach(function(paymentType) {
-                    PaymentCategoryOption.push({
-                        id: paymentType.id,
-                        text: paymentType.name,
-                    })
-                    paymentCategoryDropdown.append($('<option>', {
-                        value: paymentType.id, // Gán giá trị cho thuộc tính value
-                        text: paymentType.name // Gán văn bản hiển thị
-                    }));
-                });
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: "Không thể lấy danh sách loại giao dịch<br>" + res.message,
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            var err = utils.handleAjaxError(xhr);
-            Toast.fire({
-                icon: "error",
-                title: err.message
-            });
-        }
-    });
-    // Select "Danh mục thanh toán"
-    $('#payment-category-select').select2({
-        placeholder: "Chọn danh mục thanh toán",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-    });
-
-
-    // Select "Loại bộ lọc"
-    $('#filter-type-select').select2({
-        placeholder: "Chọn loại bộ lọc",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-    });
-    // Select "Trạng thái giao dịch"
-    $('#status-select').select2({
-        placeholder: "Chọn trạng thái",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-    });
-    // Select "Phòng ban"
-    $('#department-select').select2({
-        placeholder: "Chọn phòng ban",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-    });
-    // Select "Cá nhân"
-    $('#individual-select').select2({
-        placeholder: "Chọn cá nhân",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-    });
-
     // Bắt sự kiện thay đổi giá trị select "Loại bộ lọc"
     $('#filter-type-select').on('change', function() {
         var filterType = $(this).val();
@@ -116,7 +46,6 @@ $(document).ready(function () {
         } 
         else if (filterType === 'status') {
             $('#status-div').prop("hidden", false); // Hiển thị Select Trạng thái 
-
         }
         else if (filterType === 'department') {
             $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
@@ -124,9 +53,7 @@ $(document).ready(function () {
         }
         else if (filterType === 'individual') {
             $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
-            $('#department-select').append("<option disabled selected >Chọn phòng ban</option>");
             $('#individual-div').prop("hidden", false); // Hiển thị Select Cá Nhân nhưng sẽ disabled cho đến khi chọn phòng ban
-            $('#individual-select').append("<option disabled selected >Chọn cá nhân</option>");
 
             loadDepartments();
         }
@@ -140,6 +67,7 @@ $(document).ready(function () {
         locale: {
             cancelLabel: 'Huỷ',
             applyLabel: 'Áp dụng',
+            format: 'DD/MM/YYYY',
             daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
             monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
             firstDay: 1 // Đặt ngày đầu tuần là thứ 2
@@ -160,6 +88,45 @@ $(document).ready(function () {
         $(this).val('');
     });
 
+    // Gọi api để lấy loại thanh toán và Nạp dữ liệu lên mảng PaymentCategoryOption
+    $.ajax({
+        type: "GET",
+        url: "/api/paymentCategory",
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if (res.code === 1000) {
+                let paymentCategory = res.result;
+                let paymentCategoryDropdown = $("#payment-category-select");
+                PaymentCategoryOption = [];
+                
+                // Thêm các loại giao dịch vào dropdown
+                paymentCategory.forEach(function(paymentType) {
+                    PaymentCategoryOption.push({
+                        id: paymentType.id,
+                        text: paymentType.name,
+                    })
+                    paymentCategoryDropdown.append($('<option>', {
+                        value: paymentType.id, // Gán giá trị cho thuộc tính value
+                        text: paymentType.name // Gán văn bản hiển thị
+                    }));
+                });
+                paymentCategoryDropdown.val("").trigger('change');
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: "Không thể lấy danh sách loại giao dịch<br>" + res.message,
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            var err = utils.handleAjaxError(xhr);
+            Toast.fire({
+                icon: "error",
+                title: err.message
+            });
+        }
+    });
+
     // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
     function loadDepartments() {
         $.ajax({
@@ -173,7 +140,6 @@ $(document).ready(function () {
                     let userDropdown = $("#individual-select");
 
                     departmentDropdown.empty();
-                    departmentDropdown.append("<option disabled selected >Chọn phòng ban</option>");
     
                     // Thêm các phòng ban vào dropdown
                     departments.forEach(function(department) {
@@ -181,7 +147,8 @@ $(document).ready(function () {
                             <option value="${department.id}">${department.name}</option>
                         `);              
                     });
-                    
+                    departmentDropdown.val("").trigger('change');
+
                     // Gắn sự kiện khi chọn phòng ban
                     departmentDropdown.on("change", function(){
                         let selectedDepartmentId = $(this).val();
@@ -190,7 +157,6 @@ $(document).ready(function () {
     
                         // Xóa các thành viên cũ trong dropdown
                         userDropdown.empty();
-                        userDropdown.append("<option disabled selected >Chọn cá nhân</option>");
     
                         // Tìm phòng ban đã chọn
                         let selectedDepartment = departments.find(dept => dept.id === selectedDepartmentId);
@@ -202,28 +168,14 @@ $(document).ready(function () {
                                     <option value="${user.id}">${user.fullname}</option>
                                 `);
                             });
+                            userDropdown.val("").trigger('change');
                         } else {
                             // Nếu không có thành viên nào
                             userDropdown.append(`
                                 <option value="">Không có thành viên</option>
                             `);
                         }
-                        userDropdown.select2({
-                            placeholder: "Chọn cá nhân",
-                            allowClear: true,
-                            theme: "bootstrap",
-                            closeOnSelect: true,
-                        });
                     });
-
-                    // Áp dụng Select2 với placeholder cho phòng ban
-                    departmentDropdown.select2({
-                        placeholder: "Chọn phòng ban",
-                        allowClear: true,
-                        theme: "bootstrap",
-                        closeOnSelect: true,
-                    });
-    
                 } else {
                     Toast.fire({
                         icon: "error",
@@ -263,24 +215,54 @@ $(document).ready(function () {
             });
             return;
         }
+
+        if (filter === 'time') {
+            if (startDate === '' && endDate === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn thời gian!",
+                });
+                return;
+            }
+        } 
         else if (filter === 'status') {
             status = $('#status-select').val() || ''; // Trạng thái
+            if(status === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn trạng thái!",
+                });
+                return;
+            } 
         } 
         else if (filter === 'department') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
+            if (departmentId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phòng ban!",
+                });
+                return;
+            }
         } 
         else if (filter === 'individual') {
             departmentId = $('#department-select').val() || ''; // Phòng ban
             userId = $('#individual-select').val() || ''; // Cá nhân 
+            if (userId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn cá nhân!",
+                });
+                return;
+            }
         } 
 
-        console.log("loại " + categoryId);
-        console.log("bắt đầu " + startDate);
-        console.log("kết thúc " + endDate );
-        console.log("phòng ban " + departmentId);
-        console.log("cá nhân " + userId);
-        console.log("trạng thái " + status);
-        
+        // console.log("loại " + categoryId);
+        // console.log("bắt đầu " + startDate);
+        // console.log("kết thúc " + endDate );
+        // console.log("phòng ban " + departmentId);
+        // console.log("cá nhân " + userId);
+        // console.log("trạng thái " + status);
         
        
         // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
@@ -290,7 +272,6 @@ $(document).ready(function () {
             headers: utils.defaultHeaders(),
             success: function(res) {
                 if (res.code == 1000) {
-                    console.log("success");
                     
                     var data = [];
                     var counter = 1;
@@ -303,12 +284,13 @@ $(document).ready(function () {
                             createdDate: formatDate(paymentReq.createDate),
                             updatedDate: formatDate(paymentReq.updatedDate),
                             trader: paymentReq.user.fullname,
+                            email: paymentReq.user.email,
+                            phone: paymentReq.user.phone,
                             department: paymentReq.user.department.name,
                             category: paymentReq.category.name,
                             id: paymentReq.id, // ID của transaction 
                         });
                     });
-    
                     dataTable.clear().rows.add(data).draw();
                 } else {
                     Toast.fire({
@@ -356,20 +338,39 @@ $(document).ready(function () {
         ordering: true,
         lengthChange: true,
         responsive: true,
+        scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
+        scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columnDefs: [
             {
                 targets: '_all', // Áp dụng cho tất cả các cột
                 className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
+            },
+            {
+                targets: 1, // Cột loại thanh toán
+                className: 'text-left align-middle', // Căn lề trái nội dung của cột tên quỹ
             }
         ],
 
         columns: [
             { data: "number" },
-            { data: "department" },
-            { data: "trader" },
             { data: "category" },
+            { data: "department" },
+            { data: "trader",
+                render: function (data, type, row) {
+                    return `
+                        <details>
+                            <summary class="text-left">
+                                <b>${data}</b>
+                            </summary> <br>
+                            <p class="text-left" style="white-space: normal; !important">
+                                Email: ${row.email} <br>
+                                ${row.phone? " Số điện thoại: " + row.phone : ""}                                
+                            </p>
+                        </details>`;
+                }
+            },
             { data: "amount" },
             { data: "createdDate" },
             { data: "updatedDate" },
@@ -408,7 +409,7 @@ $(document).ready(function () {
                 }
             },
         ],
-        order: [[6, "asc"]], // Cột thứ 7 (transDate) sắp xếp tăng dần
+        order: [[3, "asc"]], // Cột thứ 4 (trader) sắp xếp tăng dần
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
             var api = this.api();
@@ -425,6 +426,7 @@ $(document).ready(function () {
         },
 
     });
+
 });
 
 
@@ -443,7 +445,7 @@ $('#payment-request-table tbody').off('dblclick', 'tr').on('dblclick', 'tr', fun
     // Xóa lựa chọn hiện tại nếu có
     dataTable.$('tr.selected').removeClass('selected');
     $(this).addClass('selected'); // Đánh dấu dòng đã chọn
-    let selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
+    selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
 
     if (selectedData){
         $("#invoices-wrapper").prop("hidden", false);
@@ -454,7 +456,7 @@ $('#payment-request-table tbody').off('dblclick', 'tr').on('dblclick', 'tr', fun
         $("#description-payment-request").text("Mô tả: " + selectedData.description);
 
         // Gọi hàm showDataTable và truyền dữ liệu dòng đã chọn
-        showDataTable(selectedData);
+        showDataTable(selectedData.id);        
     }else {
         Toast.fire({
             icon: "error",
@@ -499,18 +501,8 @@ function clear_modal() {
 }
 
 
-// // Hiển thị tên file đã chọn
-// function showFileName() {
-//     var input = document.getElementById('proof-image');
-//     var label = input.nextElementSibling;
-//     var fileName = input.files[0].name;
-//     label.innerText = fileName;
-// }
-
-
 // Bắt sự kiện keyup "Tìm kiếm" để tìm kiếm đề nghị thanh toán
 $("#payment-search-input").on("keyup", function () {
-    console.log("tìm kiếm");
     dataTable.search(this.value).draw();
 });
 
@@ -551,9 +543,9 @@ $("#btn-add-payment-request").on("click", function () {
         closeOnSelect: true,
         data: PaymentCategoryOption
     });
-
     // Đặt lại giá trị của select-dropdown về null
-    $('#modal-payment-category').append("<option disabled selected >Chọn danh mục thanh toán</option>");
+    $('#modal-payment-category').val("").trigger('change');
+
 
     $("#modal-id").modal("show");
 
@@ -562,9 +554,6 @@ $("#btn-add-payment-request").on("click", function () {
     $("#modal-submit-btn").click(function () {
         let category = $("#modal-payment-category").val();
         let description = $("#modal-payment-request-description-input").val();
-
-        console.log(category);
-        console.log(description);
     
         if(category == null){
             Toast.fire({
@@ -658,23 +647,41 @@ function showDataTable(paymentReq) {
         ordering: true,
         lengthChange: true,
         responsive: true,
+        scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
+        scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
         
         // Gọi AJAX đến server để lấy dữ liệu
         ajax: {
-            url: "/api/invoices?paymentReq/" + paymentReq.id, // Đường dẫn API
+            url: "/api/invoices/paymentReq/" + paymentReq, // Đường dẫn API
             type: "GET",
             dataType: "json",
             headers: utils.defaultHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000) {
-                    console.log("success");
-                    // console.table(res.result);
+                    console.table(res.result);
 
                     var dataSet = [];
                     var stt = 1;
 
                     res.result.forEach(function (invoices){
+                        // Xử lý hình ảnh, giả sử API trả về thuộc tính `images` là danh sách hình ảnh base64 hoặc URL
+                        var proofImagesHtml = '';
+                        if (invoices.images && invoices.images.length > 0) {
+                            invoices.images.forEach(function (image) {
+                                // Nếu hình ảnh là base64
+                                // console.log(image); // Kiểm tra giá trị của image trong mỗi lần lặp
+                                proofImagesHtml += `
+                                    <a href="data:image/jpeg;base64,${image.image}" data-toggle="lightbox" class="proof-image" style="display:inline-block; margin: 10px;" data-gallery="example-gallery">
+                                        <img src="data:image/jpeg;base64,${image.image}" style="width: 200px; height: 200px; object-fit: cover;" class="img-fluid">
+                                    </a>
+                                `;
+                                        
+                            });
+                        } else {
+                            proofImagesHtml = 'Không có hình ảnh minh chứng';
+                        }
+
                         dataSet.push({
                             number: stt++,
                             id: invoices.id,
@@ -683,7 +690,8 @@ function showDataTable(paymentReq) {
                             issuedDate: formatDate(invoices.issuedDate),
                             description: invoices.description,
                             createDate: formatDate(invoices.createDate),
-                            updateDate: formatDate(invoices.updateDate)
+                            updateDate: formatDate(invoices.updateDate),
+                            proofImages: proofImagesHtml
                         });
                     });
                     return dataSet;
@@ -698,8 +706,12 @@ function showDataTable(paymentReq) {
 
         columnDefs: [
             {
-              targets: '_all', // Áp dụng cho tất cả các cột
-              className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
+                targets: '_all', // Áp dụng cho tất cả các cột
+                className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
+            },
+            {
+                targets: 1, // Cột tên hoá đơn
+                className: 'text-left align-middle', // Căn lề trái nội dung của cột tên quỹ
             }
         ],
         columns: [
@@ -708,11 +720,16 @@ function showDataTable(paymentReq) {
                 render: function (data, type, row) {
                     return `
                         <details>
-                            <summary>
-                                <b>${row.name}</b>
-                            </summary>
-                            <p>
-                                Mô tả: ${data} <br>
+                            <summary class="text-left">
+                                <b>${data}</b>
+                            </summary> <br>
+                            <p class="text-left" style="white-space: normal; !important">
+                                Mô tả: ${row.description} <br>
+                                Hình ảnh minh chứng: 
+                                    <button class="btn btn-link btn-fw view-image" style="color: white;" 
+                                        data-images='${row.proofImages}'>
+                                        Xem hình ảnh
+                                    </button>
                             </p>
                         </details>`;
                 }
@@ -722,7 +739,7 @@ function showDataTable(paymentReq) {
             { data: "createDate" },
             { data: "updateDate" },
         ],
-        order: [[4, "asc"]], // Cột thứ 5 (createDate) sắp xếp tăng dần
+        order: [[1, "asc"]], // Cột thứ 2 (name) sắp xếp tăng dần
 
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
@@ -742,6 +759,51 @@ function showDataTable(paymentReq) {
 }
 
 
+// Hàm chuyển đổi hình ảnh thành base64
+function imageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+// Mở hình ảnh lớn hơn
+$(document).on('click', '[data-toggle="lightbox"]', function(event) {
+    event.preventDefault();
+
+    // Ẩn modal khác khi mở lightbox
+    $('#modal-id').modal('hide'); 
+
+    // Mở lightbox 
+    $(this).ekkoLightbox();
+});
+
+// Lắng nghe sự kiện khi lightbox được đóng
+$(document).on('hidden.bs.modal', '.ekko-lightbox', function() {
+    // Hiện lại modal sau khi lightbox đóng
+    $('#modal-id').modal('show'); 
+});
+
+// Sự kiện khi người dùng nhấn vào nút "Xem hình ảnh"
+$(document).on('click', '.view-image', function () {
+    clear_modal();
+
+    $("#modal-title").text("Hoá đơn " + selectedInvoice.name);
+
+    var images = $(this).data('images'); // Lấy dữ liệu hình ảnh từ nút
+    
+    if (images) {
+        $('#modal-body').html(images); // Đổ hình ảnh vào modal-body
+    } else {
+        $('#modal-body').html('<p>Không có hình ảnh để hiển thị</p>');
+    }
+
+    $('#modal-id').modal('show'); // Mở modal
+});
+
+
 // Bắt sự kiện khi chọn dòng ở bảng invoices-table
 $('#invoices-table tbody').on('click', 'tr', function () {
     // Xóa lựa chọn hiện tại nếu có
@@ -754,7 +816,6 @@ $('#invoices-table tbody').on('click', 'tr', function () {
 
 // Bắt sự kiện keyup "Tìm kiếm"
 $("#invoices-search-input").on("keyup", function () {
-    console.log("tìm kiếm");
     invoicesTable.search(this.value).draw();
 });
 
@@ -783,8 +844,8 @@ $("#btn-add-invoice").on("click", function () {
         </div>
 
         <div class="form-group">
-            <label for="modal-issued-date">Thời gian phát hành hoá đơn</label>
-            <input class="form-control" id="modal-issued-date" type="text" name="datetimes" style="height: 34px;"/>
+            <label for="modal-issued-date-input">Thời gian phát hành hoá đơn</label>
+            <input class="form-control" id="modal-issued-date-input" type="text" name="datetimes" style="height: 34px;"/>
         </div>
 
         <div class="form-group">
@@ -848,7 +909,7 @@ $("#btn-add-invoice").on("click", function () {
         // Hiển thị lên ô input
         $(this).val(picker.startDate.format('HH:mm DD/MM/YYYY'));
 
-        issuedTime = picker.startDate.format('YYYY-MM-DDTHH:mm:00');
+        issuedTime = picker.startDate.format('YYYY-MM-DD HH:mm:00');
     });
     // Nút "Huỷ" trong Date Range Picker
     $('input[name="datetimes"]').on('cancel.daterangepicker', function(ev, picker) {
@@ -900,19 +961,15 @@ $("#btn-add-invoice").on("click", function () {
     });
 
 
-
     $("#modal-id").modal("show");
 
     
     // Lưu thông tin giao dịch
-    $("#modal-submit-btn").click(function () {
-        // issuedTime = issuedTime || ''; 
-        // let description = $("#modal-invoice-description-input").val();
-        // let paymentReq = selectedData.id;
-
-        // Lấy giá trị của tên hóa đơn
+    $("#modal-submit-btn").click(async function () {
+               
         let name = $('#modal-invoice-name-input').val().trim();    
         let amount = getRawValue("#modal-invoice-amount-input");
+
         if (name === "") {
             Toast.fire({
                 icon: "error",
@@ -928,39 +985,47 @@ $("#btn-add-invoice").on("click", function () {
             return; 
         } 
         else {
-            // Tạo đối tượng FormData
-            var formData = new FormData();
-            formData.append('name', name); // lấy tên hóa đơn
-            formData.append('amount', amount); // lấy số tiền
-            formData.append('issuedDate', issuedTime || ''); // lấy ngày phát hành
-            formData.append('description', $('#modal-invoice-description-input').val()); // lấy mô tả
-            formData.append('paymentReq', selectedData.id); // lấy id đề nghị thanh toán
-            
-            // Lấy danh sách file từ input và thêm vào FormData
+            Swal.showLoading();
+
+            // Chuẩn bị dữ liệu JSON để gửi
+            var invoiceData = {
+                name: name,
+                amount: amount,
+                issuedDate: issuedTime || '',
+                description: $('#modal-invoice-description-input').val(),
+                paymentReq: selectedData.id,
+                images: []
+            };
+            // Xử lý file ảnh và chuyển đổi sang Base64
             var files = $('#fileUpload')[0].files;
-            for (var i = 0; i < files.length; i++) {
-                formData.append('proofImages[]', files[i]); // Thêm từng file vào formData với key 'proofImages[]'
-            }
+            const base64Files = await Promise.all(Array.from(files).map(async file => {
+                let base64 = await imageToBase64(file);
+                return base64.split(",")[1]; // Loại bỏ phần "data:image/*;base64,"
+            }));
+
+            // Thêm chuỗi Base64 của các file vào dữ liệu gửi
+            invoiceData.images = base64Files;
+
 
             $.ajax({
                 type: "POST",
                 url: "/api/invoices",
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    "Authorization": "Bearer " + utils.getCookie("authToken")
-                },
-                beforeSend: function () {
-                    Swal.showLoading();
-                },
-                data: formData,
+                // headers: {
+                //     "Content-Type": "multipart/form-data",
+                //     "Authorization": "Bearer " + utils.getCookie("authToken")
+                // },
+                headers: utils.defaultHeaders(),
+                data: JSON.stringify(invoiceData),
                 processData: false, // không xử lý dữ liệu
                 success: function (res) {
+                    Swal.close();
                     if(res.code==1000){
                         Toast.fire({
                             icon: "success",
                             title: "Đã thêm hoá đơn thành công!",
                             timer: 3000,
                         });
+                        showDataTable(selectedData.id); // load lại bảng hoá đơn
                     }
                     else {
                         Toast.fire({
@@ -970,21 +1035,16 @@ $("#btn-add-invoice").on("click", function () {
                     }
                 },
                 error: function (xhr, status, error) {
+                    Swal.close();
                     var err = utils.handleAjaxError(xhr);
                     Toast.fire({
                         icon: "error",
                         title: err.message
                     });
                 },
-                complete: function () {
-                    Swal.close();
-                },
             });
-            $("#modal-id").modal("hide");
+            $("#modal-id").modal("hide");           
         }
-            // $("#modal-id").on('hidden.bs.modal', function () {
-            //     $("#btn-view-contribute").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-            // });
     });
 
     // Khi nhấn nút "Huỷ bỏ"
@@ -993,6 +1053,285 @@ $("#btn-add-invoice").on("click", function () {
         $("#modal-id").modal('hide');
     });
 
+});
+
+
+// Nhấn nút "Cập nhật"
+$("#btn-update-invoice").on("click", function () {
+    if(selectedInvoice){
+        var invoiceId = selectedInvoice.id; // Lấy ID của hoá đơn
+        clear_modal();
+
+        // Gọi API lấy thông tin quỹ theo invoiceId
+        $.ajax({
+            type: "GET",
+            url: "/api/invoices/" + invoiceId,
+            headers: utils.defaultHeaders(),
+            beforeSend: function () {
+                Swal.showLoading();
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.code === 1000) {
+                    let invoice = res.result;
+                    
+                    $("#modal-title").text("Cập nhật hoá đơn");
+                    
+                    // Hiển thị dữ liệu hoá đơn trong modal
+                    $("#modal-body").append(`
+                        <form class="forms-sample">
+                            <div class="form-group">
+                                <label for="modal-invoice-name-input">Tên quỹ</label>
+                                <input type="text" class="form-control" id="modal-invoice-name-input" value="${invoice.name}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-invoice-amount-input">Số tiền</label>
+                                <div class="input-group">
+                                    <input id="modal-invoice-amount-input" type="text" class="form-control" aria-label="Số tiền (tính bằng đồng)" value="${invoice.amount}">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text bg-primary text-white">₫</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-issued-date">Thời gian phát hành hoá đơn</label>
+                                <input class="form-control" id="modal-issued-date" type="text" name="datetimes" style="height: 34px;" value="${invoice.issuedDate}"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-invoice-description-input">Mô tả</label>
+                                <textarea class="form-control" id="modal-invoice-description-input" rows="4">${invoice.description}</textarea>
+                            </div>
+
+                            <div class="form-group">            
+                                <label for="proof-image">Hình ảnh minh chứng</label><br>
+                                <label class="custom-file-upload btn-primary btn-icon-text">
+                                    <i class="ti-upload btn-icon-prepend mr-2"></i>
+                                    <input type="file" id="fileUpload" accept="image/*" multiple>
+                                    Chọn file
+                                </label><br>
+                                <span id="selected-file-names" class="ml-2"></span>
+                                <!-- Nơi để hiển thị các button của hình ảnh đã lưu -->
+                                <span id="image-buttons"></span>
+                            </div>
+
+                        </form>
+                    `);
+                    
+                    $("#modal-footer").append(`
+                        <button type="submit" class="btn btn-primary mr-2" id="modal-update-btn">
+                            <i class="fa-regular fa-floppy-disk mr-2"></i>Cập nhật
+                        </button>
+                        <button class="btn btn-light" id="modal-cancel-btn">
+                            <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
+                        </button>
+                    `);
+                    
+                    // Hàm định dạng số tiền khi nhập
+                    document.getElementById('modal-invoice-amount-input').addEventListener('input', function (e) {
+                        let value = e.target.value.replace(/\./g, ''); // Loại bỏ các dấu chấm hiện có
+                        value = parseFloat(value.replace(/[^0-9]/g, '')); // Loại bỏ các ký tự không phải số
+
+                        if (!isNaN(value)) {
+                        e.target.value = value.toLocaleString('vi-VN'); // Định dạng số với dấu chấm
+                        } else {
+                        e.target.value = '';
+                        }
+                    });
+
+                    // Date Picker
+                    $('#modal-issued-date').daterangepicker({
+                        timePicker: true,
+                        timePicker24Hour: true,
+                        issuedTime: moment().startOf('hour'),
+                        singleDatePicker: true,
+                        autoUpdateInput: false,
+                        showDropdowns: true,
+                        opens: "right",
+                        locale: {
+                            cancelLabel: 'Huỷ',
+                            applyLabel: 'Áp dụng',
+                            format: 'DD/MM/YYYY HH:mm',
+                            daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                            monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                            firstDay: 1 // Đặt ngày đầu tuần là thứ 2
+                        }
+                    });
+                    // Nút "Áp dụng" trong Date Range Picker
+                    $('#modal-issued-date').on('apply.daterangepicker', function(ev, picker) {
+                        // Hiển thị lên ô input
+                        $(this).val(picker.startDate.format('HH:mm DD/MM/YYYY'));
+
+                        issuedTime = picker.startDate.format('YYYY-MM-DD HH:mm:00');
+                    });
+                    // Nút "Huỷ" trong Date Range Picker
+                    $('#modal-issued-date').on('cancel.daterangepicker', function(ev, picker) {
+                        issuedTime = '';
+                        $(this).val('');
+                    });
+
+                    // Sự kiện thay đổi file
+                    $("#fileUpload").on("change", function () {
+                        var files = $(this)[0].files; // Lấy danh sách file
+                        var fileNamesHtml = '';
+
+                        // Duyệt qua từng file và tạo button hiển thị tên file
+                        for (var i = 0; i < files.length; i++) {
+                            var fileName = files[i].name;
+                            var fileId = "file-" + i;
+
+                            // Tạo button có chứa tên file và nút x để xoá
+                            fileNamesHtml += `
+                                <button type="button" class="btn btn-outline-light btn-file btn-sm" id="${fileId}" data-file-index="${i}">${fileName} 
+                                    <span class="ml-2 close" data-file-index="${i}" style="font-size: small">&times;</span>
+                                </button>
+                            `;
+                        }
+
+                        // Hiển thị danh sách tên file dưới dạng các button
+                        $("#selected-file-names").html(fileNamesHtml);
+                    });
+
+                    // Xử lý sự kiện khi nhấn nút "x" để xoá file
+                    $(document).on("click", ".close", function () {
+                        var fileIndex = $(this).data('file-index');
+                        
+                        // Xoá file từ input file
+                        var inputFile = $('#fileUpload')[0];
+                        var dt = new DataTransfer(); // Tạo đối tượng DataTransfer để quản lý lại danh sách file
+
+                        // Duyệt qua danh sách file và loại bỏ file đã chọn xoá
+                        for (var i = 0; i < inputFile.files.length; i++) {
+                            if (i !== fileIndex) {
+                                dt.items.add(inputFile.files[i]); // Thêm file vào danh sách mới, trừ file bị xoá
+                            }
+                        }
+
+                        inputFile.files = dt.files; // Cập nhật lại danh sách file vào input
+
+                        // Xoá button tương ứng
+                        $(this).parent().remove();
+                    });
+
+                    // Hiển thị các button hình ảnh đã lưu trước đó
+                    if (invoice.images && invoice.images.length > 0) {
+                        let imageButtonsHtml = '';
+                        invoice.images.forEach((image) => {
+                            console.log(image);
+                            
+                            imageButtonsHtml += `
+                                <button type="button" class="btn btn-outline-primary m-1 image-btn" style="background-image:url('${image.image}'); background-size: cover; background-position: center; width: 150px; height: 150px;" title="Image ${image.id}"></button>
+                            `;
+                        });
+                        $("#image-buttons").html(imageButtonsHtml);
+                    }
+                    
+                    $("#modal-id").modal("show");
+
+                    // Cập nhật quỹ
+                    $("#modal-update-btn").click( async function () {
+                        let name = $("#modal-invoice-name-input").val();
+                        let amount = getRawValue("#modal-invoice-amount-input");
+                        let description = $("#modal-invoice-description-input").val();
+                    
+                        if (name == null || name.trim() == "") {
+                            Toast.fire({
+                                icon: "error",
+                                title: "Vui lòng điền tên hoá đơn!"
+                            });
+                            return;
+                        } 
+                        else if (amount === ""){
+                            Toast.fire({
+                                icon: "error",
+                                title: "Vui lòng nhập số tiền!"
+                            });
+                            return; 
+                        } 
+                        else {
+                            Swal.showLoading();
+                            // Chuẩn bị dữ liệu JSON để gửi
+                            var invoiceData = {
+                                name: name,
+                                amount: amount,
+                                issuedDate: issuedTime || '',
+                                description: description,
+                                paymentReq: selectedData.id,
+                                images: []
+                            };
+                            // Xử lý file ảnh và chuyển đổi sang Base64
+                            var files = $('#fileUpload')[0].files;
+                            const base64Files = await Promise.all(Array.from(files).map(async file => {
+                                let base64 = await imageToBase64(file);
+                                return base64.split(",")[1]; // Loại bỏ phần "data:image/*;base64,"
+                            }));
+
+                            // Thêm chuỗi Base64 của các file vào dữ liệu gửi
+                            invoiceData.images = base64Files;
+
+                            $.ajax({
+                                type: "PUT",
+                                url: "/api/invoices?id=" + invoiceId,
+                                // contentType: "application/json",
+                                headers: utils.defaultHeaders(),
+                                data: JSON.stringify(invoiceData),
+                                success: function (res) {
+                                    Swal.close();
+                                    if (res.code == 1000) {
+                                        Toast.fire({
+                                            icon: "success",
+                                            title: "Đã cập nhật hoá đơn thành công!",
+                                        });
+                                        showDataTable(selectedData.id); // load lại bảng hoá đơn
+                                    } else {
+                                        Toast.fire({
+                                            icon: "error",
+                                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                                        });
+                                    }
+                                },
+                                error: function(xhr, status, error){
+                                    Swal.close();
+                                    var err = utils.handleAjaxError(xhr);
+                                        Toast.fire({
+                                            icon: "error",
+                                            title: err.message
+                                        });
+                                },
+                            });
+                        }
+                        $("#modal-id").modal("hide");
+                    });
+
+                    // Khi nhấn nút "Huỷ bỏ"
+                    $("#modal-cancel-btn").click(function () {
+                        $('#modal-id').modal('hide');
+                    });
+                } else {
+                    Toast.fire({
+                        icon: "error",
+                        title: "Không thể lấy thông tin quỹ<br>" + res.message,
+                    });  
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.close();
+                var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+            }
+        });
+    }
+    else {
+        Toast.fire({
+            icon: "error",
+            title: "Vui lòng chọn hoá đơn để cập nhật!",
+        });
+    }
 });
 
 

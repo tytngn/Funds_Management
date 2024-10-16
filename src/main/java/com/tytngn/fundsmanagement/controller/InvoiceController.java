@@ -1,6 +1,5 @@
 package com.tytngn.fundsmanagement.controller;
 
-import com.tytngn.fundsmanagement.dto.request.ImageUpLoad;
 import com.tytngn.fundsmanagement.dto.request.InvoiceRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
 import com.tytngn.fundsmanagement.dto.response.InvoiceResponse;
@@ -10,7 +9,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,11 +27,10 @@ public class InvoiceController {
     // Tạo hoá đơn
     @PostMapping
     @PreAuthorize("@securityExpression.hasPermission({'CREATE_INVOICE'})")
-    ApiResponse<InvoiceResponse> createInvoice( @RequestPart("invoice") @Valid InvoiceRequest request,
-                                                @RequestPart("images") @Valid ImageUpLoad imageUpload) throws IOException {
+    ApiResponse<InvoiceResponse> createInvoice(@RequestBody @Valid InvoiceRequest request) throws IOException {
         return ApiResponse.<InvoiceResponse>builder()
                 .code(1000)
-                .result(invoiceService.create(request, imageUpload))
+                .result(invoiceService.create(request))
                 .build();
     }
 
@@ -54,6 +51,15 @@ public class InvoiceController {
         return ApiResponse.<List<InvoiceResponse>>builder()
                 .code(1000)
                 .result(invoiceService.getInvoicesByPaymentReq(paymentReqId))
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_INVOICE_BY_ID'})")
+    ApiResponse<InvoiceResponse> getFundById(@PathVariable String id) {
+        return ApiResponse.<InvoiceResponse>builder()
+                .code(1000)
+                .result(invoiceService.getById(id))
                 .build();
     }
 

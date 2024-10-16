@@ -30,10 +30,6 @@ public class Invoice {
     @Column(columnDefinition = "TEXT")
     String description;
 
-    @Lob
-    @Column(columnDefinition = "MEDIUMBLOB")
-    byte[] proofImage;
-
     LocalDateTime createDate;
     LocalDateTime updateDate;
 
@@ -45,5 +41,5 @@ public class Invoice {
     // Thêm quan hệ với Image
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id")
-    private List<Image> images;
+    List<Image> images;
 }
