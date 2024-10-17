@@ -381,6 +381,7 @@ $("#fund-search-input").on("keyup", function () {
     dataTable.search(this.value).draw();
 });
 
+
 // Nhấn nút "Thêm mới"
 $("#btn-add-fund").on("click", function () {
     clear_modal();
@@ -470,6 +471,7 @@ $("#btn-add-fund").on("click", function () {
     });
 
 });
+
 
 // Nhấn nút "Cập nhật"
 $("#btn-update-fund").on("click", function () {

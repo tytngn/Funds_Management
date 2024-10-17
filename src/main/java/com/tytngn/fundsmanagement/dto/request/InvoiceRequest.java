@@ -32,5 +32,7 @@ public class InvoiceRequest {
 
     String paymentReq;
 
+    List<String> fileNames; // danh sách tên file ảnh
+
     List<byte[]> images;
 }

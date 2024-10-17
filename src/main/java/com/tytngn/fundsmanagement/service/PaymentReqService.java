@@ -139,6 +139,11 @@ public class PaymentReqService {
                 .toList();
     }
 
+    // Lấy thông tin đề nghị thanh toán theo Id
+    public PaymentReqResponse getById(String id) {
+        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS)));
+    }
 
     // Cập nhật đề nghị thanh toán
     @Transactional
@@ -171,7 +176,7 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
 
-    // Tạo đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
+    // Cập nhật đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
     @Transactional
     public PaymentReqResponse updatePaymentReqFromBudgetActivities(String id, PaymentReqRequest request) {
 
@@ -202,6 +207,51 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
 
+    // Gửi đề nghị thanh toán (chuyển sang trạng thái chờ duyệt)
+    @Transactional
+    public PaymentReqResponse sendPaymentRequest(String id) {
+
+        PaymentReq paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
+
+        // kiểm tra trạng thái hiện tại (chỉ cho phép gửi nếu trạng thái là 1)
+        if (paymentReq.getStatus() != 1) {
+            throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_SENDABLE);
+        }
+
+        // Đổi trạng thái thành 2 (đang chờ xác nhận)
+        paymentReq.setStatus(2);
+        paymentReq.setUpdateDate(LocalDateTime.now());
+
+        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+    }
+
+    // Xác nhận đề nghị thanh toán (trạng thái đã duyệt hoặc từ chối)
+    @Transactional
+    public PaymentReqResponse confirmPaymentRequest(String id, boolean isApproved) {
+
+        PaymentReq paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
+
+        // kiểm tra trạng thái hiện tại (chỉ cho phép xác nhận nếu trạng thái là 2)
+        if (paymentReq.getStatus() != 2) {
+            throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_CONFIRMABLE);
+        }
+
+        // Nếu được chấp nhận, đổi trạng thái thành 3 (đã duyệt)
+        if (isApproved) {
+            paymentReq.setStatus(3);
+        }
+        // Nếu bị từ chối, đổi trạng thái thành 0 (từ chối)
+        else {
+            paymentReq.setStatus(0);
+        }
+
+        paymentReq.setUpdateDate(LocalDateTime.now());
+
+        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+    }
+
     // Xoá đề nghị thanh toán
     @Transactional
     public void delete(String id) {
@@ -212,6 +262,11 @@ public class PaymentReqService {
         // kiểm tra trạng thái của đề nghị thanh toán
         if(paymentReq.getStatus() != 1)
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
+
+        // Kiểm tra xem có hóa đơn nào liên quan không
+        if (!paymentReq.getInvoices().isEmpty()) {
+            throw new AppException(ErrorCode.PAYMENT_REQUEST_HAS_INVOICES);
+        }
 
         paymentReq.setUser(null);
         paymentReq.setCategory(null);

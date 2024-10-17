@@ -51,10 +51,20 @@ public class InvoiceService {
         invoice.setPaymentReq(paymentReq);
 
         // Tải lên nhiều ảnh minh chứng
+//        List<Image> savedImages = new ArrayList<>();
+//        for (byte[] file : request.getImages()) {
+//            Image image = new Image();
+//            image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
+//            savedImages.add(imageRepository.save(image));
+//        }
         List<Image> savedImages = new ArrayList<>();
-        for (byte[] file : request.getImages()) {
+        for (int i = 0; i < request.getImages().size(); i++) {
+            byte[] file = request.getImages().get(i);
+            String fileName = request.getFileNames().get(i);  // Lấy tên file tương ứng
+
             Image image = new Image();
             image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
+            image.setFileName(fileName); // Lưu tên file ảnh
             savedImages.add(imageRepository.save(image));
         }
         invoice.setImages(savedImages);
@@ -120,10 +130,20 @@ public class InvoiceService {
         invoice.setPaymentReq(paymentReq);
 
         // Tải lên nhiều ảnh minh chứng
+//        List<Image> savedImages = new ArrayList<>();
+//        for (byte[] file : request.getImages()) {
+//            Image image = new Image();
+//            image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
+//            savedImages.add(imageRepository.save(image));
+//        }
         List<Image> savedImages = new ArrayList<>();
-        for (byte[] file : request.getImages()) {
+        for (int i = 0; i < request.getImages().size(); i++) {
+            byte[] file = request.getImages().get(i);
+            String fileName = request.getFileNames().get(i);  // Lấy tên file tương ứng
+
             Image image = new Image();
             image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
+            image.setFileName(fileName); // Lưu tên file ảnh
             savedImages.add(imageRepository.save(image));
         }
         invoice.setImages(savedImages);
@@ -152,10 +172,10 @@ public class InvoiceService {
         // lấy danh sách các hóa đơn trong PaymentReq
         List<Invoice> invoices = invoiceRepository.findByPaymentReq(paymentReq);
         // Kiểm tra xem có phải hoá đơn cuối cùng hay không
-        if(invoices.size() == 1)
-            throw new AppException(ErrorCode.LAST_INVOICE_CANNOT_BE_DELETED);
+//        if(invoices.size() == 1)
+//            throw new AppException(ErrorCode.LAST_INVOICE_CANNOT_BE_DELETED);
 
-        // Nếu không phải hoá đơn cuối cùng, cập nhật lại tổng số tiền ở PaymentReq và tiến hành xoá
+        // cập nhật lại tổng số tiền ở PaymentReq và tiến hành xoá
         paymentReq.setAmount(paymentReq.getAmount() - invoice.getAmount());
         invoiceRepository.deleteById(id);
 

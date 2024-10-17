@@ -216,32 +216,24 @@ export function handleAjaxError(xhr) {
     }
 }
 
-// Hàm kiểm tra role người dùng từ token
-// export function checkUserRole() {
-//     const authToken = getCookie("authToken");
-
-//     if (authToken) {
-//         try {
-//             // Giải mã token để lấy thông tin role
-//             const decodedToken = jwt_decode(authToken);
-//             const roles = decodedToken.scope || []; // Giả sử scope lưu các role
-            
-//             if (roles.includes("ROLE_Quản lý quỹ")) { 
-//                 console.log("Người dùng là quản lý");
-//                 return true;
-//             } else {
-//                 console.log("Bạn không có quyền truy cập");
-//                 return false;
-//             }
-//         } catch (error) {
-//             console.error("Lỗi khi giải mã token:", error);
-//             return false;
-//         }
-//     } else {
-//         // alert("Chưa đăng nhập");
-//         window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập nếu chưa có token
-//         return false;
-//     }
-// }
-
+// kiểm tra xem người dùng có phải nhân viên quản lý quỹ không
+export function isUserManager() {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "POST",
+            url: "/api/auth/get-role",
+            headers: defaultHeaders(),
+            success: function (res) {
+                if (res.code == 1000 && res.result.includes("ROLE_USER_MANAGER")) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            },
+            error: function () {
+                reject(false);
+            },
+        });
+    });
+}
 

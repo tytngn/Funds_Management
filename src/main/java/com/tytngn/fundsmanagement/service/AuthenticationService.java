@@ -24,8 +24,10 @@ import lombok.experimental.NonFinal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -33,6 +35,7 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.UUID;
 
@@ -133,7 +136,7 @@ public class AuthenticationService {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if(!CollectionUtils.isEmpty(user.getRoles()))
             user.getRoles().forEach(role -> {
-                stringJoiner.add("ROLE_" + role.getRoleName());
+                stringJoiner.add("ROLE_" + role.getId());
 //                if (!CollectionUtils.isEmpty(role.getPermissions())){
 //                    role.getPermissions().forEach(permission -> {
 //                        stringJoiner.add(permission.getPerm_name());
@@ -220,4 +223,12 @@ public class AuthenticationService {
                 .authenticated(true)
                 .build();
     }
+
+    // lấy danh sách role từ JWT token
+    public List<String> getUserRole() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) auth.getPrincipal();
+        return jwt.getClaimAsStringList("scope");
+    }
+
 }

@@ -1,6 +1,5 @@
 package com.tytngn.fundsmanagement.dto.response;
 
-import com.tytngn.fundsmanagement.entity.Image;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -20,5 +19,5 @@ public class InvoiceResponse {
     String description;
     LocalDateTime createDate;
     LocalDateTime updateDate;
-    List<Image> images;
+    List<ImageResponse> images;
 }

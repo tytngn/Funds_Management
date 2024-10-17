@@ -1,9 +1,7 @@
 package com.tytngn.fundsmanagement.controller;
 
-import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
 import com.tytngn.fundsmanagement.dto.request.PaymentReqRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
-import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.dto.response.PaymentReqResponse;
 import com.tytngn.fundsmanagement.service.PaymentReqService;
 import jakarta.validation.Valid;
@@ -64,6 +62,17 @@ public class PaymentReqController {
                 .build();
     }
 
+
+    @GetMapping("/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_PAYMENT_REQUEST_BY_ID'})")
+    ApiResponse<PaymentReqResponse> getFundById(@PathVariable String id) {
+        return ApiResponse.<PaymentReqResponse>builder()
+                .code(1000)
+                .result(paymentReqService.getById(id))
+                .build();
+    }
+
+
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_PAYMENT_REQUEST'})")
     ApiResponse<PaymentReqResponse> updatePaymentReq(@RequestParam String id,
@@ -71,6 +80,26 @@ public class PaymentReqController {
         return ApiResponse.<PaymentReqResponse>builder()
                 .code(1000)
                 .result(paymentReqService.update(id, request))
+                .build();
+    }
+
+    // Gửi đề nghị thanh toán
+    @PutMapping("/send/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'SEND_PAYMENT_REQUEST'})")
+    public ApiResponse<PaymentReqResponse> sendPaymentReq(@PathVariable String id) {
+        return ApiResponse.<PaymentReqResponse>builder()
+                .code(1000)
+                .result(paymentReqService.sendPaymentRequest(id))
+                .build();
+    }
+
+    // Xác nhận đề nghị thanh toán
+    @PutMapping("/confirm/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'CONFIRM_PAYMENT_REQUEST'})")
+    public ApiResponse<PaymentReqResponse> confirmPaymentReq(@PathVariable String id, @RequestParam boolean isApproved) {
+        return ApiResponse.<PaymentReqResponse>builder()
+                .code(1000)
+                .result(paymentReqService.confirmPaymentRequest(id, isApproved))
                 .build();
     }
 

@@ -238,3 +238,6 @@ img:fullscreen {
   height: 100%;
 }
 
+.swal2-modal .swal2-icon, .swal2-modal{
+  margin: 2.5em auto .6em !important; 
+}

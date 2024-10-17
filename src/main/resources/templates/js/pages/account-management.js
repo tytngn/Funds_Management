@@ -203,6 +203,124 @@ $(document).ready(function () {
     }
 
 
+    // Nhấn nút "Xem"
+    $("#btn-view-user").on("click", function () {    
+        // Nếu không có giá trị thì gán ''
+        startDate = startDate || ''; 
+        endDate = endDate || ''; 
+
+        var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
+        var status = '';
+        var departmentId = ''; 
+        var role = ''; 
+        var bankName = '';
+
+        if (filter === 'time') {
+            if (startDate === '' && endDate === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn thời gian!",
+                });
+                return;
+            }
+        }
+        else if (filter === 'status') {
+            status = $('#status-select').val() || ''; // Trạng thái
+            if (status === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn trạng thái!",
+                });
+                return;
+            }
+        } 
+        else if (filter === 'department') {
+            departmentId = $('#department-select').val() || ''; // Phòng ban
+            if (departmentId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phòng ban!",
+                });
+                return;
+            }
+        } 
+        else if (filter === 'role') {
+            role = $('#role-select').val() || ''; // Phân quyền của người dùng
+            if (role === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phân quyền!",
+                });
+                return;
+            }
+        } 
+        else if (filter === 'bank') {
+            bankName = $('#bank-select').val() || ''; // Tên ngân hàng
+            if (bankName === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn ngân hàng!",
+                });
+                return;
+            }
+        }
+
+        console.log("bắt đầu " + startDate);
+        console.log("kết thúc " + endDate );
+        console.log("phòng ban " + departmentId);
+        console.log("phân quyền " + role);
+        console.log("trạng thái " + status);
+        console.log("ngân hàng " + bankName);
+
+        
+       
+        // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
+        $.ajax({
+            url: "/api/funds/filter?start=" + startDate + "&end=" + endDate + "&status=" + status + "&departmentId=" + departmentId + "&userId=" + userId, 
+            type: "GET",
+            headers: utils.defaultHeaders(),
+            success: function(res) {
+                if (res.code == 1000) {                    
+                    var data = [];
+                    var counter = 1;
+                    res.result.forEach(function (fund) {
+                        data.push({
+                            number: counter++, // Số thứ tự tự động tăng
+                            name: fund.fundName,
+                            balance: fund.balance.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }), 
+                            status: fund.status,
+                            description: fund.description,
+                            createDate: formatDate(fund.createDate),
+                            updateDate: formatDate(fund.updateDate),
+                            treasurer: fund.user.fullname,
+                            department: fund.user.department.name,
+                            id: fund.id, // ID của quỹ 
+                        });
+                    });
+                    dataTable.clear().rows.add(data).draw();
+                } else {
+                    Toast.fire({
+                        icon: "error",
+                        title: res.message || "Error in fetching data",
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                if (xhr.status == 401 || xhr.status == 403){
+                    Toast.fire ({
+                        icon: "error",
+                        title: "Bạn không có quyền truy cập!",
+                        timer: 1500,
+                        didClose: function() {
+                            window.location.href = "/";
+                        }
+                    });
+                }
+            },
+        });
+    });
+
+
     // Bảng phân quyền giao dịch quỹ        
     dataTable = $('#user-table').DataTable({
         fixedHeader: true,

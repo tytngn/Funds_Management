@@ -16,6 +16,8 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
+    String fileName;
+
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     byte[] image;
