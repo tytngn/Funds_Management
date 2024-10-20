@@ -46,18 +46,18 @@ function login() {
                 title: "Đăng nhập thất bại",
             });
 
-            setTimeout(function () {
-                let response = xhr.responseText ? JSON.parse(xhr.responseText) : null;
-                if (response && response.message) {
-                    Toast.fire({
-                        icon: "error",
-                        title: response.message + " - " + response.code,
-                    });
-                }
-                console.log(xhr.status);
-                console.log(status);
-                console.log(error);
-            }, 3000);
+            // setTimeout(function () {
+            //     let response = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+            //     if (response && response.message) {
+            //         Toast.fire({
+            //             icon: "error",
+            //             title: response.message + " - " + response.code,
+            //         });
+            //     }
+            //     console.log(xhr.status);
+            //     console.log(status);
+            //     console.log(error);
+            // }, 3000);
         },
     });
 }
@@ -78,3 +78,25 @@ document.getElementById("username").addEventListener("keydown", (event) => {
     }
 });
 
+
+// Hàm hiển thị hoặc ẩn mật khẩu
+function togglePasswordVisibility(passwordInputId, toggleButtonId, iconId) {
+    const passwordInput = document.getElementById(passwordInputId);
+    const toggleButton = document.getElementById(toggleButtonId);
+    const toggleIcon = document.getElementById(iconId);
+
+    toggleButton.addEventListener('click', function () {
+        // Kiểm tra loại input hiện tại
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // Thay đổi icon
+        toggleIcon.classList.toggle('fa-eye');
+        toggleIcon.classList.toggle('fa-eye-slash');
+    });
+}
+
+$(document).ready(function () {
+    // Hiển thị hoặc ẩn mật khẩu
+    togglePasswordVisibility('password', 'toggle-password', 'toggle-icon');
+});

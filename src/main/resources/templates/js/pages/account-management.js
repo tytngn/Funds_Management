@@ -11,7 +11,7 @@ var Toast = Swal.mixin({
 
 var dataTable;
 let selectedData; // Biến lưu dữ liệu đã chọn
-var deparmentOption = [];
+var departmentOption = [];
 var roleOption = [];
 
 var startDate;
@@ -46,11 +46,11 @@ $(document).ready(function () {
         }
         else if (filterType === 'department') {
             $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
-            loadDepartments();
+            $("#department-select").val("").trigger('change');
         }
         else if (filterType === 'role') {
             $('#role-div').prop("hidden", false);
-            loadRoles();
+            $("#role-select").val("").trigger('change');
         }
         else if (filterType === 'bank') {
             $('#bank-div').prop("hidden", false);
@@ -89,88 +89,84 @@ $(document).ready(function () {
     });
 
     // Gọi api để lấy phòng ban 
-    function loadDepartments() {
-        $.ajax({
-            type: "GET",
-            url: "/api/departments",
-            headers: utils.defaultHeaders(),
-            success: function (res) {
-                if (res.code === 1000) {
-                    let departments = res.result;
-                    let departmentDropdown = $("#department-select");
-                    deparmentOption = [];
+    $.ajax({
+        type: "GET",
+        url: "/api/departments",
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if (res.code === 1000) {
+                let departments = res.result;
+                let departmentDropdown = $("#department-select");
+                departmentOption = [];
 
-                    departmentDropdown.empty();
-    
-                    // Thêm các phòng ban vào dropdown
-                    departments.forEach(function(department) {
-                        deparmentOption.push({
-                            id: department.id,
-                            text: department.name
-                        });
-                        departmentDropdown.append(`
-                            <option value="${department.id}">${department.name}</option>
-                        `);              
+                departmentDropdown.empty();
+
+                // Thêm các phòng ban vào dropdown
+                departments.forEach(function(department) {
+                    departmentOption.push({
+                        id: department.id,
+                        text: department.name
                     });
-                    departmentDropdown.val("").trigger('change');
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Không thể lấy danh sách phòng ban<br>" + res.message,
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                var err = utils.handleAjaxError(xhr);
-                    Toast.fire({
-                        icon: "error",
-                        title: err.message
-                    });
+                    departmentDropdown.append(`
+                        <option value="${department.id}">${department.name}</option>
+                    `);              
+                });
+                departmentDropdown.val("").trigger('change');
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: "Không thể lấy danh sách phòng ban<br>" + res.message,
+                });
             }
-        });
-    }
+        },
+        error: function (xhr, status, error) {
+            var err = utils.handleAjaxError(xhr);
+                Toast.fire({
+                    icon: "error",
+                    title: err.message
+                });
+        }
+    });
 
-    // Gọi api để lấy phòng ban 
-    function loadRoles() {
-        $.ajax({
-            type: "GET",
-            url: "/api/roles",
-            headers: utils.defaultHeaders(),
-            success: function (res) {
-                if (res.code === 1000) {
-                    let roles = res.result;
-                    let roleDropdown = $("#role-select");
-                    roleOption = [];
+    // Gọi api để lấy role
+    $.ajax({
+        type: "GET",
+        url: "/api/roles",
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if (res.code === 1000) {
+                let roles = res.result;
+                let roleDropdown = $("#role-select");
+                roleOption = [];
 
-                    roleDropdown.empty();
+                roleDropdown.empty();
 
-                    // Thêm các phòng ban vào dropdown
-                    roles.forEach(function(role) {
-                        roleOption.push({
-                            id: role.id,
-                            text: role.roleName
-                        });
-                        roleDropdown.append(`
-                            <option value="${role.id}">${role.roleName}</option>
-                        `);              
+                // Thêm các role vào dropdown
+                roles.forEach(function(role) {
+                    roleOption.push({
+                        id: role.id,
+                        text: role.roleName
                     });
-                    roleDropdown.val("").trigger('change');
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Không thể lấy danh sách phân quyền<br>" + res.message,
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                var err = utils.handleAjaxError(xhr);
-                    Toast.fire({
-                        icon: "error",
-                        title: err.message
-                    });
+                    roleDropdown.append(`
+                        <option value="${role.id}">${role.roleName}</option>
+                    `);              
+                });
+                roleDropdown.val("").trigger('change');
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: "Không thể lấy danh sách phân quyền<br>" + res.message,
+                });
             }
-        });
-    }
+        },
+        error: function (xhr, status, error) {
+            var err = utils.handleAjaxError(xhr);
+                Toast.fire({
+                    icon: "error",
+                    title: err.message
+                });
+        }
+    });
 
     // Lấy danh sách ngân hàng
     function populateBankSelect() {
@@ -271,30 +267,38 @@ $(document).ready(function () {
         console.log("phân quyền " + role);
         console.log("trạng thái " + status);
         console.log("ngân hàng " + bankName);
-
-        
        
         // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
         $.ajax({
-            url: "/api/funds/filter?start=" + startDate + "&end=" + endDate + "&status=" + status + "&departmentId=" + departmentId + "&userId=" + userId, 
+            url: "/api/users/filter?start=" + startDate + "&end=" + endDate + "&status=" + status + "&departmentId=" + departmentId + "&roleId=" + role + "&bankName=" + bankName, 
             type: "GET",
             headers: utils.defaultHeaders(),
+            beforeSend: function () {
+                Swal.showLoading();
+            },
             success: function(res) {
+                Swal.close();
                 if (res.code == 1000) {                    
                     var data = [];
                     var counter = 1;
-                    res.result.forEach(function (fund) {
+                    res.result.forEach(function (user) {
+                        console.log(user);
+                        
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
-                            name: fund.fundName,
-                            balance: fund.balance.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }), 
-                            status: fund.status,
-                            description: fund.description,
-                            createDate: formatDate(fund.createDate),
-                            updateDate: formatDate(fund.updateDate),
-                            treasurer: fund.user.fullname,
-                            department: fund.user.department.name,
-                            id: fund.id, // ID của quỹ 
+                            username: user.username,
+                            fullname: user.fullname,
+                            gender: user.gender, 
+                            email: user.email,
+                            phone: user.phone,
+                            dob: formatDate(user.dob),
+                            status: user.status,
+                            roles: user.roles,
+                            createDate: formatDate(user.createdDate),
+                            updateDate: formatDate(user.updatedDate),
+                            account: user.account,
+                            department: user.department.name,
+                            id: user.id, // ID của người dùng 
                         });
                     });
                     dataTable.clear().rows.add(data).draw();
@@ -306,6 +310,7 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
+                Swal.close();
                 if (xhr.status == 401 || xhr.status == 403){
                     Toast.fire ({
                         icon: "error",
@@ -361,8 +366,21 @@ $(document).ready(function () {
 
         columns: [
         { data: "number" },
-        { data: "name", 
+        { data: "fullname", 
             render: function (data, type, row) {
+                let html = "";
+                if (row.account) {
+                    html = `Ngân hàng : ${row.account.bankName} <br>
+                            Số tài khoản: ${row.account.accountNumber} <br>
+                            `;
+                }
+                let roleHtml = "";
+                $.each(row.roles, function (idx, val) { 
+                    if(idx != 0){
+                        roleHtml += ", ";
+                    }
+                    roleHtml += val.roleName;
+                });
                 return `
                     <details>
                         <summary class="text-left">
@@ -371,26 +389,39 @@ $(document).ready(function () {
                         <p class="text-left" style="white-space: normal; !important">
                             Username: ${row.username} <br>
                             Email: ${row.email} <br>
-                            Số điện thoại: ${row.phone} <br>
-                            Phân quyền: ${row.role} <br>
-                            Ngân hàng : ${row.bankName} <br>
-                            Số tài khoản: ${row.accountNumber} <br>                          
+                            ${row.phone ? "Số điện thoại: " + row.phone : ""}<br> 
+                            Phân quyền: ${roleHtml} <br>
+                            ${html}
                             ${row.updateDate? " Ngày cập nhật: " + row.updateDate : ""}
                         </p>
                     </details>`;
             }
         },
-        { data: "gender" },
+        { data: "gender",
+            render: function (data, type, row) {
+                if (data == 0) {
+                    return `
+                        <span class="badge badge-outline-info">
+                            <i class="fas fa-male"></i> Nam
+                        </span>`;
+                } else {
+                    return `
+                        <span class="badge badge-outline-warning">
+                            <i class="fas fa-female"></i> Nữ
+                        </span>`;
+                }
+            }
+        },
         { data: "dob" },
-        { data: "deparment" },
+        { data: "department" },
         { data: "createDate" },
         { 
             data: "status",
             orderable: true, // Cho phép sắp xếp dựa trên cột này
             searchable: true, // Cho phép tìm kiếm dựa trên cột này
             render: function (data, type, row) {
-                var statusClass = data === 1 ? 'btn-inverse-success' : 'btn-inverse-danger';
-                var statusText = data === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
+                var statusClass = data === 1 || data === 9999 ? 'btn-inverse-success' : 'btn-inverse-danger';
+                var statusText = data === 1 || data === 9999 ? 'Hoạt động' : 'Ngừng hoạt động';
 
                 return `
                     <div class="d-flex justify-content-center align-items-center">
@@ -417,9 +448,7 @@ $(document).ready(function () {
         },
 
     });
-
 });
-
 
 // Hàm định dạng ngày tháng
 function formatDate(dateString) {
@@ -436,6 +465,23 @@ function clear_modal() {
   $("#modal-footer").empty();
 }
 
+// Hàm hiển thị hoặc ẩn mật khẩu
+function togglePasswordVisibility(passwordInputId, toggleButtonId, iconId) {
+    const passwordInput = document.getElementById(passwordInputId);
+    const toggleButton = document.getElementById(toggleButtonId);
+    const toggleIcon = document.getElementById(iconId);
+
+    toggleButton.addEventListener('click', function () {
+        // Kiểm tra loại input hiện tại
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // Thay đổi icon
+        toggleIcon.classList.toggle('fa-eye');
+        toggleIcon.classList.toggle('fa-eye-slash');
+    });
+}
+
 
 // Bắt sự kiện khi chọn dòng ở bảng fund-table
 $('#user-table tbody').on('click', 'tr', function () {
@@ -450,4 +496,611 @@ $('#user-table tbody').on('click', 'tr', function () {
 // Bắt sự kiện keyup "Tìm kiếm"
 $("#user-search-input").on("keyup", function () {
   dataTable.search(this.value).draw();
+});
+
+
+// Nhấn nút "Thêm mới"
+$("#btn-add-user").on("click", function () {
+    clear_modal();
+  
+    $("#modal-title").text("Tạo tài khoản mới");
+  
+    $("#modal-body").append(`
+        <div class="form-group">
+            <label for="modal-username-input">Tên đăng nhập</label>
+            <input type="text" class="form-control" id="modal-username-input" 
+                placeholder="Nhập tên đăng nhập" 
+                data-toggle="tooltip"
+                data-container="#modal-body"
+                title="Tên đăng nhập chỉ được phép chứa các chữ cái không dấu và không có khoảng trắng.">
+        </div>
+
+        <div class="form-group">
+            <label for="modal-email-input">Email</label>
+            <input type="email" class="form-control" id="modal-email-input" placeholder="Nhập địa chỉ email">
+        </div>
+
+        <div class="form-group">
+            <label for="modal-fullname-input">Họ và tên</label>
+            <input type="text" class="form-control" id="modal-fullname-input" placeholder="Nhập họ và tên">
+        </div>
+
+        <div class="form-group">
+            <label for="modal-gender-input">Giới tính</label>
+            <select class="form-control" id="modal-gender-input" style="width: 100%;" data-placeholder="Chọn giới tính">
+                <option value="" disabled selected>Chọn giới tính</option>
+                <option value="0">Nam</option>
+                <option value="1">Nữ</option>
+                <option value="2">Khác</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-department-input">Phòng ban</label>
+            <select class="form-control" id="modal-department-input" style="width: 100%;" data-placeholder="Chọn phòng ban"></select>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-role-input">Phân quyền</label>
+            <select class="form-control" id="modal-role-input" style="width: 100%;" multiple="multiple" data-placeholder="Chọn quyền"></select>
+        </div>
+      
+    `);
+  
+    $("#modal-footer").append(`
+        <button type="submit" class="btn btn-primary mr-2" id="modal-submit-btn">
+            <i class="fa-regular fa-floppy-disk mr-2"></i>Lưu
+        </button>
+        <button class="btn btn-light" id="modal-cancel-btn">
+            <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
+        </button>
+    `);
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $('#modal-gender-input').select2({
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+    });
+
+    $('#modal-department-input').select2({
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+        data: departmentOption
+    });
+    $("#modal-department-input").val("").trigger('change');
+
+    $('#modal-role-input').select2({
+        allowClear: true,
+        closeOnSelect: false,
+        data: roleOption
+    });
+
+    $("#modal-id").modal("show");
+
+
+    // Lưu thông tin quỹ
+    $("#modal-submit-btn").click(function () {
+        let username = $("#modal-username-input").val();
+        let email = $("#modal-email-input").val();
+        let fullname = $("#modal-fullname-input").val();
+        let gender = $("#modal-gender-input").val();
+        let department = $("#modal-department-input").val();
+        let roles = $("#modal-role-input").val();
+
+        if (username == null || username.trim()==""){
+            Toast.fire({
+                icon: "error",
+                title: "Vui lòng nhập tên đăng nhập!"
+            });
+            return;
+        } 
+        else if (email == null || email.trim()==""){
+            Toast.fire({
+                icon: "error",
+                title: "Vui lòng nhập email!"
+            });
+            return;
+        }
+        else if (fullname == null || fullname.trim()==""){
+            Toast.fire({
+                icon: "error",
+                title: "Vui lòng nhập họ và tên!"
+            });
+            return;
+        }
+        else if (gender == null){
+            Toast.fire({
+                icon: "error",
+                title: "Vui lòng chọn giới tính!"
+            });
+            return;
+        }
+        else if (department == null){
+            Toast.fire({
+                icon: "error",
+                title: "Vui lòng chọn phòng ban!"
+            });
+            return;
+        }
+        else {
+            $.ajax({
+                type: "POST",
+                url: "/api/users",
+                headers: utils.defaultHeaders(),
+                data: JSON.stringify({
+                    username: username,
+                    email: email,
+                    fullname: fullname,
+                    gender: gender,
+                    departmentId: department,
+                    roleId: roles
+                }),
+                beforeSend: function () {
+                    Swal.showLoading();
+                },
+                success: function (res) {
+                    Swal.close();
+                    if(res.code==1000){
+                        Toast.fire({
+                            icon: "success",
+                            title: "Đã tạo tài khoản!",
+                            timer: 3000,
+                        });
+                        $("#modal-id").on('hidden.bs.modal', function () {
+                            $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
+                        });
+                        $("#modal-id").modal("hide");
+                    }
+                    else {
+                        Toast.fire({
+                            icon: "error",
+                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                        });
+                    }
+                },
+                error: function(xhr, status, error){
+                    Swal.close();
+                    var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+                },
+            });
+        }
+    });
+
+    // Khi nhấn nút "Huỷ bỏ"
+    $("#modal-cancel-btn").click(function (){
+        // Đóng modal
+        $("#modal-id").modal('hide');
+    });
+
+});
+
+
+// Nhấn nút "Cập nhật" 
+$("#btn-update-user").on("click", function () {
+    // Thêm class vào modal
+    $("#modal-id").addClass("update-modal");
+
+    if(selectedData){
+        var userId = selectedData.id; // Lấy ID của user
+        clear_modal();
+
+        // Gọi API lấy thông tin người dùng theo userId
+        $.ajax({
+            type: "GET",
+            url: "/api/users/" + userId,
+            headers: utils.defaultHeaders(),
+            beforeSend: function () {
+                Swal.showLoading();
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.code === 1000) {
+                    let user = res.result;
+                    
+                    $("#modal-title").text("Cập nhật tài khoản");
+                    
+                    // Hiển thị dữ liệu trong modal
+                    $("#modal-body").append(`
+                        <form class="forms-sample">
+                            <div class="form-group">
+                                <label for="modal-username-input">Tên đăng nhập</label>
+                                <input type="text" class="form-control" id="modal-username-input" 
+                                    placeholder="Nhập tên đăng nhập" 
+                                    data-toggle="tooltip"
+                                    data-container="#modal-body"
+                                    title="Tên đăng nhập chỉ được phép chứa các chữ cái không dấu và không có khoảng trắng"
+                                    value="${user.username}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="modal-email-input">Email</label>
+                                <input type="email" class="form-control" id="modal-email-input" placeholder="Nhập địa chỉ email" value="${user.email}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-fullname-input">Họ và tên</label>
+                                <input type="text" class="form-control" id="modal-fullname-input" placeholder="Nhập họ và tên" value="${user.fullname}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-dob-input">Ngày sinh</label>
+                                <input class="form-control" id="modal-dob-input" type="text" name="datetimes" style="height: 34px;" placeholder="dd / mm / yyyy" value="${formatDate(user.dob)}"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-gender-input">Giới tính</label>
+                                <select class="form-control" id="modal-gender-input" style="width: 100%;" data-placeholder="Chọn giới tính">
+                                    <option value="" disabled selected>Chọn giới tính</option>
+                                    <option value="0">Nam</option>
+                                    <option value="1">Nữ</option>
+                                    <option value="2">Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-phone-input">Số điện thoại</label>
+                                <input type="text" class="form-control" id="modal-phone-input" placeholder="Nhập số điện thoại" value="${user.phone ? user.phone : ""}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-department-input">Phòng ban</label>
+                                <select class="form-control" id="modal-department-input" style="width: 100%;" data-placeholder="Chọn phòng ban"></select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modal-role-input">Phân quyền</label>
+                                <select class="form-control" id="modal-role-input" style="width: 100%;" multiple="multiple" data-placeholder="Chọn quyền"></select>
+                            </div>
+
+                            <div class="form-check form-check-flat form-check-primary">
+                                <input id="modal-status-input" type="checkbox" class="form-check-input ml-0" ${user.status === 1 ? 'checked' : ''}>
+                                <label class="form-check-label">Tài khoản đang hoạt động</label>
+                            </div>
+
+                        </form>
+                    `);
+                    
+                    $("#modal-footer").append(`
+                        <button type="submit" class="btn btn-primary mr-2" id="modal-update-btn">
+                            <i class="fa-regular fa-floppy-disk mr-2"></i>Cập nhật
+                        </button>
+                        <button type="button" class="btn btn-outline-primary mr-2" id="modal-reset-btn">
+                            <i class="fa-solid fa-key mr-2"></i>Đặt lại mật khẩu
+                        </button>
+                        <button class="btn btn-light" id="modal-cancel-btn">
+                            <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
+                        </button>
+                    `);
+
+                    $('[data-toggle="tooltip"]').tooltip();
+                    
+                    // Date Picker
+                    $('#modal-dob-input').daterangepicker({
+                        dob: moment(user.dob),
+                        singleDatePicker: true,
+                        autoUpdateInput: false,
+                        showDropdowns: true,
+                        opens: 'center',
+                        locale: {
+                            cancelLabel: 'Huỷ',
+                            applyLabel: 'Áp dụng',
+                            format: 'DD/MM/YYYY',
+                            daysOfWeek: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+                            monthNames: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                            firstDay: 1 // Đặt ngày đầu tuần là thứ 2
+                        }
+                    });
+                    var dob;
+                    // Nút "Áp dụng" trong Date Range Picker
+                    $('#modal-dob-input').on('apply.daterangepicker', function(ev, picker) {
+                        // Hiển thị lên ô input
+                        $(this).val(picker.startDate.format('DD/MM/YYYY'));
+
+                        dob = picker.startDate.format('YYYY-MM-DD');
+                    });
+                    // Nút "Huỷ" trong Date Range Picker
+                    $('#modal-dob-input').on('cancel.daterangepicker', function(ev, picker) {
+                        dob = '';
+                        $(this).val('');
+                    });
+
+                    $('#modal-gender-input').select2({
+                        allowClear: true,
+                        theme: "bootstrap",
+                        closeOnSelect: true,
+                    });
+                    $('#modal-gender-input').val(user.gender).trigger('change');
+
+                    $('#modal-department-input').select2({
+                        allowClear: true,
+                        theme: "bootstrap",
+                        closeOnSelect: true,
+                        data: departmentOption
+                    });
+                    $('#modal-department-input').val(user.department.id).trigger('change');
+
+                    $('#modal-role-input').select2({
+                        allowClear: true,
+                        closeOnSelect: false,
+                        data: roleOption
+                    });
+                    // Lấy danh sách các id role đã lưu trước đó từ user.roles
+                    var savedRoles = user.roles.map(function(role) {
+                        return role.id;
+                    });
+                    $('#modal-role-input').val(savedRoles).trigger('change');
+                    
+
+                    $("#modal-id").modal("show");
+
+
+                    // Cập nhật tài khoản
+                    $("#modal-update-btn").click(function () {
+                        let username = $("#modal-username-input").val();
+                        let email = $("#modal-email-input").val();
+                        let fullname = $("#modal-fullname-input").val();
+                        let gender = $("#modal-gender-input").val();
+                        let phone = $("#modal-phone-input").val();
+                        let department = $("#modal-department-input").val();
+                        let roles = $("#modal-role-input").val();
+                        let status = $("#modal-status-input").is(":checked") ? 1 : 0;
+                    
+                        // Kiểm tra nếu cần xác nhận
+                        if (status === 0 && user.status !== status) {
+                            Swal.fire({
+                                title: 'Bạn có chắc chắn?',
+                                text: "Bạn sẽ vô hiệu hoá tài khoản " + username,
+                                icon: "warning",
+                                showDenyButton: false,
+                                showCancelButton: true,
+                                confirmButtonText: "Đồng ý",
+                                cancelButtonText: "Huỷ",
+                            }).then((result) => { 
+                                if (result.isConfirmed){
+                                    // gọi api vô hiệu hoá tài khoản của người dùng 
+                                    $.ajax({
+                                        type: "PUT",
+                                        url: "/api/users/" + userId ,
+                                        headers: utils.defaultHeaders(),
+                                        beforeSend: function () {
+                                            Swal.showLoading();
+                                        },
+                                        success: function (res) {
+                                            Swal.close();
+                                            if (res.code == 1000) {
+                                                Toast.fire({
+                                                    icon: "success",
+                                                    title: "Đã vô hiệu hoá tài khoản",
+                                                });
+                                                $("#modal-id").modal("hide");
+                                                $("#modal-id").on('hidden.bs.modal', function () {
+                                                    $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
+                                                    $(this).removeClass("update-modal");
+                                                });
+                                            } else {
+                                                Toast.fire({
+                                                    icon: "error",
+                                                    title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                                                });
+                                            }
+                                        },
+                                        error: function(xhr, status, error){
+                                            Swal.close();
+                                            var err = utils.handleAjaxError(xhr);
+                                                Toast.fire({
+                                                    icon: "error",
+                                                    title: err.message
+                                                });
+                                        },
+                                    });
+                                }
+                            });
+                        }
+                        else {
+                            $.ajax({
+                                type: "PUT",
+                                url: "/api/users?userId=" + userId ,
+                                headers: utils.defaultHeaders(),
+                                data: JSON.stringify({
+                                    username: username,
+                                    email: email,
+                                    fullname: fullname,
+                                    dob: dob || user.dob,
+                                    gender: gender,
+                                    phone: phone,
+                                    status: status,
+                                    departmentId: department,
+                                    roleId: roles
+                                }),
+                                beforeSend: function () {
+                                    Swal.showLoading();
+                                },
+                                success: function (res) {
+                                    Swal.close();
+                                    if (res.code == 1000) {
+                                        Toast.fire({
+                                            icon: "success",
+                                            title: "Đã cập nhật tài khoản",
+                                        });
+                                        $("#modal-id").modal("hide");
+                                        $("#modal-id").on('hidden.bs.modal', function () {
+                                            $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
+                                            $(this).removeClass("update-modal");
+                                        });
+                                    } else {
+                                        Toast.fire({
+                                            icon: "error",
+                                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                                        });
+                                    }
+                                },
+                                error: function(xhr, status, error){
+                                    Swal.close();
+                                    var err = utils.handleAjaxError(xhr);
+                                    Toast.fire({
+                                        icon: "error",
+                                        title: err.message
+                                    });
+                                },
+                            });
+                        }
+                    });
+
+
+                    // Đặt lại mật khẩu
+                    $("#modal-reset-btn").click(function () {
+                        Swal.fire({
+                            title: 'Bạn có chắc chắn?',
+                            text: "Bạn sẽ đặt lại mật khẩu mặc địch cho tài khoản " + user.username,
+                            icon: "warning",
+                            showDenyButton: false,
+                            showCancelButton: true,
+                            confirmButtonText: "Đồng ý",
+                            cancelButtonText: "Huỷ",
+                        }).then((result) => { 
+                            if (result.isConfirmed){
+                                // gọi api đặt lại mật khẩu mặc định cho tài khoản của người dùng 
+                                $.ajax({
+                                    type: "PUT",
+                                    url: "/api/users/reset-password/" + userId ,
+                                    headers: utils.defaultHeaders(),
+                                    beforeSend: function () {
+                                        Swal.showLoading();
+                                    },
+                                    success: function (res) {
+                                        Swal.close();
+                                        if (res.code == 1000) {
+                                            Toast.fire({
+                                                icon: "success",
+                                                title: "Đã đặt lại mật khẩu cho tài khoản",
+                                            });
+                                            $("#modal-id").modal("hide");
+                                            // $("#modal-id").on('hidden.bs.modal', function () {
+                                            //     $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn                                             
+                                            // });
+                                        } else {
+                                            Toast.fire({
+                                                icon: "error",
+                                                title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                                            });
+                                        }
+                                    },
+                                    error: function(xhr, status, error){
+                                        Swal.close();
+                                        var err = utils.handleAjaxError(xhr);
+                                            Toast.fire({
+                                                icon: "error",
+                                                title: err.message
+                                            });
+                                    },
+                                });
+                            }
+                        });
+                    });
+
+
+                    // Khi nhấn nút "Huỷ bỏ"
+                    $("#modal-cancel-btn").click(function () {
+                        $('#modal-id').modal('hide');
+                    });
+                } else {
+                    Toast.fire({
+                        icon: "error",
+                        title: "Không thể lấy thông tin tài khoản của người dùng<br>" + res.message,
+                    });  
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.close();
+                var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+            }
+        });
+    }
+    else {
+        Toast.fire({
+            icon: "error",
+            title: "Vui lòng chọn người dùng để cập nhật!",
+        });
+    }
+});
+
+
+// Nhấn nút "Vô hiệu hoá" 
+$("#btn-disable-user").on("click", async function () {
+    if (selectedData) {
+        var userId = selectedData.id; // Lấy ID của tài khoản
+        var username = selectedData.username;
+
+        // Kiểm tra nếu tài khoản đang hoạt động (status = 1)
+        if (selectedData.status === 1){
+            const result = await Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: "Bạn sẽ vô hiệu hoá tài khoản " + username,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Huỷ"
+            });
+
+            // Nếu người dùng không xác nhận, dừng việc xử lý
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            // Thực hiện vô hiệu hoá tài khoản 
+            await $.ajax({
+                type: "PUT",
+                url: "/api/users/" + userId,
+                headers: utils.defaultHeaders(),
+                beforeSend: function () {
+                    Swal.showLoading();
+                },
+                success: function (res) {
+                    Swal.close();
+                    if (res.code == 1000) {
+                        Toast.fire({
+                            icon: "success",
+                            title: "Đã vô hiệu hoá tài khoản",
+                        });
+                        $("#btn-view-user").click(); // Tải lại danh sách tài khoản
+                    } else {
+                        Toast.fire({
+                            icon: "error",
+                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
+                    var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+                }
+            });
+        } else {
+            Toast.fire({
+                icon: "error",
+                title: "Tài khoản đã bị vô hiệu hoá trước đó!",
+            });
+        }
+    }
+    else {
+        Toast.fire({
+            icon: "error",
+            title: "Vui lòng chọn tài khoản để vô hiệu hoá!",
+        });
+    }
 });

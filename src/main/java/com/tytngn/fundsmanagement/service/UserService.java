@@ -39,30 +39,43 @@ public class UserService {
 
     // tạo User
     public UserResponse createUser(UserCreationRequest request) {
-
+        // Kiểm tra username đã tồn tại chưa
         if(userRepository.existsByUsername(request.getUsername()))
             throw new AppException(ErrorCode.USER_EXISTS);
 
         User user = userMapper.toUser(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // role mặc định là USER
+        // Thiết lập mật khẩu mặc định
+        user.setPassword(passwordEncoder.encode("vnpt@2024"));
+
+        // Kiểm tra và thiết lập roles
         HashSet<Role> roles = new HashSet<>();
-        Optional<Role> optionalRole = roleRepository.findById("USER");
-        if(optionalRole.isPresent()){
-            roles.add(optionalRole.get());
+        if (request.getRoleId() != null && !request.getRoleId().isEmpty()) {
+            for (String roleId : request.getRoleId()) {
+                Role role = roleRepository.findById(roleId)
+                        .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTS));
+                roles.add(role);
+            }
+        } else {
+            // Nếu không có roleId nào được cung cấp, gán role mặc định là "USER"
+            Role defaultRole = roleRepository.findById("USER")
+                    .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTS));
+            roles.add(defaultRole);
         }
         user.setRoles(roles);
 
+        // Thiết lập trạng thái và ngày tạo
         user.setStatus(1);
         user.setCreatedDate(LocalDate.now());
 
+        // Thiết lập phòng ban
         var department = departmentRepository.findById(request.getDepartmentId()).orElseThrow(() ->
                 new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS));
         user.setDepartment(department);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
+
 
     // lấy danh sách toàn bộ Users
     public List<UserResponse> getAllUsers() {
@@ -71,6 +84,7 @@ public class UserService {
 
         return users;
     }
+
 
     // lấy thông tin user đang đăng nhập
     public UserResponse getMyInfo(){
@@ -90,31 +104,82 @@ public class UserService {
                 new AppException(ErrorCode.USER_NOT_EXISTS)));
     }
 
+
     // Lấy User dựa trên username
     public UserResponse getUserByUsername(String username) {
         return userMapper.toUserResponse(userRepository.findByUsername(username).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTS)));
     }
 
+
+    // lấy danh sách người dùng theo bộ lọc (theo thời gian, trạng thái, phòng ban, phân quyền, ngân hàng)
+    public List<UserResponse> filterUsers(LocalDate start, LocalDate end, Integer status,
+                                          String departmentId, String roleId, String bankName)
+    {
+        List<User> users = userRepository.filterUsers(start, end, status, departmentId, roleId, bankName);
+        return users.stream()
+                .map(userMapper::toUserResponse)
+                .collect(Collectors.toList());
+    }
+
+
     // update User dựa trên id
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
 
+        // Kiểm tra user có tồn tại không
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTS));
 
         userMapper.updateUser(user, request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+//        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        var roles = roleRepository.findAllById(request.getRoles());
+        var roles = roleRepository.findAllById(request.getRoleId());
         user.setRoles(new HashSet<>(roles));
-        user.setUpdatedDate(LocalDate.now());
 
         var department = departmentRepository.findById(request.getDepartmentId()).orElseThrow(() ->
                 new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS));
         user.setDepartment(department);
 
+        user.setUpdatedDate(LocalDate.now());
+
         return userMapper.toUserResponse(userRepository.save(user));
     }
+
+
+    // Đặt lại mật khẩu mặc định cho tài khoản
+    public UserResponse resetPasswordToDefault(String userId) {
+        // Tìm user theo userId
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        // Đặt lại mật khẩu mặc định
+        user.setPassword(passwordEncoder.encode("vnpt@2024"));
+
+        // Lưu lại user với mật khẩu mới
+        userRepository.save(user);
+
+        // Trả về UserResponse sau khi đặt lại mật khẩu
+        return userMapper.toUserResponse(user);
+    }
+
+
+    // vô hiệu hóa tài khoản
+    public UserResponse disableUser(String userId) {
+
+        // Kiểm tra user có tồn tại không
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_EXISTS));
+
+        // Cập nhật status = 0 để vô hiệu hoá tài khoản
+        user.setStatus(0);
+
+        // Cập nhật ngày sửa đổi
+        user.setUpdatedDate(LocalDate.now());
+
+        // Lưu user sau khi cập nhật và trả về response
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
 
     public void deleteUser(String userId) {
         userRepository.findById(userId).orElseThrow(() ->

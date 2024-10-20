@@ -701,7 +701,7 @@ $("#btn-update-fund-permission").on("click", function () {
 
                             <div class="form-group">
                                 <label for="modal-email-input">Email</label>
-                                <input type="text" class="form-control" id="modal-email-input" value="${fundPermission.user.email}" readonly>
+                                <input type="email" class="form-control" id="modal-email-input" value="${fundPermission.user.email}" readonly>
                             </div>
 
                             <div class="form-group">
@@ -759,9 +759,12 @@ $("#btn-update-fund-permission").on("click", function () {
                                     $.ajax({
                                         type: "DELETE",
                                         url: "/api/fund-permissions/" + fundPermission.id,
-                                        // contentType: "application/json",
                                         headers: utils.defaultHeaders(),
+                                        beforeSend: function () {
+                                            Swal.showLoading();
+                                        },
                                         success: function (res) {
+                                            Swal.close();
                                             if (res.code == 1000) {
                                                 Toast.fire({
                                                     icon: "success",
@@ -775,6 +778,7 @@ $("#btn-update-fund-permission").on("click", function () {
                                             }
                                         },
                                         error: function(xhr, status, error){
+                                            Swal.close();
                                             var err = utils.handleAjaxError(xhr);
                                                 Toast.fire({
                                                     icon: "error",

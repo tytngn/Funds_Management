@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,15 +94,60 @@ public class UserController {
         }
     }
 
+    // Lấy danh sách người dùng theo bộ lọc (theo thời gian, trạng thái, phòng ban, phân quyền, ngân hàng)
+    @GetMapping("/filter")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_USERS'})")
+    public ApiResponse<List<UserResponse>> filterUsers(
+            @RequestParam(required = false) LocalDate start,
+            @RequestParam(required = false) LocalDate end,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) String roleId,
+            @RequestParam(required = false) String bankName) {
+
+        departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
+        roleId = (roleId != null && !roleId.isEmpty()) ? roleId : null;
+        bankName = (bankName != null && !bankName.isEmpty()) ? bankName : null;
+        status = (status != null) ? status : null;
+
+        return ApiResponse.<List<UserResponse>>builder()
+                .code(1000)
+                .result(userService.filterUsers(start, end, status, departmentId, roleId, bankName))
+                .build();
+    }
+
     // chỉnh sửa User dựa trên id
     @PutMapping()
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_USER'})")
-    ApiResponse<UserResponse> updateUserById(@RequestBody UserUpdateRequest request, @RequestParam String userId) {
+    ApiResponse<UserResponse> updateUserById(@RequestBody @Valid UserUpdateRequest request, @RequestParam String userId) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(userId, request))
                 .code(1000)
                 .build();
     }
+
+
+    // chỉnh sửa User dựa trên id
+    @PutMapping("/{userId}")
+    @PreAuthorize("@securityExpression.hasPermission({'DISABLE_USER'})")
+    ApiResponse<UserResponse> disableUser(@PathVariable String userId) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.disableUser(userId))
+                .code(1000)
+                .build();
+    }
+
+
+    // Đặt lại mật khẩu mặc định cho tài khoản
+    @PutMapping("/reset-password/{userId}")
+    @PreAuthorize("@securityExpression.hasPermission({'RESET_PASSWORD'})")
+    public ApiResponse<UserResponse> resetPasswordToDefault(@PathVariable String userId) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.resetPasswordToDefault(userId))
+                .code(1000)
+                .build();
+    }
+
 
     @DeleteMapping()
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_USER'})")

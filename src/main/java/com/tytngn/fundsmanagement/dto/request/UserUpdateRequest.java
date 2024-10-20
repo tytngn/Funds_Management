@@ -16,17 +16,18 @@ import java.util.List;
 public class UserUpdateRequest {
 
     @NotBlank(message = "USERNAME_REQUIRED")
+    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "USERNAME_INVALID")
     String username;
 
-    @NotBlank(message = "PASSWORD_REQUIRED")
-    @Size(min = 6, message = "PASSWORD_INVALID")
-    String password;
+//    @NotBlank(message = "PASSWORD_REQUIRED")
+//    @Size(min = 6, message = "PASSWORD_INVALID")
+//    String password;
 
     @NotBlank(message = "EMAIL_REQUIRED")
     @Email(message = "EMAIL_INVALID")
     String email;
 
-    @NotBlank(message = "FULL_NAME_REQUIRED")
+    @NotBlank(message = "BLANK_NAME")
     String fullname;
 
     @NotNull(message = "DOB_REQUIRED")
@@ -36,14 +37,13 @@ public class UserUpdateRequest {
 
     int gender;
 
-    @Pattern(regexp = "\\d{10}", message = "PHONE_INVALID")
+//    @Pattern(regexp = "\\d{10}", message = "PHONE_INVALID")
     String phone;
 
     int status;
-    LocalDate updatedDate;
-
-    List<String> roles;
 
     @NotBlank(message = "DATA_INVALID")
     String departmentId;
+
+    List<String> roleId;
 }

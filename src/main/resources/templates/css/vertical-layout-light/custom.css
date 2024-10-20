@@ -238,6 +238,25 @@ img:fullscreen {
   height: 100%;
 }
 
+
+/* Thông báo */
 .swal2-modal .swal2-icon, .swal2-modal{
   margin: 2.5em auto .6em !important; 
+}
+
+
+/* Placeholder cho select multiple */
+select2-container li:only-child,
+.select2-container input:placeholder-shown {
+  width: 100% !important;
+}
+
+
+/* Mở modal */
+.modal .modal-dialog {
+  margin-top: 30px !important;
+}
+/* Chỉnh sửa footer của modal cập nhật tài khoản */
+.update-modal .modal-footer {
+  padding: 15px 20px !important; /* Tùy chỉnh padding cho modal khi mở từ nút Cập nhật */
 }

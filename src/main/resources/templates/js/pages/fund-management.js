@@ -499,7 +499,7 @@ $("#btn-update-fund").on("click", function () {
                             </div>
 
                             <div class="form-check form-check-flat form-check-primary">
-                                <input id="modal_fund_status_input" type="checkbox" class="form-check-input ml-0" ${fund.status === 1 ? 'checked' : ''}>
+                                <input id="modal-fund-status-input" type="checkbox" class="form-check-input ml-0" ${fund.status === 1 ? 'checked' : ''}>
                                 <label class="form-check-label">Quỹ đang hoạt động</label>
                             </div>
 
@@ -524,7 +524,7 @@ $("#btn-update-fund").on("click", function () {
                     // Cập nhật quỹ
                     $("#modal-update-btn").click( async function () {
                         let name = $("#modal-fund-name-input").val();
-                        let status = $("#modal_fund_status_input").is(":checked") ? 1 : 0;
+                        let status = $("#modal-fund-status-input").is(":checked") ? 1 : 0;
                         let description = $("#modal-fund-description-input").val();
                     
                         if (name == null || name.trim() == "") {
