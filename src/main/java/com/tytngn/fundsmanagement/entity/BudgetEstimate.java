@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,6 +23,9 @@ public class BudgetEstimate {
     @Column(nullable = false)
     String title;
 
+    @Column(nullable = false)
+    double amount = 0.0;
+
     @Column(columnDefinition = "TEXT")
     String description;
 
@@ -31,8 +34,8 @@ public class BudgetEstimate {
     @Column(nullable = false)
     int status = 1; // 0: từ chối, 1: chưa xử lý,  2: chờ duyệt, 3: đã duyệt
 
-    LocalDateTime createdDate;
-    LocalDateTime updatedDate;
+    LocalDate createdDate;
+    LocalDate updatedDate;
 
     // Relationships
     @ManyToOne(fetch = FetchType.EAGER)
@@ -40,7 +43,7 @@ public class BudgetEstimate {
     User user;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "fund_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "fund_id", referencedColumnName = "id")
     Fund fund;
 
     @OneToMany(mappedBy = "budgetEstimate")

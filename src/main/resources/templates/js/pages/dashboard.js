@@ -1,4 +1,4 @@
-import * as utils from "/js/pages/utils.js";
+import * as utils from "/js/pages/services/utils.js";
 (function($) {
   'use strict';
 

@@ -1,4 +1,4 @@
-import * as utils from "/js/pages/utils.js";
+import * as utils from "/js/pages/services/utils.js";
 utils.introspect();
 
 // sử dụng SweetAlert2
@@ -11,6 +11,7 @@ var Toast = Swal.mixin({
 
 var dataTable; // fund-table
 let selectedData; // Biến lưu dữ liệu quỹ đã chọn
+var departmentOption = [];
 
 var startDate;
 var endDate;
@@ -225,11 +226,11 @@ $(document).ready(function () {
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
                             name: fund.fundName,
-                            balance: fund.balance.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }), 
+                            balance: utils.formatCurrency(fund.balance), 
                             status: fund.status,
                             description: fund.description,
-                            createDate: formatDate(fund.createDate),
-                            updateDate: formatDate(fund.updateDate),
+                            createDate: utils.formatDate(fund.createDate),
+                            updateDate: utils.formatDate(fund.updateDate),
                             treasurer: fund.user.fullname,
                             department: fund.user.department.name,
                             id: fund.id, // ID của quỹ 
@@ -350,22 +351,6 @@ $(document).ready(function () {
 });
 
 
-// Hàm định dạng ngày tháng
-function formatDate(dateString) {
-    if (!dateString) return ''; // Kiểm tra giá trị null hoặc rỗng
-    var date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-}
-
-
-// Clear modal
-function clear_modal() {
-    $("#modal-title").empty();
-    $("#modal-body").empty();
-    $("#modal-footer").empty();
-}
-
-
 // Bắt sự kiện khi chọn dòng ở bảng fund-table
 $('#fund-table tbody').on('click', 'tr', function () {
     // Xóa lựa chọn hiện tại nếu có
@@ -384,7 +369,7 @@ $("#fund-search-input").on("keyup", function () {
 
 // Nhấn nút "Thêm mới"
 $("#btn-add-fund").on("click", function () {
-    clear_modal();
+    utils.clear_modal();
   
     $("#modal-title").text("Tạo quỹ mới");
   
@@ -477,7 +462,7 @@ $("#btn-add-fund").on("click", function () {
 $("#btn-update-fund").on("click", function () {
     if(selectedData){
         var fundId = selectedData.id; // Lấy ID của quỹ
-        clear_modal();
+        utils.clear_modal();
 
         // Gọi API lấy thông tin quỹ theo fundId
         $.ajax({

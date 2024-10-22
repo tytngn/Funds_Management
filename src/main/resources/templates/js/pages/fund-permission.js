@@ -1,4 +1,4 @@
-import * as utils from "/js/pages/utils.js";
+import * as utils from "/js/pages/services/utils.js";
 utils.introspect();
 
 // sử dụng SweetAlert2
@@ -44,13 +44,10 @@ $(document).ready(function () {
         }
         else if (filterType === 'department') {
             $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
-            loadDepartments();
         }
         else if (filterType === 'individual') {
             $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
             $('#individual-div').prop("hidden", false); // Hiển thị Select Cá Nhân nhưng sẽ disabled cho đến khi chọn phòng ban
-
-            loadDepartments();
         }
     });
 
@@ -124,70 +121,68 @@ $(document).ready(function () {
     });
 
     // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
-    function loadDepartments() {
-        $.ajax({
-            type: "GET",
-            url: "/api/departments",
-            headers: utils.defaultHeaders(),
-            success: function (res) {
-                if (res.code === 1000) {
-                    let departments = res.result;
-                    let departmentDropdown = $("#department-select");
-                    let userDropdown = $("#individual-select");
+    $.ajax({
+        type: "GET",
+        url: "/api/departments",
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if (res.code === 1000) {
+                let departments = res.result;
+                let departmentDropdown = $("#department-select");
+                let userDropdown = $("#individual-select");
 
-                    departmentDropdown.empty();
-    
-                    // Thêm các phòng ban vào dropdown
-                    departments.forEach(function(department) {
-                        departmentDropdown.append(`
-                            <option value="${department.id}">${department.name}</option>
-                        `);              
-                    });
-                    departmentDropdown.val("").trigger('change');
+                departmentDropdown.empty();
 
-                    // Gắn sự kiện khi chọn phòng ban
-                    departmentDropdown.on("change", function(){
-                        let selectedDepartmentId = $(this).val();
+                // Thêm các phòng ban vào dropdown
+                departments.forEach(function(department) {
+                    departmentDropdown.append(`
+                        <option value="${department.id}">${department.name}</option>
+                    `);              
+                });
+                departmentDropdown.val("").trigger('change');
 
-                        userDropdown.prop("disabled", false);
-    
-                        // Xóa các thành viên cũ trong dropdown
-                        userDropdown.empty();
-    
-                        // Tìm phòng ban đã chọn
-                        let selectedDepartment = departments.find(dept => dept.id === selectedDepartmentId);
-    
-                        // Thêm các thành viên của phòng ban đã chọn vào dropdown
-                        if (selectedDepartment && selectedDepartment.users) {
-                            selectedDepartment.users.forEach(function(user) {
-                                userDropdown.append(`
-                                    <option value="${user.id}">${user.fullname}</option>
-                                `);
-                            });
-                            userDropdown.val("").trigger('change');
-                        } else {
-                            // Nếu không có thành viên nào
+                // Gắn sự kiện khi chọn phòng ban
+                departmentDropdown.on("change", function(){
+                    let selectedDepartmentId = $(this).val();
+
+                    userDropdown.prop("disabled", false);
+
+                    // Xóa các thành viên cũ trong dropdown
+                    userDropdown.empty();
+
+                    // Tìm phòng ban đã chọn
+                    let selectedDepartment = departments.find(dept => dept.id === selectedDepartmentId);
+
+                    // Thêm các thành viên của phòng ban đã chọn vào dropdown
+                    if (selectedDepartment && selectedDepartment.users) {
+                        selectedDepartment.users.forEach(function(user) {
                             userDropdown.append(`
-                                <option value="">Không có thành viên</option>
+                                <option value="${user.id}">${user.fullname}</option>
                             `);
-                        }
-                    });
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Không thể lấy danh sách phòng ban<br>" + res.message,
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                var err = utils.handleAjaxError(xhr);
-                    Toast.fire({
-                        icon: "error",
-                        title: err.message
-                    });
+                        });
+                        userDropdown.val("").trigger('change');
+                    } else {
+                        // Nếu không có thành viên nào
+                        userDropdown.append(`
+                            <option value="">Không có thành viên</option>
+                        `);
+                    }
+                });
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: "Không thể lấy danh sách phòng ban<br>" + res.message,
+                });
             }
-        });
-    }
+        },
+        error: function (xhr, status, error) {
+            var err = utils.handleAjaxError(xhr);
+                Toast.fire({
+                    icon: "error",
+                    title: err.message
+                });
+        }
+    });
 
 
     // Nhấn nút "Xem"
@@ -263,15 +258,7 @@ $(document).ready(function () {
                 });
                 return;
             }
-        } 
-
-        console.log("quỹ " + fundId);
-        console.log("bắt đầu " + startDate);
-        console.log("kết thúc " + endDate );
-        console.log("phòng ban " + departmentId);
-        console.log("cá nhân " + userId);
-        console.log("trạng thái " + canContribute);
-        
+        }
 
         // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
         $.ajax({
@@ -293,7 +280,7 @@ $(document).ready(function () {
                             department: fundPermission.user.department.name,
                             contribute: fundPermission.canContribute,
                             withdraw: fundPermission.canWithdraw,
-                            grantedDate: formatDate(fundPermission.grantedDate),
+                            grantedDate: utils.formatDate(fundPermission.grantedDate),
                             id: fundPermission.id, // ID của fundPermission 
                         });
                     });
@@ -438,22 +425,6 @@ $('#fund-permission-table tbody').on('click', 'tr', function () {
 });
 
 
-// Hàm định dạng ngày tháng
-function formatDate(dateString) {
-    if (!dateString) return ''; // Kiểm tra giá trị null hoặc rỗng
-    var date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-}
-
-
-// Clear modal
-function clear_modal() {
-    $("#modal-title").empty();
-    $("#modal-body").empty();
-    $("#modal-footer").empty();
-}
-
-
 // Bắt sự kiện keyup "Tìm kiếm"
 $("#fund-permission-search-input").on("keyup", function () {
     dataTable.search(this.value).draw();
@@ -462,7 +433,7 @@ $("#fund-permission-search-input").on("keyup", function () {
 
 // Nhấn nút "Thêm mới" để thêm người đóng góp vào quỹ
 $("#btn-add-fund-permission").on("click", function () {
-    clear_modal();
+    utils.clear_modal();
   
     $("#modal-title").text("Thêm thành viên giao dịch quỹ");
   
@@ -673,7 +644,7 @@ $("#btn-add-fund-permission").on("click", function () {
 $("#btn-update-fund-permission").on("click", function () {
     if(selectedData){
         var fundPermissionId = selectedData.id; // Lấy ID của fund permission
-        clear_modal();
+        utils.clear_modal();
 
         // Gọi API lấy thông tin quỹ theo fundPermissionId
         $.ajax({

@@ -10,13 +10,14 @@ import com.tytngn.fundsmanagement.mapper.BudgetEstimateMapper;
 import com.tytngn.fundsmanagement.repository.BudgetEstimateRepository;
 import com.tytngn.fundsmanagement.repository.FundRepository;
 import com.tytngn.fundsmanagement.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -32,11 +33,14 @@ public class BudgetEstimateService {
     FundRepository fundRepository;
     SecurityExpression securityExpression;
 
+    // Tạo dự trù kinh phí
+    @Transactional
     public BudgetEstimateResponse create(BudgetEstimateRequest request) {
 
         BudgetEstimate budgetEstimate = budgetEstimateMapper.toBudgetEstimate(request);
         budgetEstimate.setStatus(1);
-        budgetEstimate.setCreatedDate(LocalDateTime.now());
+        budgetEstimate.setAmount(0.0);
+        budgetEstimate.setCreatedDate(LocalDate.now());
 
         // Lấy thông tin người dùng đang đăng nhập
         String id = securityExpression.getUserId();
@@ -45,7 +49,7 @@ public class BudgetEstimateService {
                 new AppException(ErrorCode.USER_NOT_EXISTS));
         budgetEstimate.setUser(user);
 
-        // quỹ được dự trù ngân sách
+        // quỹ được dự trù kinh phí
         var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS));
         budgetEstimate.setFund(fund);
@@ -56,6 +60,7 @@ public class BudgetEstimateService {
         return budgetEstimateMapper.toBudgetEstimateResponse(budgetEstimate);
     }
 
+    // Lấy danh sách tất cả dự trù kinh phí
     public List<BudgetEstimateResponse> getAll() {
 
         var budgetEstimates = budgetEstimateRepository.findAll()
@@ -66,22 +71,43 @@ public class BudgetEstimateService {
         return budgetEstimates;
     }
 
+    // Lấy danh sách dự trù kinh phí theo bộ lọc
+    public List<BudgetEstimateResponse> filterBudgetEstimates(String fundId, LocalDate start, LocalDate end, Integer status, String departmentId, String userId) {
+
+        List<BudgetEstimate> budgetEstimates = budgetEstimateRepository.filterBudgetEstimates(fundId, start, end, status, departmentId, userId);
+
+        return budgetEstimates.stream()
+                .map(budgetEstimateMapper::toBudgetEstimateResponse)
+                .toList();
+    }
+
+    // Lấy dự trù kinh phí theo Id
+    public BudgetEstimateResponse getBudgetEstimateById(String id) {
+
+        BudgetEstimate budgetEstimate = budgetEstimateRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.BUDGET_ESTIMATE_NOT_EXISTS));
+
+        return budgetEstimateMapper.toBudgetEstimateResponse(budgetEstimate);
+    }
+
+    // Cập nhật dự trù kinh phí
+    @Transactional
     public BudgetEstimateResponse update(String id, BudgetEstimateRequest request) {
 
         BudgetEstimate budgetEstimate = budgetEstimateRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.BUDGET_ESTIMATE_NOT_EXISTS));
 
         budgetEstimateMapper.updateBudgetEstimate(budgetEstimate, request);
-        budgetEstimate.setUpdatedDate(LocalDateTime.now());
+        budgetEstimate.setUpdatedDate(LocalDate.now());
 
         // Lấy thông tin người dùng đang đăng nhập
         String userId = securityExpression.getUserId();
-        // người thực hiện tạo dự trù ngân sách
+        // người thực hiện tạo dự trù kinh phí
         var user = userRepository.findById(userId).orElseThrow(() ->
                 new AppException(ErrorCode.USER_NOT_EXISTS));
         budgetEstimate.setUser(user);
 
-        // quỹ được dự trù ngân sách
+        // quỹ được dự trù kinh phí
         var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS));
         budgetEstimate.setFund(fund);
@@ -91,6 +117,8 @@ public class BudgetEstimateService {
         return budgetEstimateMapper.toBudgetEstimateResponse(budgetEstimateRepository.save(budgetEstimate));
     }
 
+    // Xoá dự trù kinh phí
+    @Transactional
     public void delete(String id) {
 
         var budgetEstimate = budgetEstimateRepository.findById(id).orElseThrow(() ->

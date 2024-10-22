@@ -1,4 +1,4 @@
-import * as utils from "/js/pages/utils.js";
+import * as utils from "/js/pages/services/utils.js";
 utils.introspect();
 
 // sử dụng SweetAlert2
@@ -260,13 +260,6 @@ $(document).ready(function () {
                 return;
             }
         }
-
-        console.log("bắt đầu " + startDate);
-        console.log("kết thúc " + endDate );
-        console.log("phòng ban " + departmentId);
-        console.log("phân quyền " + role);
-        console.log("trạng thái " + status);
-        console.log("ngân hàng " + bankName);
        
         // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
         $.ajax({
@@ -281,9 +274,7 @@ $(document).ready(function () {
                 if (res.code == 1000) {                    
                     var data = [];
                     var counter = 1;
-                    res.result.forEach(function (user) {
-                        console.log(user);
-                        
+                    res.result.forEach(function (user) {                        
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
                             username: user.username,
@@ -291,11 +282,11 @@ $(document).ready(function () {
                             gender: user.gender, 
                             email: user.email,
                             phone: user.phone,
-                            dob: formatDate(user.dob),
+                            dob: utils.formatDate(user.dob),
                             status: user.status,
                             roles: user.roles,
-                            createDate: formatDate(user.createdDate),
-                            updateDate: formatDate(user.updatedDate),
+                            createDate: utils.formatDate(user.createdDate),
+                            updateDate: utils.formatDate(user.updatedDate),
                             account: user.account,
                             department: user.department.name,
                             id: user.id, // ID của người dùng 
@@ -326,7 +317,7 @@ $(document).ready(function () {
     });
 
 
-    // Bảng phân quyền giao dịch quỹ        
+    // Bảng danh sách tài khoản      
     dataTable = $('#user-table').DataTable({
         fixedHeader: true,
         autoWidth: false,
@@ -450,20 +441,6 @@ $(document).ready(function () {
     });
 });
 
-// Hàm định dạng ngày tháng
-function formatDate(dateString) {
-  if (!dateString) return ''; // Kiểm tra giá trị null hoặc rỗng
-  var date = new Date(dateString);
-  return date.toLocaleDateString('vi-VN');
-}
-
-
-// Clear modal
-function clear_modal() {
-  $("#modal-title").empty();
-  $("#modal-body").empty();
-  $("#modal-footer").empty();
-}
 
 // Hàm hiển thị hoặc ẩn mật khẩu
 function togglePasswordVisibility(passwordInputId, toggleButtonId, iconId) {
@@ -501,7 +478,7 @@ $("#user-search-input").on("keyup", function () {
 
 // Nhấn nút "Thêm mới"
 $("#btn-add-user").on("click", function () {
-    clear_modal();
+    utils.clear_modal();
   
     $("#modal-title").text("Tạo tài khoản mới");
   
@@ -689,7 +666,7 @@ $("#btn-update-user").on("click", function () {
 
     if(selectedData){
         var userId = selectedData.id; // Lấy ID của user
-        clear_modal();
+        utils.clear_modal();
 
         // Gọi API lấy thông tin người dùng theo userId
         $.ajax({
@@ -731,7 +708,7 @@ $("#btn-update-user").on("click", function () {
 
                             <div class="form-group">
                                 <label for="modal-dob-input">Ngày sinh</label>
-                                <input class="form-control" id="modal-dob-input" type="text" name="datetimes" style="height: 34px;" placeholder="dd / mm / yyyy" value="${formatDate(user.dob)}"/>
+                                <input class="form-control" id="modal-dob-input" type="text" name="datetimes" style="height: 34px;" placeholder="dd / mm / yyyy" value="${utils.formatDate(user.dob)}"/>
                             </div>
 
                             <div class="form-group">

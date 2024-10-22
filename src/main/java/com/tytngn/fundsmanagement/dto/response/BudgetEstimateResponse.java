@@ -3,6 +3,7 @@ package com.tytngn.fundsmanagement.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -14,11 +15,12 @@ import java.util.Set;
 public class BudgetEstimateResponse {
     String id;
     int status;
+    double amount;
     String title;
     String description;
     String fundName;
-    LocalDateTime createdDate;
-    LocalDateTime updatedDate;
+    LocalDate createdDate;
+    LocalDate updatedDate;
 
     UserSimpleResponse user;
 }

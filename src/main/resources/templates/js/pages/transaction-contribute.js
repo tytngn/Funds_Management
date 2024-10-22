@@ -1,4 +1,4 @@
-import * as utils from "/js/pages/utils.js";
+import * as utils from "/js/pages/services/utils.js";
 utils.introspect();
 
 // sử dụng SweetAlert2
@@ -339,10 +339,10 @@ $(document).ready(function () {
                     res.result.forEach(function (transaction) {
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
-                            amount: transaction.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }), 
+                            amount: utils.formatCurrency(transaction.amount), 
                             description: transaction.description,
                             status: transaction.status,
-                            transDate: formatDate(transaction.transDate),
+                            transDate: utils.formatDateTime(transaction.transDate),
                             trader: transaction.user.fullname,
                             department: transaction.user.department.name,
                             fund: transaction.fund.fundName,
@@ -482,40 +482,6 @@ $('#transaction-contribute-table tbody').on('click', 'tr', function () {
 });
 
 
-// Hàm định dạng ngày tháng
-function formatDate(dateString) {
-    if (!dateString) return ''; // Kiểm tra giá trị null hoặc rỗng
-    var date = new Date(dateString);
-    
-    // Lấy thông tin giờ, phút, giây
-    var hours = date.getHours().toString().padStart(2, '0');
-    var minutes = date.getMinutes().toString().padStart(2, '0');
-    var seconds = date.getSeconds().toString().padStart(2, '0');
-    
-    // Định dạng ngày tháng năm
-    var datePart = date.toLocaleDateString('vi-VN');
-    
-    // Kết hợp ngày tháng năm và giờ phút giây
-    return `${hours}:${minutes}:${seconds} ${datePart}`;
-}
-
-
-// Hàm xử lý kiểu dữ liệu của số tiền trước khi gửi form (chuyển thành kiểu double)
-function getRawValue(selector) {
-    const formattedValue = $(selector).val(); // Lấy giá trị từ input thông qua jQuery
-    const rawValue = formattedValue.replace(/\./g, ''); // Loại bỏ dấu chấm
-    return parseFloat(rawValue); // Chuyển thành số thực (double)
-}    
-
-
-// Clear modal
-function clear_modal() {
-    $("#modal-title").empty();
-    $("#modal-body").empty();
-    $("#modal-footer").empty();
-}
-
-
 // Bắt sự kiện keyup "Tìm kiếm"
 $("#search-input").on("keyup", function () {
     console.log("tìm kiếm");
@@ -525,7 +491,7 @@ $("#search-input").on("keyup", function () {
 
 // Nhấn nút "Thêm mới"
 $("#btn-add-contribute").on("click", function () {
-    clear_modal();
+    utils.clear_modal();
   
     $("#modal-title").text("Tạo giao dịch đóng góp quỹ mới");
   
@@ -589,7 +555,7 @@ $("#btn-add-contribute").on("click", function () {
         value = parseFloat(value.replace(/[^0-9]/g, '')); // Loại bỏ các ký tự không phải số
 
         if (!isNaN(value)) {
-        e.target.value = value.toLocaleString('vi-VN'); // Định dạng số với dấu chấm
+        e.target.value = utils.formatNumber(value); // Định dạng số với dấu chấm
         } else {
         e.target.value = '';
         }
@@ -603,7 +569,7 @@ $("#btn-add-contribute").on("click", function () {
     $("#modal-submit-btn").click(function () {
         let fund = $("#modal-fund-name").val();
         let transactionType = $("#modal-transaction-type").val();
-        let amount = getRawValue("#modal-transaction-amount-input");
+        let amount = utils.getRawValue("#modal-transaction-amount-input");
         let description = $("#modal-transaction-description-input").val();
 
         console.log(fund);
@@ -677,7 +643,7 @@ $("#btn-add-contribute").on("click", function () {
 $("#btn-confirm-contribute").on("click", function () {
     if(selectedData){
         var fundTransactionId = selectedData.id; // Lấy ID của giao dịch
-        clear_modal();
+        utils.clear_modal();
 
         // Gọi API lấy thông tin giao dịch theo fundTransactionId
         $.ajax({
@@ -714,12 +680,12 @@ $("#btn-confirm-contribute").on("click", function () {
 
                             <div class="form-group">
                                 <label for="modal-transaction-amount">Số tiền</label>
-                                <input type="text" class="form-control" id="modal-transaction-amount" value="${fundTransaction.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}" readonly>
+                                <input type="text" class="form-control" id="modal-transaction-amount" value="${utils.formatCurrency(fundTransaction.amount)}" readonly>
                             </div>
 
                             <div class="form-group">
                                 <label for="modal-transaction-time">Thời gian giao dịch</label>
-                                <input type="text" class="form-control" id="modal-transaction-time" value="${formatDate(fundTransaction.transDate)}" readonly>
+                                <input type="text" class="form-control" id="modal-transaction-time" value="${utils.formatDateTime(fundTransaction.transDate)}" readonly>
                             </div>
 
                             <div class="form-group">
