@@ -1,11 +1,12 @@
 package com.tytngn.fundsmanagement.controller;
 
+import com.tytngn.fundsmanagement.dto.request.AccountUpdateRequest;
+import com.tytngn.fundsmanagement.dto.request.ChangePasswordRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
 import com.tytngn.fundsmanagement.dto.request.UserCreationRequest;
 import com.tytngn.fundsmanagement.dto.request.UserUpdateRequest;
 import com.tytngn.fundsmanagement.dto.response.UserResponse;
 import com.tytngn.fundsmanagement.service.UserService;
-import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +56,8 @@ public class UserController {
     }
 
     // lấy thông tin user đang đăng nhập
-    @GetMapping("/myInfo")
-    @PreAuthorize("@securityExpression.hasPermission({'GET_MY_INFORMATION'})")
+    @GetMapping("/my-info")
+//    @PreAuthorize("@securityExpression.hasPermission({'GET_MY_INFORMATION'})")
     ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getMyInfo())
@@ -96,7 +97,7 @@ public class UserController {
 
     // Lấy danh sách người dùng theo bộ lọc (theo thời gian, trạng thái, phòng ban, phân quyền, ngân hàng)
     @GetMapping("/filter")
-    @PreAuthorize("@securityExpression.hasPermission({'GET_USERS'})")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_USERS_BY_FIFLTER'})")
     public ApiResponse<List<UserResponse>> filterUsers(
             @RequestParam(required = false) LocalDate start,
             @RequestParam(required = false) LocalDate end,
@@ -117,9 +118,9 @@ public class UserController {
     }
 
     // chỉnh sửa User dựa trên id
-    @PutMapping()
+    @PutMapping("/{userId}")
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_USER'})")
-    ApiResponse<UserResponse> updateUserById(@RequestBody @Valid UserUpdateRequest request, @RequestParam String userId) {
+    ApiResponse<UserResponse> updateUserById(@RequestBody @Valid UserUpdateRequest request, @PathVariable String userId) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(userId, request))
                 .code(1000)
@@ -127,12 +128,11 @@ public class UserController {
     }
 
 
-    // chỉnh sửa User dựa trên id
-    @PutMapping("/{userId}")
-    @PreAuthorize("@securityExpression.hasPermission({'DISABLE_USER'})")
-    ApiResponse<UserResponse> disableUser(@PathVariable String userId) {
+    // Người dùng chỉnh sửa thông tin chi tiết tài khoản
+    @PutMapping()
+    ApiResponse<UserResponse> updateUserAccount(@RequestBody @Valid AccountUpdateRequest request) {
         return ApiResponse.<UserResponse>builder()
-                .result(userService.disableUser(userId))
+                .result(userService.updateUserAccount(request))
                 .code(1000)
                 .build();
     }
@@ -149,6 +149,29 @@ public class UserController {
     }
 
 
+    // Đổi mật khẩu cho tài khoản
+    @PutMapping("/change-password")
+    ApiResponse<UserResponse> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
+
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.changePassword(request))
+                .code(1000)
+                .build();
+    }
+
+
+    // vô hiệu hoá User dựa trên id
+    @PutMapping("/disable/{userId}")
+    @PreAuthorize("@securityExpression.hasPermission({'DISABLE_USER'})")
+    ApiResponse<UserResponse> disableUser(@PathVariable String userId) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.disableUser(userId))
+                .code(1000)
+                .build();
+    }
+
+
+    // Xoá tài khoản
     @DeleteMapping()
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_USER'})")
     ApiResponse<Void> deleteUserById(@RequestParam String id) {

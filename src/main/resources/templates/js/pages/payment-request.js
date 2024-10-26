@@ -92,7 +92,7 @@ $(document).ready(function () {
     // Gọi api để lấy loại thanh toán và Nạp dữ liệu lên mảng PaymentCategoryOption
     $.ajax({
         type: "GET",
-        url: "/api/paymentCategory",
+        url: "/api/payment-category",
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
@@ -260,7 +260,7 @@ $(document).ready(function () {
        
         // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
         $.ajax({
-            url: "/api/paymentRequests/filter?categoryId=" + categoryId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
+            url: "/api/payment-requests/filter?categoryId=" + categoryId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
             type: "GET",
             headers: utils.defaultHeaders(),
             beforeSend: function () {
@@ -645,7 +645,7 @@ $("#btn-add-payment-request").on("click", function () {
         } else {
             $.ajax({
                 type: "POST",
-                url: "/api/paymentRequests",
+                url: "/api/payment-requests",
                 headers: utils.defaultHeaders(),
                 // contentType: "application/json",
                 data: JSON.stringify({
@@ -714,7 +714,7 @@ $("#btn-update-payment-request").on("click", function () {
         // Gọi API lấy thông tin đề nghị thanh toán theo paymentReqId
         $.ajax({
             type: "GET",
-            url: "/api/paymentRequests/" + paymentReqId,
+            url: "/api/payment-requests/" + paymentReqId,
             headers: utils.defaultHeaders(),
             beforeSend: function () {
                 Swal.showLoading();
@@ -786,7 +786,7 @@ $("#btn-update-payment-request").on("click", function () {
                         } else {
                             $.ajax({
                                 type: "PUT",
-                                url: "/api/paymentRequests?id=" + paymentReqId,
+                                url: "/api/payment-requests?id=" + paymentReqId,
                                 // contentType: "application/json",
                                 headers: utils.defaultHeaders(),
                                 data: JSON.stringify({
@@ -893,7 +893,7 @@ $("#btn-remove-payment-request").on("click", async function () {
         // Thực hiện xoá đề nghị thanh toán
         await $.ajax({
             type: "DELETE",
-            url: "/api/paymentRequests?id=" + paymentReqId,
+            url: "/api/payment-requests?id=" + paymentReqId,
             headers: utils.defaultHeaders(),
             beforeSend: function () {
                 Swal.showLoading();
@@ -1013,7 +1013,7 @@ async function confirmPaymentRequest() {
             
             $.ajax({
                 type: "PUT",
-                url: "/api/paymentRequests/confirm/" + paymentReqId + "?isApproved=true",
+                url: "/api/payment-requests/confirm/" + paymentReqId + "?isApproved=true",
                 headers: utils.defaultHeaders(),
                 beforeSend: function () {
                     Swal.showLoading();
@@ -1047,7 +1047,7 @@ async function confirmPaymentRequest() {
             Swal.fire("Đề nghị thanh toán đã được từ chối!", "", "info");
             $.ajax({
                 type: "PUT",
-                url: "/api/paymentRequests/confirm/" + paymentReqId + "?isApproved=false",
+                url: "/api/payment-requests/confirm/" + paymentReqId + "?isApproved=false",
                 headers: utils.defaultHeaders(),
                 beforeSend: function () {
                     Swal.showLoading();
@@ -1135,7 +1135,7 @@ async function submitPaymentRequest() {
     // Thực hiện gửi đề nghị thanh toán
     await $.ajax({
         type: "PUT",
-        url: "/api/paymentRequests/send/" + paymentReqId,
+        url: "/api/payment-requests/send/" + paymentReqId,
         headers: utils.defaultHeaders(),
         beforeSend: function () {
             Swal.showLoading();

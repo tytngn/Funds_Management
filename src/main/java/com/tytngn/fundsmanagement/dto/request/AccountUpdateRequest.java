@@ -13,15 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserUpdateRequest {
+public class AccountUpdateRequest {
 
     @NotBlank(message = "USERNAME_REQUIRED")
     @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "USERNAME_INVALID")
     String username;
-
-//    @NotBlank(message = "PASSWORD_REQUIRED")
-//    @Size(min = 6, message = "PASSWORD_INVALID")
-//    String password;
 
     @NotBlank(message = "EMAIL_REQUIRED")
     @Email(message = "EMAIL_INVALID")
@@ -36,14 +32,11 @@ public class UserUpdateRequest {
     LocalDate dob;
 
     int gender;
-
-//    @Pattern(regexp = "\\d{10}", message = "PHONE_INVALID")
     String phone;
 
-    int status = 1;
+    @NotBlank(message = "BLANK_NAME")
+    String bankName;
 
     @NotBlank(message = "DATA_INVALID")
-    String departmentId;
-
-    List<String> roleId;
+    String accountNumber;
 }

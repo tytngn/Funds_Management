@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequestMapping("/fundTransactions")
+@RequestMapping("/fund-transactions")
 public class FundTransactionController {
 
     FundTransactionService fundTransactionService;

@@ -137,7 +137,7 @@ $(document).ready(function () {
     // Gọi api để lấy loại giao dịch và Nạp dữ liệu lên mảng transTypeOption
     $.ajax({
         type: "GET",
-        url: "/api/transactionTypes/contribute",
+        url: "/api/transaction-types/contribute",
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
@@ -323,7 +323,7 @@ $(document).ready(function () {
        
         // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
         $.ajax({
-            url: "/api/fundTransactions/contribution/filter?fundId=" + fundId + "&transTypeId=" + transTypeId + "&startDate=" + startDate + "&endDate=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
+            url: "/api/fund-transactions/contribution/filter?fundId=" + fundId + "&transTypeId=" + transTypeId + "&startDate=" + startDate + "&endDate=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
             type: "GET",
             headers: utils.defaultHeaders(),
             beforeSend: function(){
@@ -591,7 +591,7 @@ $("#btn-add-contribute").on("click", function () {
         } else {
             $.ajax({
                 type: "POST",
-                url: "/api/fundTransactions",
+                url: "/api/fund-transactions",
                 headers: utils.defaultHeaders(),
                 // contentType: "application/json",
                 data: JSON.stringify({
@@ -648,7 +648,7 @@ $("#btn-confirm-contribute").on("click", function () {
         // Gọi API lấy thông tin giao dịch theo fundTransactionId
         $.ajax({
             type: "GET",
-            url: "/api/fundTransactions/" + fundTransactionId,
+            url: "/api/fund-transactions/" + fundTransactionId,
             headers: utils.defaultHeaders(),
             success: function (res) {
                 if (res.code === 1000) {
@@ -740,9 +740,9 @@ $("#btn-confirm-contribute").on("click", function () {
                             let apiUrl;
                             // Xác định API dựa trên trạng thái duyệt hoặc từ chối
                             if (transactionStatus === "approve") {
-                                apiUrl = `/api/fundTransactions/approve/${fundTransactionId}`;
+                                apiUrl = `/api/fund-transactions/approve/${fundTransactionId}`;
                             } else {
-                                apiUrl = `/api/fundTransactions/reject/${fundTransactionId}`;
+                                apiUrl = `/api/fund-transactions/reject/${fundTransactionId}`;
                             }
                             $.ajax({
                                 type: "PUT",

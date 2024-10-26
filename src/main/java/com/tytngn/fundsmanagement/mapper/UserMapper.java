@@ -1,5 +1,6 @@
 package com.tytngn.fundsmanagement.mapper;
 
+import com.tytngn.fundsmanagement.dto.request.AccountUpdateRequest;
 import com.tytngn.fundsmanagement.dto.request.UserCreationRequest;
 import com.tytngn.fundsmanagement.dto.request.UserUpdateRequest;
 import com.tytngn.fundsmanagement.dto.response.UserResponse;
@@ -21,11 +22,17 @@ public interface UserMapper {
     @Mapping(target = "account", source = "account")
     UserResponse toUserResponse(User user);
 
-    UserSimpleResponse toUserSimpleResponse(User user);
-
-
     // Cập nhật user
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "department", source = "departmentId", ignore = true)
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
+
+    // Cập nhật chi tiết tài khoản
+    @Mapping(target = "username", source = "username")
+    @Mapping(target = "fullname", source = "fullname")
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "gender", source = "gender")
+    @Mapping(target = "dob", source = "dob")
+    @Mapping(target = "phone", source = "phone")
+    void updateUserAccount(@MappingTarget User user, AccountUpdateRequest request);
 }

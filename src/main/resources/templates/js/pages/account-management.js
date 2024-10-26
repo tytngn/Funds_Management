@@ -844,7 +844,7 @@ $("#btn-update-user").on("click", function () {
                                     // gọi api vô hiệu hoá tài khoản của người dùng 
                                     $.ajax({
                                         type: "PUT",
-                                        url: "/api/users/" + userId ,
+                                        url: "/api/users/disable/" + userId ,
                                         headers: utils.defaultHeaders(),
                                         beforeSend: function () {
                                             Swal.showLoading();
@@ -883,7 +883,7 @@ $("#btn-update-user").on("click", function () {
                         else {
                             $.ajax({
                                 type: "PUT",
-                                url: "/api/users?userId=" + userId ,
+                                url: "/api/users/" + userId ,
                                 headers: utils.defaultHeaders(),
                                 data: JSON.stringify({
                                     username: username,
@@ -1038,7 +1038,7 @@ $("#btn-disable-user").on("click", async function () {
             // Thực hiện vô hiệu hoá tài khoản 
             await $.ajax({
                 type: "PUT",
-                url: "/api/users/" + userId,
+                url: "/api/users/disable/" + userId,
                 headers: utils.defaultHeaders(),
                 beforeSend: function () {
                     Swal.showLoading();

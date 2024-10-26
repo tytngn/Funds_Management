@@ -24,7 +24,7 @@ public class UserResponse {
     LocalDate createdDate;
     LocalDate updatedDate;
 
-    Set<RoleSimpleResponse> roles;
+    Set<RoleResponse> roles;
     DepartmentSimpleResponse department;
     BankAccountSimpleResponse account;
 }

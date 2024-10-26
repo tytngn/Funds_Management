@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequestMapping("/transactionTypes")
+@RequestMapping("/transaction-types")
 public class TransactionTypeController {
 
     TransactionTypeService transactionTypeService;

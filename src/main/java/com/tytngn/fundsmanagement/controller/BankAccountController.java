@@ -24,7 +24,7 @@ public class BankAccountController {
     BankAccountService bankAccountService;
 
     @PostMapping
-    @PreAuthorize("@securityExpression.hasPermission({'CREATE_BANK_ACCOUNT'})")
+//    @PreAuthorize("@securityExpression.hasPermission({'CREATE_BANK_ACCOUNT'})")
     ApiResponse<BankAccountResponse> createBankAccount(@RequestBody @Valid BankAccountRequest request) {
         return ApiResponse.<BankAccountResponse>builder()
                 .result(bankAccountService.createBankAccount(request))
@@ -41,21 +41,24 @@ public class BankAccountController {
                 .build();
     }
 
-    @PutMapping
-    @PreAuthorize("@securityExpression.hasPermission({'UPDATE_BANK_ACCOUNT'})")
-    ApiResponse<BankAccountResponse> updateBankAccount(@RequestParam String id, @RequestBody @Valid BankAccountRequest request) {
+
+    @GetMapping("/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_BANK_ACCOUNT_BY_ID'})")
+    public ApiResponse<BankAccountResponse> getBankAccountById(@PathVariable String id) {
+        return ApiResponse.<BankAccountResponse>builder()
+                .result(bankAccountService.getBankAccountById(id))
+                .code(1000)
+                .build();
+    }
+
+
+    @PutMapping("/{id}")
+//    @PreAuthorize("@securityExpression.hasPermission({'UPDATE_BANK_ACCOUNT'})")
+    ApiResponse<BankAccountResponse> updateBankAccount(@PathVariable String id, @RequestBody @Valid BankAccountRequest request) {
         return ApiResponse.<BankAccountResponse>builder()
                 .result(bankAccountService.updateBankAccount(id, request))
                 .code(1000)
                 .build();
     }
-
-    @DeleteMapping()
-    @PreAuthorize("@securityExpression.hasPermission({'DELETE_BANK_ACCOUNT'})")
-    ApiResponse<Void> deleteBankAccount(@RequestParam String id) {
-        bankAccountService.deleteBankAccount(id);
-        return ApiResponse.<Void>builder().code(1000).build();
-    }
-
 }
 

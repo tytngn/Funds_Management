@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequestMapping("/paymentRequests")
+@RequestMapping("/payment-requests")
 public class PaymentReqController {
 
     PaymentReqService paymentReqService;

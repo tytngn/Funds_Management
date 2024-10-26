@@ -11,7 +11,6 @@ var Toast = Swal.mixin({
 
 var dataTable; // fund-table
 let selectedData; // Biến lưu dữ liệu quỹ đã chọn
-var departmentOption = [];
 
 var startDate;
 var endDate;

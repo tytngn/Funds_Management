@@ -15,13 +15,19 @@
         </nav>
 
         <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item breadcrumb">
+            <a class="nav-link breadcrumb-item" href="#" id="loggedInUser"></a>
+          </li>
 
           <li class="nav-item nav-profile dropdown">
             <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
               <i class="fa-regular fa-user" style="font-size: 22px;"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-              <a class="dropdown-item" href="login.html" id="logoutBtn">
+              <a class="dropdown-item" role="button" id="change-password">
+                <i class="ti-key text-primary mr-2"></i>Đổi mật khẩu
+              </a>
+              <a class="dropdown-item" role="button" id="logoutBtn">
                 <i class="ti-power-off text-primary mr-2"></i>Đăng xuất
               </a>
             </div>

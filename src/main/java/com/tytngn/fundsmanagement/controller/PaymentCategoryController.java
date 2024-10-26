@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequestMapping("/paymentCategory")
+@RequestMapping("/payment-category")
 public class PaymentCategoryController {
 
     PaymentCategoryService paymentCategoryService;

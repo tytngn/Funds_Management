@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Fund Management</title>
+
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="vendors/feather/feather.css" />
+    <link rel="stylesheet" href="vendors/ti-icons/css/themify-icons.css" />
+    <link rel="stylesheet" href="vendors/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="vendors/mdi/css/materialdesignicons.min.css">
+
+    <link rel="stylesheet" href="vendors/css/vendor.bundle.base.css" />
+    <link rel="stylesheet" href="/css/vertical-layout-light/custom.css">
+
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <link rel="stylesheet" href="vendors/select2/select2.min.css">
+    <link rel="stylesheet" href="vendors/select2-bootstrap-theme/select2-bootstrap.min.css">
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <link rel="stylesheet" href="css/vertical-layout-light/style.css" />
+    <!-- endinject -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="shortcut icon" href="images/favicon-vnpt.ico" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.2.3/css/fixedHeader.dataTables.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <!-- Date Range Picker -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    
+    <style>
+      .select2-container--bootstrap .select2-results__option--highlighted[aria-selected]{
+        background-color: #4B49AC;
+        color: #fff;
+      }
+    </style>
+    
+  </head>
+
+  <body>
+    <div class="container-scroller">
+      <!-- partial:partials/_navbar.html -->
+      <div id="navbar"></div>
+      <script>
+        $("#navbar").load("/partials/_navbar.html");
+      </script>
+      <!-- partial -->
+
+      <div class="container-fluid page-body-wrapper">
+        <!-- partial:partials/_settings-panel.html -->
+         <div id="setting-panel"></div>
+         <script>
+          $("#setting-panel").load("partials/_settings-panel.html");
+        </script>
+        <!-- partial -->
+
+        <!-- partial:partials/_sidebar.html -->
+        <div id="sidebar"></div>
+        <script>
+          $("#sidebar").load("/partials/_sidebar.html");
+        </script>
+        <!-- partial -->
+
+        <div class="main-panel">
+          <div class="content-wrapper">
+            <div class="row">
+              <div class="col-12 grid-margin stretch-card">
+                <div class="card">
+                  <div class="card-body">
+
+                    <h4 class="card-title">THÔNG TIN TÀI KHOẢN</h4>
+
+                    <form class="form-sample">
+
+                      <div class="form-group">
+                        <label for="department">Phòng ban</label>
+                        <input type="text" class="form-control" id="department" readonly>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="username">Tên đăng nhập</label>
+                        <input type="text" class="form-control" id="username" placeholder="Nhập tên đăng nhập">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="fullname">Họ và tên</label>
+                        <input type="text" class="form-control" id="fullname" placeholder="Nhập đầy đủ họ và tên">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" placeholder="Nhập địa chỉ email" />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="gender">Giới tính</label>
+                        <select class="form-control select2" id="gender">
+                          <option value="0">Nam</option>
+                          <option value="1">Nữ</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="dob">Ngày sinh</label>
+                        <input class="form-control" id="dob" type="text" name="datetimes" placeholder="dd / mm / yyyy"/>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="phone">Số điện thoại</label>
+                        <input type="text" class="form-control" id="phone" placeholder="Nhập số điện thoại">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="bank-select">Tên ngân hàng</label>
+                        <select class="form-control select2" id="bank-select" style="width: 100%;" data-placeholder="Chọn ngân hàng"></select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="account-number">Số tài khoản</label>
+                        <input type="text" class="form-control" id="account-number" placeholder="Nhập số tài khoản ngân hàng">
+                      </div>
+                      
+                      <button type="button" class="btn btn-primary mr-2" id="submit-btn">
+                        <i class="fa-regular fa-floppy-disk mr-2"></i>Lưu
+                      </button>
+
+                    </form>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- content-wrapper ends -->
+          <!-- partial:partials/_footer.html -->
+          <div id="footer"></div>
+          <script>
+            $("#footer").load("/partials/_footer.html");
+          </script>
+          <!-- partial -->
+        </div>
+        <!-- main-panel ends -->
+      </div>
+      <!-- page-body-wrapper ends -->
+    </div>
+
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="vendors/js/vendor.bundle.base.js"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page -->
+    <script src="vendors/typeahead.js/typeahead.bundle.min.js"></script>
+    <script src="vendors/select2/select2.min.js"></script>
+    <!-- End plugin js for this page -->
+    <!-- inject:js -->
+     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/off-canvas.js"></script>
+    <script src="js/hoverable-collapse.js"></script>
+    <script src="js/template.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/todolist.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.2.3/js/dataTables.fixedHeader.min.js"></script>
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script src="js/file-upload.js"></script>
+    <script src="js/select2.js"></script>
+    <!-- Date Range Picker -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script type="module" src="js/pages/my-info.js"></script>
+    <!-- End custom js for this page-->
+  </body>
+</html>

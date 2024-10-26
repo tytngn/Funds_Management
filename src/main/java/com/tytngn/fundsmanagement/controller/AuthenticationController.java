@@ -15,7 +15,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -80,14 +79,4 @@ public class AuthenticationController {
         authenticationService.logout(request);
         return ApiResponse.<Void>builder().code(1000).build();
     }
-
-    @PostMapping("/get-role")
-    ApiResponse<List<String>> getUserRole() {
-        List<String> roles = authenticationService.getUserRole();
-        return ApiResponse.<List<String>>builder()
-                .result(roles)
-                .code(1000)
-                .build();
-    }
-
 }

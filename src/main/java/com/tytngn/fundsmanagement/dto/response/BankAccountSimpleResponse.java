@@ -14,6 +14,5 @@ public class BankAccountSimpleResponse {
     String id;
     String bankName;
     String accountNumber;
-    String accountName;
     LocalDate createdDate;
 }

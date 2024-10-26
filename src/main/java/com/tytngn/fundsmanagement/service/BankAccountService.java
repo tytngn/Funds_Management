@@ -1,5 +1,6 @@
 package com.tytngn.fundsmanagement.service;
 
+import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.BankAccountRequest;
 import com.tytngn.fundsmanagement.dto.response.BankAccountResponse;
 import com.tytngn.fundsmanagement.entity.BankAccount;
@@ -28,6 +29,7 @@ public class BankAccountService {
     BankAccountRepository bankAccountRepository;
     BankAccountMapper bankAccountMapper;
     UserRepository userRepository;
+    SecurityExpression securityExpression;
 
     public BankAccountResponse createBankAccount(BankAccountRequest request) {
 
@@ -36,8 +38,12 @@ public class BankAccountService {
                 request.getBankName()))
             throw new AppException(ErrorCode.BANK_ACCOUNT_EXISTS);
 
-        var user = userRepository.findById(request.getUser()).orElseThrow(() ->
-                new AppException(ErrorCode.USER_NOT_EXISTS));
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
+
+        // Tìm kiếm người dùng trong cơ sở dữ liệu
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         if(!Objects.isNull(user.getAccount()))
             throw new AppException(ErrorCode.USER_HAS_BANK_ACCOUNT);
@@ -59,23 +65,28 @@ public class BankAccountService {
         return bankAccounts;
     }
 
+    public BankAccountResponse getBankAccountById(String id) {
+        var bankAccount = bankAccountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BANK_ACCOUNT_NOT_EXISTS));
+
+        return bankAccountMapper.toBankAccountResponse(bankAccount);
+    }
+
+
     public BankAccountResponse updateBankAccount(String id, BankAccountRequest request) {
         BankAccount bankAccount = bankAccountRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.BANK_ACCOUNT_NOT_EXISTS));
 
-        var user = userRepository.findById(request.getUser()).orElseThrow(() ->
-                new AppException(ErrorCode.USER_NOT_EXISTS));
+        // Lấy thông tin người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        // Tìm kiếm người dùng trong cơ sở dữ liệu
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         bankAccountMapper.updateBankAccount(bankAccount, request);
         bankAccount.setUser(user);
 
         return bankAccountMapper.toBankAccountResponse(bankAccountRepository.save(bankAccount));
-    }
-
-    public void deleteBankAccount(String id) {
-        var bankAccount = bankAccountRepository.findById(id).orElseThrow(() ->
-                new AppException(ErrorCode.BANK_ACCOUNT_NOT_EXISTS));
-
-        bankAccountRepository.deleteById(id);
     }
 }

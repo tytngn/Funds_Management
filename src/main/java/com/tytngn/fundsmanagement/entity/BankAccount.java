@@ -24,9 +24,6 @@ public class BankAccount {
     @Column(nullable = false)
     String accountNumber;
 
-    @Column(nullable = false)
-    String accountName;
-
     LocalDate createdDate;
 
     // Relationships

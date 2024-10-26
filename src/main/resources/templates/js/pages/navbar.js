@@ -9,7 +9,7 @@ var Toast = Swal.mixin({
 });
 
 $(document).ready(function(){
-
+    
 // Phần breadcrumb
 
     // Xác định mối quan hệ giữa các trang con và cha
@@ -76,64 +76,207 @@ $(document).ready(function(){
     }
 
 
-    // Đăng xuất
+    // Hiển thị tên người dùng đang đăng nhập
+    loadName(); 
+
+
+    // Đổi mật khẩu
     utils.checkLoginStatus().then(isValid => {
-        if (isValid) {
-            $("#logoutBtn").click(function (e) { 
-                let token = utils.getCookie('authToken');
-                Swal.fire({
-                    title: "Đăng xuất?" ,
-                    showDenyButton: false,
-                    showCancelButton: true,
-                    confirmButtonText: "Đồng ý",
-                    cancelButtonText: "Huỷ",
-                }).then((result) => {
-                    /* Read more about isConfirmed, isDenied below */
-                    if (result.isConfirmed && token) {
+        if(isValid) {
+            $("#change-password").on("click", function () { 
+                utils.clear_modal();
+  
+                $("#modal-title").text("Đổi mật khẩu");
+
+                $("#modal-body").append(`
+
+                    <div class="form-group">
+                        <label for="current-password">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control form-control-lg" id="current-password" placeholder="Nhập mật khẩu hiện tại">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-password">Mật khẩu mới</label>
+                        <input type="password" class="form-control form-control-lg" id="new-password" placeholder="Nhập mật khẩu mới">
+                        <p class="card-description" style="color: #76838f;">Mật khẩu phải ít nhất 6 kí tự</p>
+                    </div>
+                  
+                    <div class="form-group">
+                        <label for="confirm-password">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control form-control-lg" id="confirm-password" placeholder="Nhập lại mật khẩu mới">
+                    </div>
+                `);
+
+                $("#modal-footer").append(`
+                    <button type="submit" class="btn btn-primary mr-2" id="modal-submit-btn">
+                        <i class="fa-regular fa-floppy-disk mr-2"></i>Lưu
+                    </button>
+                    <button class="btn btn-light" id="modal-cancel-btn">
+                        <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
+                    </button>
+                `);
+
+                $("#modal-id").modal("show");
+
+                // Lưu thông tin quỹ
+                $("#modal-submit-btn").click(function () {
+                    let currentPassword = $("#current-password").val();
+                    let newPassword = $("#new-password").val();
+                    let confirmPassword = $("#confirm-password").val();
+
+                    if (currentPassword == null || currentPassword.trim()==""){
+                        Toast.fire({
+                            icon: "error",
+                            title: "Vui lòng nhập mật khẩu hiện tại!"
+                        });
+                        return;
+                    } 
+                    else if (newPassword !== confirmPassword){
+                        Toast.fire({
+                            icon: "error",
+                            title: "Mật khẩu mới không trùng khớp!"
+                        });
+                        return;
+                    }
+                    else if (currentPassword === newPassword){
+                        Toast.fire({
+                            icon: "error",
+                            title: "Mật khẩu mới phải khác mật khẩu hiện tại!"
+                        });
+                        return;
+                    }
+                    else {
                         $.ajax({
-                            type: "POST",
-                            url: "/api/auth/logout",
-                            contentType: "application/json",
+                            type: "PUT",
+                            url: "/api/users/change-password",
+                            headers: utils.defaultHeaders(),
                             data: JSON.stringify({
-                                token: token
+                                currentPassword: currentPassword,
+                                newPassword: newPassword
                             }),
+                            beforeSend: function () {
+                                Swal.showLoading();
+                            },
                             success: function (res) {
+                                Swal.close();
                                 if(res.code==1000){
                                     Toast.fire({
                                         icon: "success",
-                                        title: "Đã đăng xuất",
-                                        didClose: () => {
-                                            utils.deleteCookie('authToken');
-                                            window.location.reload();
-                                        }
+                                        title: "Đã đổi mật khẩu thành công!",
+                                        timer: 3000,
                                     });
-                                }else{
+                                    $("#modal-id").modal("hide");
+                                }
+                                else {
                                     Toast.fire({
                                         icon: "error",
-                                        title: "Lỗi",
-                                        didClose: () => {
-                                            utils.deleteCookie('authToken');
-                                            window.location.reload();
-                                        }
+                                        title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
                                     });
                                 }
-                            },
-                            error: function (xhr, status, error) {
+                            }, 
+                            error: function(xhr, status, error){
+                                Swal.close();
+                                var err = utils.handleAjaxError(xhr);
                                 Toast.fire({
                                     icon: "error",
-                                    title: "Internal server error",
-                                    didClose: () => {
-                                        utils.deleteCookie('authToken');
-                                        window.location.reload();
-                                    }
+                                    title: err.message
                                 });
                             },
                         });
                     }
                 });
+
+                // Khi nhấn nút "Huỷ bỏ"
+                $("#modal-cancel-btn").click(function (){
+                    // Đóng modal
+                    $("#modal-id").modal('hide');
+                });
+            });
+        }
+    });
+
+    // Đăng xuất
+    utils.checkLoginStatus().then(isValid => {
+        if (isValid) {
+            $("#logoutBtn").click(async function (e) { 
+                let token = utils.getCookie('authToken');
+
+                let result = await Swal.fire({
+                    icon: "warning",
+                    title: "Đăng xuất?",
+                    html: "Bạn chắc chắn muốn đăng xuất?",
+                    showConfirmButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: "Đồng ý",
+                    cancelButtonText: "Huỷ",
+                });
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed && token) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/auth/logout",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            token: token
+                        }),
+                        success: function (res) {
+                            if(res.code==1000){
+                                Toast.fire({
+                                    icon: "success",
+                                    title: "Đã đăng xuất",
+                                    didClose: () => {
+                                        utils.deleteCookie('authToken');
+                                        utils.setLocalStorageObject('userInfo', null);
+                                        window.location.reload();
+                                    }
+                                });
+                            }else{
+                                Toast.fire({
+                                    icon: "error",
+                                    title: "Lỗi",
+                                    didClose: () => {
+                                        utils.deleteCookie('authToken');
+                                        utils.setLocalStorageObject('userInfo', null);
+                                        window.location.reload();
+                                    }
+                                });
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            Toast.fire({
+                                icon: "error",
+                                title: "Internal server error",
+                                didClose: () => {
+                                    utils.deleteCookie('authToken');
+                                    utils.setLocalStorageObject('userInfo', null);
+                                    window.location.reload();
+                                }
+                            });
+                        },
+                    });
+                }
             });
         } 
     });
-  
 
 });
+
+// Hiển thị tên của người dùng trên thanh Navbar
+async function loadName() {
+    let userInfo = await utils.getUserInfo();
+    if (!userInfo) {
+        Toast.fire({
+            icon: "error",
+            title: "Không thể lấy thông tin người dùng!"
+        });
+        return;
+    }
+    else {
+        $('#loggedInUser').text(userInfo.fullname);
+
+        // Thêm sự kiện khi nhấn vào tên người dùng sẽ chuyển đến trang my-info.html
+        $('#loggedInUser').on('click', function () {
+            window.location.href = '/my-info.html';
+        });
+    }
+}

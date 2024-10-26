@@ -1,6 +1,7 @@
 package com.tytngn.fundsmanagement.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,10 +10,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BankAccountRequest {
-    @NotBlank(message = "BLANK_NAME")
-    String bankName;
+public class ChangePasswordRequest {
+    String currentPassword;
 
-    @NotBlank(message = "DATA_INVALID")
-    String accountNumber;
+    @NotBlank(message = "PASSWORD_REQUIRED")
+    @Size(min = 6, message = "PASSWORD_INVALID")
+    String newPassword;
 }

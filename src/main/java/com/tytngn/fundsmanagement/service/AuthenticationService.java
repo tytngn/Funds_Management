@@ -223,12 +223,4 @@ public class AuthenticationService {
                 .authenticated(true)
                 .build();
     }
-
-    // lấy danh sách role từ JWT token
-    public List<String> getUserRole() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        Jwt jwt = (Jwt) auth.getPrincipal();
-        return jwt.getClaimAsStringList("scope");
-    }
-
 }

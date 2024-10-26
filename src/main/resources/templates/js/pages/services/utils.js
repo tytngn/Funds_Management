@@ -48,6 +48,7 @@ export function introspect(bool) {
                 if (res.code == 1000) {
                     if (res.result.valid == false) {
                         deleteCookie("authToken");
+                        setLocalStorageObject('userInfo', null);
                         if(bool) {
                             window.location.href = "/login#" + path;
                         }
@@ -57,13 +58,19 @@ export function introspect(bool) {
                     }
                 }
             },
-            error: function (res) {
-                deleteCookie("authToken");
-                if(bool) {
-                    window.location.href = "/login#" + path;
-                }
-                else {
-                    window.location.href = "/login";
+            error: function (xhr, status, error) {
+                if (xhr.status === 401) {
+                    // Xử lý lỗi 401 (Unauthorized)
+                    deleteCookie("authToken");
+                    setLocalStorageObject('userInfo', null);
+                    if (bool) {
+                        window.location.href = "/login#" + path;
+                    } else {
+                        window.location.href = "/login";
+                    }
+                } else {
+                    // Xử lý các lỗi khác nếu cần
+                    console.error("Error: ", xhr);
                 }
             },
         });
@@ -76,47 +83,6 @@ export function introspect(bool) {
             window.location.href = "/login";
         }
     }
-}
-
-// làm mới token
-export function refreshToken() {
-    // kiểm tra xem người dùng có token hiện tại không
-    return new Promise((resolve, reject) => {
-        const token = getCookie("authToken");
-
-        if (token) {
-            $.ajax({
-                type: "POST",
-                url: "/api/auth/refresh",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: JSON.stringify({ 
-                    token: token 
-                }),
-                success: function (res) {
-                    if (res.code == 1000) {
-                        // Lưu token mới vào cookie
-                        const newToken = res.result.token;
-                        document.cookie = `authToken=${newToken}; path=/;`;
-                        resolve(true);
-                    } else {
-                        deleteCookie("authToken");
-                        window.location.href = "/login";
-                        resolve(false);
-                    }
-                },
-                error: function () {
-                    deleteCookie("authToken");
-                    window.location.href = "/login";
-                    reject(false);
-                },
-            });
-        } else {
-            window.location.href = "/login";
-            reject(false);
-        }
-    });
 }
 
 // kiểm tra trạng thái đăng nhập của người dùng
@@ -139,12 +105,14 @@ export function checkLoginStatus() {
                         resolve(true);
                     } else {
                         deleteCookie("authToken");
+                        setLocalStorageObject('userInfo', null);
                         resolve(false);
                     }
                 },
                 error: function () {
                     console.log('Login status: '+loginStatus);
                     deleteCookie("authToken");
+                    setLocalStorageObject('userInfo', null);
                     resolve(false);
                 },
             });
@@ -246,7 +214,7 @@ export async function getUserInfo() {
             try {
                 const res = await $.ajax({
                     type: "GET",
-                    url: "/api/users/myInfo",
+                    url: "/api/users/my-info",
                     headers: defaultHeaders(),
                     dataType: "json",
                 });

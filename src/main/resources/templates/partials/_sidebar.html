@@ -179,7 +179,8 @@
     </li>
 
     <!-- QUẢN LÝ QUỸ -->
-    <li class="nav-item">
+    <li class="nav-item" id="fund" hidden>
+
       <a class="nav-link" data-toggle="collapse" href="#funds" aria-expanded="false" aria-controls="funds" >
         <i class="icon-archive menu-icon"></i>
         <span class="menu-title">Quản lý quỹ</span>
@@ -187,13 +188,13 @@
       </a>
 
       <div class="collapse" id="funds">
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="fund-management" hidden>
           <li class="nav-item">
             <a class="nav-link" href="fund-management.html">Thông tin quỹ</a>
           </li>
         </ul>
 
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="fund-permission" hidden>
           <li class="nav-item">
             <a class="nav-link" href="fund-permission.html">Phân quyền giao dịch</a>
           </li>
@@ -203,7 +204,8 @@
     </li>
 
     <!-- QUẢN LÝ GIAO DỊCH -->
-    <li class="nav-item">
+    <li class="nav-item" id="transaction" hidden>
+
       <a class="nav-link" data-toggle="collapse" href="#transactions" aria-expanded="false" aria-controls="transactions" >
         <i class="mdi mdi-library-books menu-icon"></i>
         <span class="menu-title">Quản lý giao dịch</span>
@@ -212,13 +214,13 @@
 
       <div class="collapse" id="transactions">
 
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="contribution" hidden>
           <li class="nav-item">
             <a class="nav-link" href="transaction-contribute.html">Đóng góp quỹ</a>
           </li>
         </ul>
 
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="withdraw" hidden>
           <li class="nav-item">
             <a class="nav-link" href="transaction-withdraw.html">Rút quỹ</a>
           </li>
@@ -229,7 +231,7 @@
     </li>
 
     <!-- QUẢN LÝ THANH TOÁN -->
-    <li class="nav-item">
+    <li class="nav-item" id="payment" hidden>
       <a class="nav-link" data-toggle="collapse" href="#payments" aria-expanded="false" aria-controls="payments" >
         <i class="mdi mdi-square-inc-cash menu-icon"></i>
         <span class="menu-title">Quản lý thanh toán</span>
@@ -238,13 +240,13 @@
 
       <div class="collapse" id="payments">
 
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="payment-request" hidden>
           <li class="nav-item">
             <a class="nav-link" href="payment-request.html">Đề nghị thanh toán</a>
           </li>
         </ul>
 
-        <ul class="nav flex-column sub-menu">
+        <ul class="nav flex-column sub-menu" id="estimate-payment" hidden>
           <li class="nav-item">
             <a class="nav-link" href="">Thanh toán dự trù</a>
           </li>
@@ -254,16 +256,16 @@
       
     </li>
 
-    <!-- DỰ TRÙ NGÂN SÁCH -->
-    <li class="nav-item">
+    <!-- DỰ TRÙ KINH PHÍ -->
+    <li class="nav-item" id="budget-estimate">
       <a class="nav-link" href="budget-estimate.html">
         <i class="icon-paper menu-icon"></i>
-        <span class="menu-title">Dự trù ngân sách</span>
+        <span class="menu-title">Dự trù kinh phí</span>
       </a>
     </li>
 
     <!-- QUẢN LÝ TÀI KHOẢN -->
-    <li class="nav-item">
+    <li class="nav-item" id="account-management" hidden>
       <a class="nav-link" href="account-management.html">
         <i class="icon-head menu-icon"></i>
         <span class="menu-title">Quản lý tài khoản</span>
@@ -272,3 +274,5 @@
 
   </ul>
 </nav>
+
+<script type="module" src="/js/pages/sidebar.js"></script>
