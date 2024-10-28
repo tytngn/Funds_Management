@@ -1,8 +1,6 @@
 import * as utils from "/js/pages/services/utils.js";
 
 $(document).ready(function () {
-    // utils.loadScript("/plugins/bootstrap/js/bootstrap.bundle.min.js");
-    $('[data-toggle="tooltip"]').tooltip();
 
     if (utils.getCookie("authToken") !== null) {
         var userInfo = utils.getLocalStorageObject("userInfo");
@@ -15,7 +13,7 @@ $(document).ready(function () {
                 success: function (res) {
                     if(res.code == 1000){
                         utils.setLocalStorageObject('userInfo', res.result)
-                                                
+
                         updateSidebarVisibility(res.result.roles);
                     }
                 },
@@ -48,16 +46,31 @@ function updateSidebarVisibility(roles) {
 
     if (permissions.includes("GET_CONTRIBUTION_BY_FILTER")) {
         $('#transaction').prop("hidden", false); // Hiện phần Quản lý giao dịch
+        $('#contribution-management').prop("hidden", false); // Hiện phần Quản lý đóng góp
+    } 
+
+    if (permissions.includes("GET_USER_CONTRIBUTIONS_BY_FILTER")) {
+        $('#transaction').prop("hidden", false); // Hiện phần Quản lý giao dịch
         $('#contribution').prop("hidden", false); // Hiện phần Đóng góp quỹ
     } 
 
     if (permissions.includes("GET_WITHDRAW_BY_FILTER")) {
         $('#transaction').prop("hidden", false); // Hiện phần Quản lý giao dịch
-        $('#withdraw').prop("hidden", false); // Hiện phần Rút quỹ
+        $('#withdrawal-management').prop("hidden", false); // Hiện phần Quản lý rút quỹ
+    }
+
+    if (permissions.includes("GET_USER_WITHDRAWALS_BY_FILTER")) {
+        $('#transaction').prop("hidden", false); // Hiện phần Quản lý giao dịch
+        $('#withdrawal').prop("hidden", false); // Hiện phần Rút quỹ
     }
 
     if (permissions.includes("FILTER_PAYMENT_REQUEST")) {
         $('#payment').prop("hidden", false); // Hiện phần Quản lý thanh toán
+        $('#payment-management').prop("hidden", false); // Hiện phần Quản lý thanh toán  
+    }
+
+    if (permissions.includes("CREATE_PAYMENT_REQUEST")) {
+        $('#payment').prop("hidden", false); // Hiện phần Quản lý thanh toán       
         $('#payment-request').prop("hidden", false); // Hiện phần Đề nghị thanh toán
     }
 
@@ -65,3 +78,4 @@ function updateSidebarVisibility(roles) {
         $('#account-management').prop("hidden", false); // Hiện phần Quản lý tài khoản
     }
 }
+

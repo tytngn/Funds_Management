@@ -3,6 +3,7 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.dto.request.FundPermissionRequest;
 import com.tytngn.fundsmanagement.dto.response.FundPermissionResponse;
+import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.entity.Fund;
 import com.tytngn.fundsmanagement.entity.FundPermission;
 import com.tytngn.fundsmanagement.entity.User;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,6 +83,7 @@ public class FundPermissionService {
 
         return fundPermissions.stream()
                 .map(fpermission -> fundPermissionMapper.toResponse(fpermission))
+                .sorted(Comparator.comparing(FundPermissionResponse::getGrantedDate).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -105,6 +108,7 @@ public class FundPermissionService {
         // Chuyển đổi danh sách FundPermission thành FundPermissionResponse
         return fundPermissions.stream()
                 .map(fundPermissionMapper::toResponse)
+                .sorted(Comparator.comparing(FundPermissionResponse::getGrantedDate).reversed())
                 .collect(Collectors.toList());
     }
 

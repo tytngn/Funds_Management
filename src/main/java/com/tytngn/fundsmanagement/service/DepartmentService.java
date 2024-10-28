@@ -3,6 +3,7 @@ package com.tytngn.fundsmanagement.service;
 import com.tytngn.fundsmanagement.dto.request.DepartmentRequest;
 import com.tytngn.fundsmanagement.dto.response.DepartmentResponse;
 import com.tytngn.fundsmanagement.dto.response.DepartmentSimpleResponse;
+import com.tytngn.fundsmanagement.dto.response.TransactionTypeResponse;
 import com.tytngn.fundsmanagement.entity.Department;
 import com.tytngn.fundsmanagement.entity.User;
 import com.tytngn.fundsmanagement.exception.AppException;
@@ -16,6 +17,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.Collator;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -27,6 +30,7 @@ public class DepartmentService {
     DepartmentRepository departmentRepository;
     DepartmentMapper departmentMapper;
     UserRepository userRepository;
+    Collator vietnameseCollator;
 
     public DepartmentSimpleResponse createDepartment(DepartmentRequest request) {
 
@@ -42,6 +46,7 @@ public class DepartmentService {
         var departments = departmentRepository.findAll()
                     .stream()
                     .map(department -> departmentMapper.toDepartmentResponse(department))
+                    .sorted(Comparator.comparing(DepartmentResponse::getName, vietnameseCollator))
                     .toList();
 
         return departments;

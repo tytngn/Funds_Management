@@ -76,6 +76,7 @@ export function introspect(bool) {
         });
     }
     else {
+        setLocalStorageObject('userInfo', null);
         if(bool) {
             window.location.href = "/login#" + path;
         }

@@ -282,11 +282,11 @@ $(document).ready(function () {
                             gender: user.gender, 
                             email: user.email,
                             phone: user.phone,
-                            dob: utils.formatDate(user.dob),
+                            dob: user.dob,
                             status: user.status,
                             roles: user.roles,
-                            createDate: utils.formatDate(user.createdDate),
-                            updateDate: utils.formatDate(user.updatedDate),
+                            createDate: user.createdDate,
+                            updateDate: user.updatedDate,
                             account: user.account,
                             department: user.department.name,
                             id: user.id, // ID của người dùng 
@@ -383,7 +383,7 @@ $(document).ready(function () {
                             ${row.phone ? "Số điện thoại: " + row.phone : ""}<br> 
                             Phân quyền: ${roleHtml} <br>
                             ${html}
-                            ${row.updateDate? " Ngày cập nhật: " + row.updateDate : ""}
+                            ${row.updateDate? "Ngày cập nhật: " + utils.formatDate(row.updateDate) : ""}
                         </p>
                     </details>`;
             }
@@ -403,9 +403,25 @@ $(document).ready(function () {
                 }
             }
         },
-        { data: "dob" },
+        { data: "dob", 
+            render: function (data, type, row) {
+                if (type === "display" || type === "filter") {
+                    return utils.formatDate(data);
+                }
+                // Trả về giá trị nguyên gốc cho sorting và searching
+                return new Date(data);
+            }
+        },
         { data: "department" },
-        { data: "createDate" },
+        { data: "createDate", 
+            render: function (data, type, row) {
+                if (type === "display" || type === "filter") {
+                    return utils.formatDate(data);
+                }
+                // Trả về giá trị nguyên gốc cho sorting và searching
+                return new Date(data);
+            }
+        },
         { 
             data: "status",
             orderable: true, // Cho phép sắp xếp dựa trên cột này
@@ -422,7 +438,6 @@ $(document).ready(function () {
             }
         },
         ],
-        order: [[6, "asc"]], // Cột thứ 7 (status) sắp xếp tăng dần
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
             var api = this.api();
@@ -460,13 +475,19 @@ function togglePasswordVisibility(passwordInputId, toggleButtonId, iconId) {
 }
 
 
-// Bắt sự kiện khi chọn dòng ở bảng fund-table
+// Bắt sự kiện khi chọn dòng
 $('#user-table tbody').on('click', 'tr', function () {
-  // Xóa lựa chọn hiện tại nếu có
-  dataTable.$('tr.selected').removeClass('selected');
-  $(this).addClass('selected'); // Đánh dấu dòng đã chọn
-  selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
-  console.log(selectedData.id);
+    // Kiểm tra xem dòng đã được chọn chưa
+    if ($(this).hasClass('selected')) {
+        // Nếu đã được chọn, bỏ chọn nó
+        $(this).removeClass('selected');
+        selectedData = null; // Đặt selectedData về null vì không có dòng nào được chọn
+    } else {
+        // Nếu chưa được chọn, xóa lựa chọn hiện tại và chọn dòng mới
+        dataTable.$('tr.selected').removeClass('selected');
+        $(this).addClass('selected'); // Đánh dấu dòng đã chọn
+        selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
+    }
 });
 
 
@@ -485,11 +506,8 @@ $("#btn-add-user").on("click", function () {
     $("#modal-body").append(`
         <div class="form-group">
             <label for="modal-username-input">Tên đăng nhập</label>
-            <input type="text" class="form-control" id="modal-username-input" 
-                placeholder="Nhập tên đăng nhập" 
-                data-toggle="tooltip"
-                data-container="#modal-body"
-                title="Tên đăng nhập chỉ được phép chứa các chữ cái không dấu và không có khoảng trắng.">
+            <input type="text" class="form-control" id="modal-username-input" placeholder="Nhập tên đăng nhập">
+            <p class="card-description" style="color: #76838f;">Chỉ được phép chứa các chữ cái không dấu và không có khoảng trắng</p>
         </div>
 
         <div class="form-group">
@@ -688,12 +706,8 @@ $("#btn-update-user").on("click", function () {
                         <form class="forms-sample">
                             <div class="form-group">
                                 <label for="modal-username-input">Tên đăng nhập</label>
-                                <input type="text" class="form-control" id="modal-username-input" 
-                                    placeholder="Nhập tên đăng nhập" 
-                                    data-toggle="tooltip"
-                                    data-container="#modal-body"
-                                    title="Tên đăng nhập chỉ được phép chứa các chữ cái không dấu và không có khoảng trắng"
-                                    value="${user.username}">
+                                <input type="text" class="form-control" id="modal-username-input" placeholder="Nhập tên đăng nhập" value="${user.username}">
+                                <p class="card-description" style="color: #76838f;">Chỉ được phép chứa các chữ cái không dấu và không có khoảng trắng</p>
                             </div>
                             
                             <div class="form-group">

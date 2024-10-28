@@ -2,6 +2,7 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.*;
+import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.dto.response.UserResponse;
 import com.tytngn.fundsmanagement.entity.BankAccount;
 import com.tytngn.fundsmanagement.entity.Role;
@@ -22,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -132,6 +134,7 @@ public class UserService {
         List<User> users = userRepository.filterUsers(start, end, status, departmentId, roleId, bankName);
         return users.stream()
                 .map(userMapper::toUserResponse)
+                .sorted(Comparator.comparing(UserResponse::getCreatedDate).reversed())
                 .collect(Collectors.toList());
     }
 

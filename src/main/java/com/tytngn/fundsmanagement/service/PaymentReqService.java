@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -136,6 +137,7 @@ public class PaymentReqService {
         List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequests(categoryId, start, end, status, departmentId, userId);
         return paymentRequests.stream()
                 .map(paymentReqMapper::toPaymentReqResponse)
+                .sorted(Comparator.comparing(PaymentReqResponse::getCreateDate).reversed())
                 .toList();
     }
 

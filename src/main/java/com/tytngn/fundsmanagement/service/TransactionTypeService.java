@@ -1,6 +1,7 @@
 package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.dto.request.TransactionTypeRequest;
+import com.tytngn.fundsmanagement.dto.response.PaymentCategoryResponse;
 import com.tytngn.fundsmanagement.dto.response.TransactionTypeResponse;
 import com.tytngn.fundsmanagement.entity.TransactionType;
 import com.tytngn.fundsmanagement.exception.AppException;
@@ -13,6 +14,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.Collator;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -23,6 +26,7 @@ public class TransactionTypeService {
 
     TransactionTypeRepository transactionTypeRepository;
     TransactionTypeMapper transactionTypeMapper;
+    Collator vietnameseCollator;
 
     public TransactionTypeResponse create(TransactionTypeRequest request) {
 
@@ -51,6 +55,7 @@ public class TransactionTypeService {
         var transactionType = transactionTypeRepository.findAllByStatus(1)
                 .stream()
                 .map(type -> transactionTypeMapper.toTransactionTypeResponse(type))
+                .sorted(Comparator.comparing(TransactionTypeResponse::getName, vietnameseCollator))
                 .toList();
         return transactionType;
     }
@@ -60,6 +65,7 @@ public class TransactionTypeService {
         var transactionType = transactionTypeRepository.findAllByStatus(0)
                 .stream()
                 .map(type -> transactionTypeMapper.toTransactionTypeResponse(type))
+                .sorted(Comparator.comparing(TransactionTypeResponse::getName, vietnameseCollator))
                 .toList();
         return transactionType;
     }

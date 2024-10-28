@@ -1,7 +1,6 @@
 package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.dto.request.InvoiceRequest;
-import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.dto.response.InvoiceResponse;
 import com.tytngn.fundsmanagement.entity.Image;
 import com.tytngn.fundsmanagement.entity.Invoice;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -100,6 +100,7 @@ public class InvoiceService {
 
         return invoices.stream()
                 .map(invoiceMapper::toInvoiceResponse)
+                .sorted(Comparator.comparing(InvoiceResponse::getCreateDate).reversed())
                 .toList();
     }
 

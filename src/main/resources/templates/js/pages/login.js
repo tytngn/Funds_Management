@@ -1,3 +1,4 @@
+import * as utils from "/js/pages/services/utils.js";
 // sử dụng SweetAlert2
 var Toast = Swal.mixin({
     toast: true,
@@ -30,6 +31,8 @@ function login() {
         data: JSON.stringify({ username: username, password: password }),
         success: function (res) {
             if (res.code === 1000 && res.result.authenticated) {
+                const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút
+                localStorage.setItem("tokenExpirationTime", expirationTime);
                 // Gửi yêu cầu với Bearer Token
                 window.location.href = '/';
             } else {
@@ -97,6 +100,7 @@ function togglePasswordVisibility(passwordInputId, toggleButtonId, iconId) {
 }
 
 $(document).ready(function () {
+    utils.setLocalStorageObject('userInfo', null);
     // Hiển thị hoặc ẩn mật khẩu
     togglePasswordVisibility('password', 'toggle-password', 'toggle-icon');
 });

@@ -121,10 +121,10 @@
                       </button>
 
                       <button
-                        id="btn-payment-request" 
+                        id="btn-send-payment-request" 
                         type="button" 
                         class="btn btn-primary ml-2">
-                        <i class="fa-solid fa-circle-check mr-2"></i>
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Gửi
                       </button>
                     </div>
 
@@ -149,8 +149,6 @@
                           <option value="" disabled selected>Chọn loại bộ lọc</option>
                           <option value="time">Theo thời gian</option>
                           <option value="status">Theo trạng thái</option>
-                          <option value="department">Theo phòng ban</option>
-                          <option value="individual">Theo cá nhân</option>
                         </select>
                       </div>
 
@@ -172,20 +170,6 @@
                         </select>
                       </div>
 
-                      <!-- Select Phòng ban -->
-                      <div id="department-div" class="col-sm-3" hidden>
-                        <label for="department-select">Phòng ban</label>
-                        <select class="form-control select-2" id="department-select" style="width: 100%;" data-placeholder="Chọn phòng ban">
-                        </select>
-                      </div>
-
-                      <!-- Select Cá nhân -->
-                      <div  id="individual-div" class="col-sm-3" hidden>
-                        <label for="individual-select">Cá nhân</label>
-                        <select class="form-control select-2" id="individual-select" style="width: 100%;" data-placeholder="Chọn cá nhân">
-                        </select>
-                      </div>
-
                     </div>
                   </div>
 
@@ -196,11 +180,9 @@
                           <tr>
                             <th style="text-align: center" min-width="3%;">STT</th>
                             <th style="text-align: center">Loại thanh toán</th>
-                            <th style="text-align: center" min-width="10%;">Phòng ban</th>
                             <th style="text-align: center" min-width="20%;">Người thực hiện</th>
                             <th style="text-align: center" min-width="10%;">Số tiền</th>
                             <th style="text-align: center" min-width="10%;">Ngày tạo</th>
-                            <th style="text-align: center" min-width="10%;">Ngày cập nhật</th>
                             <th style="text-align: center" min-width="5%;">Trạng thái</th>
                           </tr>
                         </thead>
@@ -309,9 +291,9 @@
     </div>
 
     <!-- Modal for adding new fund -->
-    <div id="transaction-modal"></div>
+    <div id="payment-request-modal"></div>
     <script>
-      $("#transaction-modal").load("partials/_modal.html");
+      $("#payment-request-modal").load("partials/_modal.html");
     </script>
 
     <!-- container-scroller -->
@@ -344,6 +326,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.min.js" integrity="sha512-Y2IiVZeaBwXG1wSV7f13plqlmFOx8MdjuHyYFVoYzhyRr3nH/NMDjTBSswijzADdNzMyWNetbLMfOpIPl6Cv9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script type="module" src="js/pages/payment-request.js"></script>
+    <script src="js/pages/services/refresh-token.js"></script>
     <!-- End custom js for this page-->
   </body>
 </html>

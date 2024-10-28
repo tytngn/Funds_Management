@@ -1,9 +1,7 @@
 package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
-import com.tytngn.fundsmanagement.dto.request.FundContributionRequest;
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
-import com.tytngn.fundsmanagement.dto.response.FundContributionResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import com.tytngn.fundsmanagement.exception.AppException;
@@ -18,10 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -108,7 +104,7 @@ public class FundTransactionService {
     }
 
 
-    // Lấy danh sách giao dịch theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái)
+    // Lấy danh sách giao dịch đóng góp theo bộ lọc (theo quỹ, loại giao dịch, thời gian, phòng ban, cá nhân, trạng thái)
     public List<FundTransactionResponse> getContributionByFilter(String fundId, String transTypeId,
                                                                  String startDate, String endDate,
                                                                  String departmentId, String userId,
@@ -116,7 +112,6 @@ public class FundTransactionService {
     {
 
         // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDateTime start = null;
         LocalDateTime end = null;
 
@@ -139,18 +134,62 @@ public class FundTransactionService {
         return fundTransactions.stream()
                 .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 1) // Lấy loại giao dịch đóng góp quỹ
                 .map(fundTrans -> fundTransactionMapper.toFundTransactionResponse(fundTrans))
+                .sorted(Comparator.comparing(FundTransactionResponse::getTransDate).reversed())
                 .toList();
     }
 
 
-    // Lấy danh sách giao dịch theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
+    // Lấy danh sách giao dịch đóng góp của một người dùng theo bộ lọc và tính tổng số tiền
+    public Map<String, Object> getUserContributionsByFilter(String fundId, String transTypeId,
+                                                            String startDate, String endDate,
+                                                            String departmentId, Integer status) {
+        // Lấy userId người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            throw new AppException(ErrorCode.DATA_INVALID);
+        }
+
+        // Gọi repository để lấy danh sách giao dịch theo bộ lọc
+        List<FundTransaction> fundTransactions = fundTransactionRepository.filterTransactions(
+                fundId, transTypeId, start, end, departmentId, userId, status);
+
+        // Tính tổng số tiền đóng góp
+        double totalAmount = fundTransactions.stream()
+                .mapToDouble(FundTransaction::getAmount)
+                .sum();
+
+        // Map danh sách giao dịch sang DTO và thêm tổng số tiền vào response
+        List<FundTransactionResponse> responses = fundTransactions.stream()
+                .map(fundTransactionMapper::toFundTransactionResponse)
+                .sorted(Comparator.comparing(FundTransactionResponse::getTransDate).reversed())
+                .toList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("transactions", responses);
+        result.put("totalAmount", totalAmount);
+
+        return result;
+    }
+
+
+    // Lấy danh sách giao dịch rút quỹ theo bộ lọc (theo quỹ, loại giao dịch, thời gian, phòng ban, cá nhân, trạng thái)
     public List<FundTransactionResponse> getWithdrawByFilter(String fundId, String transTypeId,
                                                                  String startDate, String endDate,
                                                                  String departmentId, String userId,
                                                                  Integer status) {
 
         // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDateTime start = null;
         LocalDateTime end = null;
 
@@ -173,24 +212,51 @@ public class FundTransactionService {
         return fundTransactions.stream()
                 .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 0) // Lấy loại giao dịch đóng góp quỹ
                 .map(fundTrans -> fundTransactionMapper.toFundTransactionResponse(fundTrans))
+                .sorted(Comparator.comparing(FundTransactionResponse::getTransDate).reversed())
                 .toList();
     }
 
 
+    // Lấy danh sách giao dịch rút quỹ của một người dùng theo bộ lọc và tính tổng số tiền
+    public Map<String, Object> getUserWithdrawalsByFilter(String fundId, String transTypeId,
+                                                          String startDate, String endDate,
+                                                          String departmentId, Integer status) {
+        String userId = securityExpression.getUserId();
 
-    // Lấy tổng số tiền giao dịch của người dùng trong một quỹ
-    public List<FundContributionResponse> getFundTransactionSummary(FundContributionRequest request) {
-        List<Object[]> results = fundTransactionRepository.getFundTransactionSummary(request.getFundId());
-        List<FundContributionResponse> responseList = new ArrayList<>();
+        LocalDateTime start = null;
+        LocalDateTime end = null;
 
-        for (Object[] result : results) {
-            String fullname = (String) result[0];
-            Double totalAmount = (Double) result[1];
-            String transactionType = (String) result[2];
-            responseList.add(fundTransactionMapper.toFundContributionResponse(fullname, transactionType, totalAmount));
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            throw new AppException(ErrorCode.DATA_INVALID);
         }
 
-        return responseList;
+        // Gọi repository để lấy danh sách giao dịch rút quỹ theo bộ lọc
+        List<FundTransaction> fundTransactions = fundTransactionRepository.filterTransactions(
+                fundId, transTypeId, start, end, departmentId, userId, status);
+
+        // Tính tổng số tiền rút quỹ
+        double totalAmount = fundTransactions.stream()
+                .mapToDouble(FundTransaction::getAmount)
+                .sum();
+
+        // Map danh sách giao dịch sang DTO và thêm tổng số tiền vào response
+        List<FundTransactionResponse> responses = fundTransactions.stream()
+                .map(fundTransactionMapper::toFundTransactionResponse)
+                .sorted(Comparator.comparing(FundTransactionResponse::getTransDate).reversed())
+                .toList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("transactions", responses);
+        result.put("totalAmount", totalAmount);
+
+        return result;
     }
 
 

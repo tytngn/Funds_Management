@@ -10,9 +10,8 @@ var Toast = Swal.mixin({
 });
 
 var dataTable; // bảng đề nghị thanh toán
-let selectedData; // Biến lưu dữ liệu đã chọn
-
 var invoicesTable; // bảng hoá đơn
+let selectedData; // Biến lưu dữ liệu đã chọn
 let selectedInvoice; // Biến lưu hoá đơn đã chọn
 
 var PaymentCategoryOption = []; // loại thanh toán
@@ -38,6 +37,9 @@ $(document).ready(function () {
         // Ẩn tất cả các trường trước
         $('#trans-times-div').prop("hidden", true);
         $('#status-div').prop("hidden", true);
+        $('#department-div').prop("hidden", true);
+        $('#individual-div').prop("hidden", true);
+        $('#individual-select').prop('disabled', true);
 
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
@@ -45,6 +47,16 @@ $(document).ready(function () {
         } 
         else if (filterType === 'status') {
             $('#status-div').prop("hidden", false); // Hiển thị Select Trạng thái 
+        }
+        else if (filterType === 'department') {
+            $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
+            loadDepartments();
+        }
+        else if (filterType === 'individual') {
+            $('#department-div').prop("hidden", false); // Hiển thị Select Phòng Ban
+            $('#individual-div').prop("hidden", false); // Hiển thị Select Cá Nhân nhưng sẽ disabled cho đến khi chọn phòng ban
+
+            loadDepartments();
         }
     });
 
@@ -116,6 +128,72 @@ $(document).ready(function () {
         }
     });
 
+    // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
+    function loadDepartments() {
+        $.ajax({
+            type: "GET",
+            url: "/api/departments",
+            headers: utils.defaultHeaders(),
+            success: function (res) {
+                if (res.code === 1000) {
+                    let departments = res.result;
+                    let departmentDropdown = $("#department-select");
+                    let userDropdown = $("#individual-select");
+
+                    departmentDropdown.empty();
+    
+                    // Thêm các phòng ban vào dropdown
+                    departments.forEach(function(department) {
+                        departmentDropdown.append(`
+                            <option value="${department.id}">${department.name}</option>
+                        `);              
+                    });
+                    departmentDropdown.val("").trigger('change');
+
+                    // Gắn sự kiện khi chọn phòng ban
+                    departmentDropdown.on("change", function(){
+                        let selectedDepartmentId = $(this).val();
+
+                        userDropdown.prop("disabled", false);
+    
+                        // Xóa các thành viên cũ trong dropdown
+                        userDropdown.empty();
+    
+                        // Tìm phòng ban đã chọn
+                        let selectedDepartment = departments.find(dept => dept.id === selectedDepartmentId);
+    
+                        // Thêm các thành viên của phòng ban đã chọn vào dropdown
+                        if (selectedDepartment && selectedDepartment.users) {
+                            selectedDepartment.users.forEach(function(user) {
+                                userDropdown.append(`
+                                    <option value="${user.id}">${user.fullname}</option>
+                                `);
+                            });
+                            userDropdown.val("").trigger('change');
+                        } else {
+                            // Nếu không có thành viên nào
+                            userDropdown.append(`
+                                <option value="">Không có thành viên</option>
+                            `);
+                        }
+                    });
+                } else {
+                    Toast.fire({
+                        icon: "error",
+                        title: "Không thể lấy danh sách phòng ban<br>" + res.message,
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+            }
+        });
+    }
+
 
     // Nhấn nút "Xem"
     $("#btn-view-payment-request").on("click", function () {    
@@ -126,16 +204,18 @@ $(document).ready(function () {
         var categoryId = $('#payment-category-select').val() || ''; // Lấy giá trị của select loại thanh toán
 
         var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
-        var status = ''; 
+        var status = '';
+        var departmentId = ''; 
+        var userId = ''; 
 
         // Kiểm tra nếu không chọn bộ lọc nào hoặc chọn bộ lọc "theo thời gian" và không chọn danh mục thanh toán
-        // if ((!filter) || categoryId == '') {
-        //     Toast.fire({
-        //         icon: "warning",
-        //         title: "Vui lòng chọn bộ lọc!",
-        //     });
-        //     return;
-        // }
+        if ((!filter || filter === 'time') && categoryId == '') {
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn danh mục thanh toán!",
+            });
+            return;
+        }
 
         if (filter === 'time') {
             if (startDate === '' && endDate === ''){
@@ -155,6 +235,27 @@ $(document).ready(function () {
                 });
                 return;
             } 
+        } 
+        else if (filter === 'department') {
+            departmentId = $('#department-select').val() || ''; // Phòng ban
+            if (departmentId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn phòng ban!",
+                });
+                return;
+            }
+        } 
+        else if (filter === 'individual') {
+            departmentId = $('#department-select').val() || ''; // Phòng ban
+            userId = $('#individual-select').val() || ''; // Cá nhân 
+            if (userId === ''){
+                Toast.fire({
+                    icon: "warning",
+                    title: "Vui lòng chọn cá nhân!",
+                });
+                return;
+            }
         } 
        
         // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
@@ -506,437 +607,8 @@ $("#payment-search-input").on("keyup", function () {
 });
 
 
-// Nhấn nút "Thêm mới" để thêm đề nghị thanh toán
-$("#btn-add-payment-request").on("click", function () {
-    utils.clear_modal();
-  
-    $("#modal-title").text("Tạo đề nghị thanh toán");
-  
-    $("#modal-body").append(`
-
-        <div class="form-group">
-            <label for="modal-payment-category">Danh mục thanh toán</label>
-            <select class="form-control" id="modal-payment-category" style="width: 100%;"></select>
-        </div>
-
-        <div class="form-group">
-            <label for="modal-payment-request-description-input">Ghi chú</label>
-            <textarea class="form-control" id="modal-payment-request-description-input" rows="4" placeholder="Nhập lý do tạo đề nghị thanh toán"></textarea>
-        </div>
-      
-    `);
-  
-    $("#modal-footer").append(`
-        <button type="submit" class="btn btn-primary mr-2" id="modal-submit-btn">
-            <i class="fa-regular fa-floppy-disk mr-2"></i>Lưu
-        </button>
-        <button class="btn btn-light" id="modal-cancel-btn">
-            <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
-        </button>
-    `);
-
-    $('#modal-payment-category').select2({
-        placeholder: "Chọn danh mục thanh toán",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-        data: PaymentCategoryOption
-    });
-    // Đặt lại giá trị của select-dropdown về null
-    $('#modal-payment-category').val("").trigger('change');
 
 
-    $("#modal-id").modal("show");
-
-    $("#modal-id").on('hidden.bs.modal', function () {
-        $("#btn-view-payment-request").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-    });
-
-    // Lưu thông tin của đề nghị thanh toán
-    $("#modal-submit-btn").click(function () {
-        let category = $("#modal-payment-category").val();
-        let description = $("#modal-payment-request-description-input").val();
-    
-        if(category == null){
-            Toast.fire({
-                icon: "error",
-                title: "Vui lòng chọn danh mục thanh toán!"
-            });
-            return;
-        } else if (description == null || description.trim() == ""){
-            Toast.fire({
-                icon: "error",
-                title: "Vui lòng nhập lý do tạo đề nghị thanh toán!"
-            });
-            return;
-        } else {
-            $.ajax({
-                type: "POST",
-                url: "/api/payment-requests",
-                headers: utils.defaultHeaders(),
-                // contentType: "application/json",
-                data: JSON.stringify({
-                    description: description,
-                    category: category,
-                }),
-                success: function (res) {
-                    if(res.code==1000){
-                        Toast.fire({
-                            icon: "success",
-                            title: "Đã thêm đề nghị thanh toán!",
-                            timer: 3000,
-                        });
-                    }
-                    else {
-                        Toast.fire({
-                            icon: "error",
-                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    var err = utils.handleAjaxError(xhr);
-                    Toast.fire({
-                        icon: "error",
-                        title: err.message
-                    });
-                },
-            });
-            $("#modal-id").modal("hide");
-        }
-    });
-
-    // Khi nhấn nút "Huỷ bỏ"
-    $("#modal-cancel-btn").click(function (){
-        // Đóng modal
-        $("#modal-id").modal('hide');
-    });
-
-});
-
-
-// Nhấn nút "Cập nhật" để cập nhật đề nghị thanh toán ở trạng thái chưa xử lý
-$("#btn-update-payment-request").on("click", function () {
-    // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái chưa xử lý (status = 1)
-    if (selectedData.status == 2){
-        Toast.fire({
-            icon: "error",
-            title: "Không thể cập nhật!",
-            text: "Đề nghị thanh toán đã được gửi",
-        });
-        return;
-    } else if (selectedData.status == 0 || selectedData.status == 3) {
-        Toast.fire({
-            icon: "error",
-            title: "Không thể cập nhật!",
-            text: "Đề nghị thanh toán đã được xử lý",
-        });
-        return;
-    }
-
-    if(selectedData){
-        var paymentReqId = selectedData.id; // Lấy ID của đề nghị thanh toán
-        utils.clear_modal();
-
-        // Gọi API lấy thông tin đề nghị thanh toán theo paymentReqId
-        $.ajax({
-            type: "GET",
-            url: "/api/payment-requests/" + paymentReqId,
-            headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
-            success: function (res) {
-                Swal.close();
-                if (res.code === 1000) {
-                    let paymentReq = res.result;
-                    
-                    $("#modal-title").text("Cập nhật đề nghị thanh toán");
-                    
-                    // Hiển thị dữ liệu trong modal
-                    $("#modal-body").append(`
-                        <form class="forms-sample">
-                            <div class="form-group">
-                                <label for="modal-payment-category">Danh mục thanh toán</label>
-                                <select class="form-control" id="modal-payment-category" style="width: 100%;"></select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="modal-payment-request-description-input">Ghi chú</label>
-                                <textarea class="form-control" id="modal-payment-request-description-input" rows="4" placeholder="Nhập lý do tạo đề nghị thanh toán">${paymentReq.description}</textarea>
-                            </div>
-                        </form>
-                    `);
-                    
-                    $("#modal-footer").append(`
-                        <button type="submit" class="btn btn-primary mr-2" id="modal-update-btn">
-                            <i class="fa-regular fa-floppy-disk mr-2"></i>Cập nhật
-                        </button>
-                        <button class="btn btn-light" id="modal-cancel-btn">
-                            <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
-                        </button>
-                    `);
-                    
-                    $('#modal-payment-category').select2({
-                        placeholder: "Chọn danh mục thanh toán",
-                        allowClear: true,
-                        theme: "bootstrap",
-                        closeOnSelect: true,
-                        data: PaymentCategoryOption
-                    });
-                    // Đặt lại giá trị của select-dropdown về null
-                    $('#modal-payment-category').val(paymentReq.category.id).trigger('change');
-
-                    $("#modal-id").modal("show");
-
-                    $("#modal-id").on('hidden.bs.modal', function () {
-                        $("#btn-view-payment-request").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-                    });
-
-                    // Cập nhật thông tin của đề nghị thanh toán
-                    $("#modal-update-btn").click(function () {
-                        let category = $("#modal-payment-category").val();
-                        let description = $("#modal-payment-request-description-input").val();
-                    
-                        if(category == null){
-                            Toast.fire({
-                                icon: "error",
-                                title: "Vui lòng chọn danh mục thanh toán!"
-                            });
-                            return;
-                        } else if (description == null || description.trim() == ""){
-                            Toast.fire({
-                                icon: "error",
-                                title: "Vui lòng nhập lý do tạo đề nghị thanh toán!"
-                            });
-                            return;
-                        } else {
-                            $.ajax({
-                                type: "PUT",
-                                url: "/api/payment-requests?id=" + paymentReqId,
-                                // contentType: "application/json",
-                                headers: utils.defaultHeaders(),
-                                data: JSON.stringify({
-                                    category: category,
-                                    status: 1,
-                                    description: description
-                                }),
-                                beforeSend: function () {
-                                    Swal.showLoading();
-                                },
-                                success: function (res) {
-                                    Swal.close();
-                                    if (res.code == 1000) {
-                                        Toast.fire({
-                                            icon: "success",
-                                            title: "Đã cập nhật đề nghị thanh toán",
-                                        });
-                                        $("#modal-id").modal("hide");
-                                    } else {
-                                        Toast.fire({
-                                            icon: "error",
-                                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
-                                        });
-                                    }
-                                },
-                                error: function(xhr, status, error){
-                                    Swal.close();
-                                    var err = utils.handleAjaxError(xhr);
-                                        Toast.fire({
-                                            icon: "error",
-                                            title: err.message
-                                        });
-                                },
-                            });                          
-                        }
-                    });
-
-                    // Khi nhấn nút "Huỷ bỏ"
-                    $("#modal-cancel-btn").click(function () {
-                        $('#modal-id').modal('hide');
-                    });
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Không thể lấy thông tin đề nghị thanh toán<br>" + res.message,
-                    });  
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.close();
-                var err = utils.handleAjaxError(xhr);
-                    Toast.fire({
-                        icon: "error",
-                        title: err.message
-                    });
-            }
-        });
-    }
-    else {
-        Toast.fire({
-            icon: "error",
-            title: "Vui lòng chọn đề nghị thanh toán để cập nhật!",
-        });
-    }
-});
-
-
-// Nhấn nút "Xoá" để xoá đề nghị thanh toán ở trạng thái chưa xử lý
-$("#btn-remove-payment-request").on("click", async function () {
-    // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái chưa xử lý (status = 1)
-    if (selectedData.status == 2){
-        Toast.fire({
-            icon: "error",
-            title: "Không thể xoá!",
-            text: "Đề nghị thanh toán đã được gửi",
-        });
-        return;
-    } else if (selectedData.status == 0 || selectedData.status == 3) {
-        Toast.fire({
-            icon: "error",
-            title: "Không thể xoá!",
-            text: "Đề nghị thanh toán đã được xử lý",
-        });
-        return;
-    }
-
-    if (selectedData) {
-        var paymentReqId = selectedData.id; // Lấy ID của đề nghị thanh toán
-
-        const result = await Swal.fire({
-            title: 'Bạn có chắc chắn?',
-            text: "Bạn sẽ xoá đề nghị thanh toán",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Đồng ý",
-            cancelButtonText: "Huỷ"
-        });
-
-        // Nếu người dùng không xác nhận, dừng việc xử lý
-        if (!result.isConfirmed) {
-            return;
-        }
-
-        // Thực hiện xoá đề nghị thanh toán
-        await $.ajax({
-            type: "DELETE",
-            url: "/api/payment-requests?id=" + paymentReqId,
-            headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
-            success: function (res) {
-                Swal.close();
-                if (res.code == 1000) {
-                    Toast.fire({
-                        icon: "success",
-                        title: "Đề nghị thanh toán đã được xoá",
-                    });
-                    $("#btn-view-payment-request").click(); // load lại bảng đề nghị thanh toán
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.close();
-                var err = utils.handleAjaxError(xhr);
-                Toast.fire({
-                    icon: "error",
-                    title: err.message
-                });
-            }
-        });
-    }
-    else {
-        Toast.fire({
-            icon: "error",
-            title: "Vui lòng chọn đề nghị thanh toán để xoá!",
-        });
-    }
-});
-
-
-$("#btn-send-payment-request").on("click", async function () {
-    // Kiểm tra nếu không có dữ liệu được chọn
-    if (!selectedData) {
-        Toast.fire({
-            icon: "error",
-            title: "Vui lòng chọn đề nghị thanh toán để gửi!",
-        });
-        return;
-    }
-
-    // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái "đã duyệt" (status = 3) hoặc "từ chối" (status = 0)
-    if (selectedData.status == 0 || selectedData.status == 3) {
-        Toast.fire({
-            icon: "error",
-            title: "Không thể gửi!",
-            text: "Đề nghị thanh toán đã được xử lý",
-        });
-        return;
-    }
-    else if (selectedData.status == 2) { // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái "chưa xử lý" (status = 1)
-        Toast.fire({
-            icon: "error",
-            title: "Không thể gửi!",
-            text: "Đề nghị thanh toán đã được gửi",
-        });
-        return;
-    }
-
-    var paymentReqId = selectedData.id; // Lấy ID của đề nghị thanh toán
-
-    // Hiển thị thông báo xác nhận từ người dùng
-    const result = await Swal.fire({
-        title: 'Bạn có chắc chắn?',
-        text: "Bạn sẽ gửi đề nghị thanh toán cho thủ quỹ?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Đồng ý",
-        cancelButtonText: "Huỷ"
-    });
-
-    // Nếu người dùng không xác nhận, dừng việc xử lý
-    if (!result.isConfirmed) {
-        return;
-    }
-
-    // Thực hiện gửi đề nghị thanh toán
-    await $.ajax({
-        type: "PUT",
-        url: "/api/payment-requests/send/" + paymentReqId,
-        headers: utils.defaultHeaders(),
-        beforeSend: function () {
-            Swal.showLoading();
-        },
-        success: function (res) {
-            Swal.close();
-            if (res.code == 1000) {
-                Toast.fire({
-                    icon: "success",
-                    title: "Đề nghị thanh toán đã được gửi",
-                });
-                $("#btn-view-payment-request").click(); // load lại bảng đề nghị thanh toán
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            Swal.close();
-            var err = utils.handleAjaxError(xhr);
-            Toast.fire({
-                icon: "error",
-                title: err.message
-            });
-        }
-    });
-});
 
 // Hiển thị nút "Gửi" và nút "Xác nhận" tuỳ vào role của người dùng
 async function setButtonVisibility() {

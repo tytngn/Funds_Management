@@ -102,13 +102,6 @@
                         class="btn btn-success ml-2">
                         <i class="fa-solid fa-circle-plus mr-2"></i>Thêm mới
                       </button>
-                      
-                      <button
-                        id="btn-confirm-withdraw" 
-                        type="button" 
-                        class="btn btn-primary ml-2">
-                        <i class="fa-solid fa-circle-check mr-2"></i>Xác nhận
-                      </button>
                     </div>
 
                   </div>
@@ -137,8 +130,6 @@
                           <option value="" disabled selected>Chọn loại bộ lọc</option>
                           <option value="time">Theo thời gian</option>
                           <option value="status">Theo trạng thái</option>
-                          <option value="department">Theo phòng ban</option>
-                          <option value="individual">Theo cá nhân</option>
                         </select>
                       </div>
 
@@ -159,20 +150,13 @@
                         </select>
                       </div>
 
-                      <!-- Select Phòng ban -->
-                      <div id="department-div" class="col-sm-3" hidden>
-                        <label for="department-select">Phòng ban</label>
-                        <select class="form-control select-2" id="department-select" style="width: 100%;" data-placeholder="Chọn phòng ban">
-                        </select>
-                      </div>
+                    </div>
+                  </div>
 
-                      <!-- Select Cá nhân -->
-                      <div  id="individual-div" class="col-sm-3" hidden>
-                        <label for="individual-select">Cá nhân</label>
-                        <select class="form-control select-2" id="individual-select" style="width: 100%;" data-placeholder="Chọn cá nhân">
-                        </select>
-                      </div>
-
+                  <div class="card-body" id="total-amount-div" hidden>
+                    <div>
+                      <p class="card-title">Tổng số tiền giao dịch</p>
+                      <h3 class="text-primary" id="total-amount"></h3>
                     </div>
                   </div>
 
@@ -181,14 +165,12 @@
                       <table id="transaction-withdraw-table" class="table table-striped">
                         <thead>
                           <tr>
-                            <th style="text-align: center" min-width="3%;">STT</th>
-                            <th style="text-align: center">Tên quỹ</th>
-                            <th style="text-align: center" min-width="30%;">Loại giao dịch</th>
-                            <th style="text-align: center" min-width="10%;">Số tiền</th>
-                            <th style="text-align: center" min-width="10%;">Người thực hiện</th>
-                            <th style="text-align: center" min-width="10%;">Phòng ban</th>
-                            <th style="text-align: center" min-width="10%;">Thời gian giao dịch</th>
-                            <th style="text-align: center" min-width="5%;">Trạng thái</th>
+                            <th class = "text-center" width="3%;">STT</th>
+                            <th class = "text-center">Tên quỹ</th>
+                            <th class = "text-center" min-width="20%;">Loại giao dịch</th>
+                            <th class = "text-center" width="12%;">Số tiền</th>
+                            <th class = "text-center" width="12%;">Thời gian giao dịch</th>
+                            <th class = "text-center" width="5%;">Trạng thái</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -214,7 +196,7 @@
       <!-- page-body-wrapper ends -->
     </div>
 
-    <!-- Modal for adding new fund -->
+    <!-- Modal for adding new transaction -->
     <div id="transaction-modal"></div>
     <script>
       $("#transaction-modal").load("partials/_modal.html");
@@ -251,6 +233,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
     <script type="module" src="js/pages/transaction-withdraw.js"></script>
+    <script src="js/pages/services/refresh-token.js"></script>
     <!-- End custom js for this page-->
   </body>
 </html>

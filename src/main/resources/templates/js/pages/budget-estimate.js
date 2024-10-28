@@ -452,7 +452,7 @@ $("#btn-add-budget-estimate").on("click", function () {
 
         <div class="form-group">
             <label for="modal-description-input">Mô tả</label>
-            <textarea class="form-control" id="modal-description-input" rows="4"></textarea>
+            <textarea class="form-control" id="modal-description-input" rows="4" placeholder="Nhập mô tả chi tiết: mục tiêu sử dụng, phạm vi áp dụng, đối tượng áp dụng, ..."></textarea>
         </div>
       
     `);

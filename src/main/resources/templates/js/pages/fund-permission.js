@@ -280,7 +280,7 @@ $(document).ready(function () {
                             department: fundPermission.user.department.name,
                             contribute: fundPermission.canContribute,
                             withdraw: fundPermission.canWithdraw,
-                            grantedDate: utils.formatDate(fundPermission.grantedDate),
+                            grantedDate: fundPermission.grantedDate,
                             id: fundPermission.id, // ID của fundPermission 
                         });
                     });
@@ -335,17 +335,6 @@ $(document).ready(function () {
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
-        columnDefs: [
-            {
-                targets: '_all', // Áp dụng cho tất cả các cột
-                className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
-            },
-            {
-                targets: 1, // Cột tên quỹ
-                className: 'text-left align-middle', // Căn lề trái nội dung của cột tên quỹ
-            }
-        ],
-
         columns: [
             { data: "number" },
             { data: "fund",
@@ -361,9 +350,28 @@ $(document).ready(function () {
                         </details>`;
                 } 
             },
-            { data: "trader" },
-            { data: "department" },
-            { data: "grantedDate" },
+            { data: "trader", 
+                render: function (data, type, row) {
+                    return `
+                        <details>
+                            <summary class="text-left">
+                                <b>${data}</b>
+                            </summary> <br>
+                            <p class="text-left" style="white-space: normal; !important">
+                                Phòng ban: ${row.department} <br>
+                            </p>
+                        </details>`;
+                }
+            },
+            { data: "grantedDate",
+                render: function (data, type, row) {
+                    if (type === "display" || type === "filter") {
+                        return utils.formatDate(data);
+                    }
+                    // Trả về giá trị nguyên gốc cho sorting và searching
+                    return new Date(data);
+                }
+            },
             { 
                 data: "contribute",
                 orderable: true, // Cho phép sắp xếp dựa trên cột này
@@ -395,7 +403,6 @@ $(document).ready(function () {
                 }
             },
         ],
-        order: [[2, "asc"]], // Cột thứ 3 (trader) sắp xếp tăng dần
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
             var api = this.api();
@@ -417,11 +424,18 @@ $(document).ready(function () {
 
 // Bắt sự kiện khi chọn dòng
 $('#fund-permission-table tbody').on('click', 'tr', function () {
-    // Xóa lựa chọn hiện tại nếu có
-    dataTable.$('tr.selected').removeClass('selected');
-    $(this).addClass('selected'); // Đánh dấu dòng đã chọn
-    selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
-    console.log(selectedData.id);
+    // Kiểm tra xem dòng đã được chọn chưa
+    if ($(this).hasClass('selected')) {
+        // Nếu đã được chọn, bỏ chọn nó
+        $(this).removeClass('selected');
+        selectedData = null; // Đặt selectedData về null vì không có dòng nào được chọn
+    } else {
+        // Nếu chưa được chọn, xóa lựa chọn hiện tại và chọn dòng mới
+        dataTable.$('tr.selected').removeClass('selected');
+        $(this).addClass('selected'); // Đánh dấu dòng đã chọn
+        selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
+        console.log(selectedData.id);
+    }
 });
 
 
