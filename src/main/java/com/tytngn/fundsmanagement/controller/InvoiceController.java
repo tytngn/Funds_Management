@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -27,7 +26,7 @@ public class InvoiceController {
     // Tạo hoá đơn
     @PostMapping
     @PreAuthorize("@securityExpression.hasPermission({'CREATE_INVOICE'})")
-    ApiResponse<InvoiceResponse> createInvoice(@RequestBody @Valid InvoiceRequest request) throws IOException {
+    ApiResponse<InvoiceResponse> createInvoice(@RequestBody @Valid InvoiceRequest request) {
         return ApiResponse.<InvoiceResponse>builder()
                 .code(1000)
                 .result(invoiceService.create(request))

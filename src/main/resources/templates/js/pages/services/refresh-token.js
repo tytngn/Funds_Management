@@ -16,7 +16,7 @@ function refreshToken() {
     let token = getCookie("authToken");
 
     if (token == null) {
-        // console.error("Error: Token not found.");
+        console.error("Error: Token not found.");
         return;
     }
 
@@ -26,7 +26,7 @@ function refreshToken() {
         const currentTime = Date.now();
         expirationTime = parseInt(expirationTime);
 
-        if ((expirationTime - currentTime) > 20 * 60 * 1000) {
+        if ((expirationTime - currentTime) > 60 * 60 * 1000) {
             return;
         }
     }
@@ -36,6 +36,7 @@ function refreshToken() {
         url: "/api/auth/refresh",
         headers: {
             "Content-Type": "application/json",
+            "Authorizaton": ""
         },
         data: JSON.stringify({ 
             token: token 
@@ -46,9 +47,11 @@ function refreshToken() {
                 console.log("**Token refreshed successfully.**");
 
                  // Lưu thời gian hết hạn vào localStorage (60 phút kể từ bây giờ)
-                 const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút
+                 const expirationTime = Date.now() + 24 * 60 * 60  * 1000; // 1 ngày
                  localStorage.setItem("tokenExpirationTime", expirationTime);
             } else {
+                console.warn(res);
+                
                 console.log("Failed to refresh token.");
             }
         },

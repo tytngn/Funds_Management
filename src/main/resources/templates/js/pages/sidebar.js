@@ -69,7 +69,7 @@ function updateSidebarVisibility(roles) {
         $('#payment-management').prop("hidden", false); // Hiện phần Quản lý thanh toán  
     }
 
-    if (permissions.includes("CREATE_PAYMENT_REQUEST")) {
+    if (permissions.includes("GET_USER_PAYMENT_REQUESTS_BY_FILTER")) {
         $('#payment').prop("hidden", false); // Hiện phần Quản lý thanh toán       
         $('#payment-request').prop("hidden", false); // Hiện phần Đề nghị thanh toán
     }

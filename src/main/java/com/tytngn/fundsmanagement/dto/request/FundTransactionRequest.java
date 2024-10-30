@@ -5,6 +5,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,11 +19,11 @@ public class FundTransactionRequest {
     double amount;
 
     @NotNull(message = "DATA_INVALID")
-    int status = 1;
-
-    @NotNull(message = "DATA_INVALID")
     String description;
 
     String fund;
     String transactionType;
+
+    List<String> fileNames; // danh sách tên file ảnh
+    List<byte[]> images;
 }

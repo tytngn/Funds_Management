@@ -20,7 +20,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -63,6 +65,7 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReq);
     }
 
+
     // Tạo đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
     @Transactional
     public PaymentReqResponse createPaymentReqFromBudgetActivities(PaymentReqRequest request){
@@ -101,6 +104,7 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReq);
     }
 
+
     // Lấy danh sách tất cả đề nghị thanh toán
     public List<PaymentReqResponse> getAll() {
 
@@ -112,8 +116,9 @@ public class PaymentReqService {
         return paymentReq;
     }
 
+
     // Lấy danh sách đề nghị thanh toán theo bộ lọc (theo loại thanh toán, thời gian, trạng thái, phòng ban, cá nhân)
-    public List<PaymentReqResponse> filterPaymentRequests(String categoryId, String startDate, String endDate,
+    public Map<String, Object> filterPaymentRequests(String categoryId, String startDate, String endDate,
                                                           Integer status, String departmentId, String userId)
     {
         // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
@@ -135,17 +140,78 @@ public class PaymentReqService {
         }
 
         List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequests(categoryId, start, end, status, departmentId, userId);
-        return paymentRequests.stream()
+
+        // Tính tổng số tiền của các đề nghị thanh toán
+        double totalAmount = paymentRequests.stream()
+                .mapToDouble(PaymentReq::getAmount)
+                .sum();
+
+        // Map danh sách đề nghị thanh toán sang DTO và sắp xếp theo ngày tạo mới nhất
+        List<PaymentReqResponse> responses = paymentRequests.stream()
                 .map(paymentReqMapper::toPaymentReqResponse)
                 .sorted(Comparator.comparing(PaymentReqResponse::getCreateDate).reversed())
                 .toList();
+
+        // Đưa kết quả vào Map và trả về
+        Map<String, Object> result = new HashMap<>();
+        result.put("paymentRequests", responses);
+        result.put("totalAmount", totalAmount);
+
+        return result;
     }
+
+
+    // Lấy danh sách đề nghị thanh toán của một người dùng theo bộ lọc (theo loại thanh toán, thời gian, trạng thái)
+    public Map<String, Object> getUserPaymentRequestsByFilter(String categoryId, String startDate, String endDate, Integer status) {
+        // Lấy userId người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        // Chuyển đổi tham số ngày tháng sang LocalDateTime
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            // Xử lý lỗi định dạng ngày tháng
+            throw new AppException(ErrorCode.DATA_INVALID);
+        }
+
+        // Gọi repository để lấy danh sách đề nghị thanh toán theo bộ lọc
+        List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequests(
+                categoryId, start, end, status, null, userId);
+
+        // Tính tổng số tiền của các đề nghị thanh toán
+        double totalAmount = paymentRequests.stream()
+                .mapToDouble(PaymentReq::getAmount)
+                .sum();
+
+        // Map danh sách đề nghị thanh toán sang DTO và sắp xếp theo ngày tạo mới nhất
+        List<PaymentReqResponse> responses = paymentRequests.stream()
+                .map(paymentReqMapper::toPaymentReqResponse)
+                .sorted(Comparator.comparing(PaymentReqResponse::getCreateDate).reversed())
+                .toList();
+
+        // Đưa kết quả vào Map và trả về
+        Map<String, Object> result = new HashMap<>();
+        result.put("paymentRequests", responses);
+        result.put("totalAmount", totalAmount);
+
+        return result;
+    }
+
 
     // Lấy thông tin đề nghị thanh toán theo Id
     public PaymentReqResponse getById(String id) {
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS)));
     }
+
 
     // Cập nhật đề nghị thanh toán
     @Transactional
@@ -178,6 +244,7 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
 
+
     // Cập nhật đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
     @Transactional
     public PaymentReqResponse updatePaymentReqFromBudgetActivities(String id, PaymentReqRequest request) {
@@ -209,6 +276,7 @@ public class PaymentReqService {
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
 
+
     // Gửi đề nghị thanh toán (chuyển sang trạng thái chờ duyệt)
     @Transactional
     public PaymentReqResponse sendPaymentRequest(String id) {
@@ -227,6 +295,7 @@ public class PaymentReqService {
 
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
+
 
     // Xác nhận đề nghị thanh toán (trạng thái đã duyệt hoặc từ chối)
     @Transactional
@@ -253,6 +322,7 @@ public class PaymentReqService {
 
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
+
 
     // Xoá đề nghị thanh toán
     @Transactional

@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,6 +28,7 @@ public class FundTransaction {
     @Column(columnDefinition = "TEXT")
     String description;
 
+    @Column(nullable = false)
     LocalDateTime transDate;
 
     // Relationships
@@ -41,4 +43,9 @@ public class FundTransaction {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "trans_type", referencedColumnName = "id", nullable = false)
     TransactionType transactionType;
+
+    // Thêm quan hệ với Image
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "trans_id")
+    List<Image> images;
 }

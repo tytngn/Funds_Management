@@ -35,7 +35,7 @@ public class InvoiceService {
 
     // Tạo hoá đơn
     @Transactional
-    public InvoiceResponse create(InvoiceRequest request) throws IOException {
+    public InvoiceResponse create(InvoiceRequest request) {
 
         // đề nghị thanh toán
         var paymentReq = paymentReqRepository.findById(request.getPaymentReq()).orElseThrow(() ->
@@ -51,12 +51,6 @@ public class InvoiceService {
         invoice.setPaymentReq(paymentReq);
 
         // Tải lên nhiều ảnh minh chứng
-//        List<Image> savedImages = new ArrayList<>();
-//        for (byte[] file : request.getImages()) {
-//            Image image = new Image();
-//            image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
-//            savedImages.add(imageRepository.save(image));
-//        }
         List<Image> savedImages = new ArrayList<>();
         for (int i = 0; i < request.getImages().size(); i++) {
             byte[] file = request.getImages().get(i);
@@ -131,12 +125,6 @@ public class InvoiceService {
         invoice.setPaymentReq(paymentReq);
 
         // Tải lên nhiều ảnh minh chứng
-//        List<Image> savedImages = new ArrayList<>();
-//        for (byte[] file : request.getImages()) {
-//            Image image = new Image();
-//            image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
-//            savedImages.add(imageRepository.save(image));
-//        }
         List<Image> savedImages = new ArrayList<>();
         for (int i = 0; i < request.getImages().size(); i++) {
             byte[] file = request.getImages().get(i);

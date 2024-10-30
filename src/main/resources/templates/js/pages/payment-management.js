@@ -21,8 +21,6 @@ var endDate;
 var issuedTime; // thời gian phát hành hoá đơn
 
 $(document).ready(function () {
-    setButtonVisibility(); // thiết lập hiển thị nút "Gửi" hoặc "Xác nhận" tuỳ vào role của người dùng
-
     // Select 
     $('.select-2').select2({
         allowClear: true,
@@ -196,120 +194,8 @@ $(document).ready(function () {
 
 
     // Nhấn nút "Xem"
-    $("#btn-view-payment-request").on("click", function () {    
-        // Nếu không có giá trị thì gán ''
-        startDate = startDate || ''; 
-        endDate = endDate || ''; 
-
-        var categoryId = $('#payment-category-select').val() || ''; // Lấy giá trị của select loại thanh toán
-
-        var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
-        var status = '';
-        var departmentId = ''; 
-        var userId = ''; 
-
-        // Kiểm tra nếu không chọn bộ lọc nào hoặc chọn bộ lọc "theo thời gian" và không chọn danh mục thanh toán
-        if ((!filter || filter === 'time') && categoryId == '') {
-            Toast.fire({
-                icon: "warning",
-                title: "Vui lòng chọn danh mục thanh toán!",
-            });
-            return;
-        }
-
-        if (filter === 'time') {
-            if (startDate === '' && endDate === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn thời gian!",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'status') {
-            status = $('#status-select').val() || ''; // Trạng thái
-            if(status === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn trạng thái!",
-                });
-                return;
-            } 
-        } 
-        else if (filter === 'department') {
-            departmentId = $('#department-select').val() || ''; // Phòng ban
-            if (departmentId === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn phòng ban!",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'individual') {
-            departmentId = $('#department-select').val() || ''; // Phòng ban
-            userId = $('#individual-select').val() || ''; // Cá nhân 
-            if (userId === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn cá nhân!",
-                });
-                return;
-            }
-        } 
-       
-        // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
-        $.ajax({
-            url: "/api/payment-requests/filter?categoryId=" + categoryId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
-            type: "GET",
-            headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
-            success: function(res) {
-                Swal.close();
-                if (res.code == 1000) {
-                    
-                    var data = [];
-                    var counter = 1;
-                    res.result.forEach(function (paymentReq) {
-                        data.push({
-                            number: counter++, // Số thứ tự tự động tăng
-                            amount: paymentReq.amount, 
-                            description: paymentReq.description,
-                            status: paymentReq.status,
-                            createdDate: paymentReq.createDate,
-                            updatedDate: paymentReq.updateDate,
-                            trader: paymentReq.user.fullname,
-                            email: paymentReq.user.email,
-                            phone: paymentReq.user.phone,
-                            department: paymentReq.user.department.name,
-                            category: paymentReq.category.name,
-                            id: paymentReq.id, // ID của transaction 
-                        });
-                    });
-                    dataTable.clear().rows.add(data).draw();
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: res.message || "Error in fetching data",
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.close();
-                if (xhr.status == 401 || xhr.status == 403){
-                    Toast.fire ({
-                        icon: "error",
-                        title: "Bạn không có quyền truy cập!",
-                        timer: 1500,
-                        didClose: function() {
-                            window.location.href = "/";
-                        }
-                    });
-                }
-            },
-        });
+    $("#btn-view-payment-request").on("click", async function () {    
+        await loadPaymentRequestData();
     });
 
 
@@ -463,6 +349,128 @@ $(document).ready(function () {
 });
 
 
+// Gọi api lấy dữ liệu danh sách các đề nghị thanh toán
+async function loadPaymentRequestData() {
+    // Nếu không có giá trị thì gán ''
+    startDate = startDate || ''; 
+    endDate = endDate || ''; 
+
+    var categoryId = $('#payment-category-select').val() || ''; // Lấy giá trị của select loại thanh toán
+
+    var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
+    var status = '';
+    var departmentId = ''; 
+    var userId = ''; 
+
+    // Kiểm tra nếu không chọn bộ lọc nào hoặc chọn bộ lọc "theo thời gian" và không chọn danh mục thanh toán
+    if ((!filter || filter === 'time') && categoryId == '') {
+        Toast.fire({
+            icon: "warning",
+            title: "Vui lòng chọn danh mục thanh toán!",
+        });
+        return;
+    }
+
+    if (filter === 'time') {
+        if (startDate === '' && endDate === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn thời gian!",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'status') {
+        status = $('#status-select').val() || ''; // Trạng thái
+        if(status === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn trạng thái!",
+            });
+            return;
+        } 
+    } 
+    else if (filter === 'department') {
+        departmentId = $('#department-select').val() || ''; // Phòng ban
+        if (departmentId === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn phòng ban!",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'individual') {
+        departmentId = $('#department-select').val() || ''; // Phòng ban
+        userId = $('#individual-select').val() || ''; // Cá nhân 
+        if (userId === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn cá nhân!",
+            });
+            return;
+        }
+    } 
+   
+    // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
+    await $.ajax({
+        url: "/api/payment-requests/filter?categoryId=" + categoryId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
+        type: "GET",
+        headers: utils.defaultHeaders(),
+        beforeSend: function () {
+            Swal.showLoading();
+        },
+        success: function(res) {
+            Swal.close();
+            if (res.code == 1000) {
+                // Cập nhật giá trị totalAmount vào thẻ h3
+                $('#total-amount-div').prop("hidden", false);
+                document.getElementById("total-amount").innerText = utils.formatCurrency(res.result.totalAmount);
+
+                var data = [];
+                var counter = 1;
+                res.result.paymentRequests.forEach(function (paymentReq) {
+                    data.push({
+                        number: counter++, // Số thứ tự tự động tăng
+                        totalAmount: res.result.totalAmount,
+                        amount: paymentReq.amount, 
+                        description: paymentReq.description,
+                        status: paymentReq.status,
+                        createdDate: paymentReq.createDate,
+                        updatedDate: paymentReq.updateDate,
+                        trader: paymentReq.user.fullname,
+                        email: paymentReq.user.email,
+                        phone: paymentReq.user.phone,
+                        department: paymentReq.user.department.name,
+                        category: paymentReq.category.name,
+                        id: paymentReq.id, // ID của transaction 
+                    });
+                });
+                dataTable.clear().rows.add(data).draw();
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: res.message || "Error in fetching data",
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.close();
+            if (xhr.status == 401 || xhr.status == 403){
+                Toast.fire ({
+                    icon: "error",
+                    title: "Bạn không có quyền truy cập!",
+                    timer: 1500,
+                    didClose: function() {
+                        window.location.href = "/";
+                    }
+                });
+            }
+        },
+    });
+}
+
+
 // Bắt sự kiện khi chọn dòng
 $(document).on('click', '#payment-request-table tbody tr', async function () {
     // Kiểm tra xem dòng đã được chọn chưa
@@ -506,7 +514,7 @@ $('#payment-request-table tbody').off('dblclick', 'tr').on('dblclick', 'tr', fun
 
 });
 
-
+   
 // hiển thị modal cho việc giải ngân
 function showDisbursementModal(requestData) {
     utils.clear_modal();
@@ -607,7 +615,116 @@ $("#payment-search-input").on("keyup", function () {
 });
 
 
+// Nhấn nút "Xác nhận"
+$("#btn-confirm-payment-request").on("click",async function () {
+    // Kiểm tra nếu không có dữ liệu được chọn
+    if (!selectedData) {
+        Toast.fire({
+            icon: "error",
+            title: "Vui lòng chọn đề nghị thanh toán để xác nhận!",
+        });
+        return;
+    }
 
+    // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái "đã duyệt" (status = 3) hoặc "từ chối" (status = 0)
+    if (selectedData.status == 0 || selectedData.status == 3) {
+        Toast.fire({
+            icon: "error",
+            title: "Không thể xác nhận!",
+            text: "Đề nghị thanh toán đã được xử lý",
+        });
+        return;
+    }
+    else if (selectedData.status == 1) { // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái "chưa xử lý" (status = 1)
+        Toast.fire({
+            icon: "error",
+            title: "Không thể xác nhận!",
+            text: "Đề nghị thanh toán chưa được gửi",
+        });
+        return;
+    }
+
+    var paymentReqId = selectedData.id; // Lấy ID của đề nghị thanh toán
+
+    // Hiển thị thông báo xác nhận từ người dùng
+    const result = await Swal.fire({
+        title: "Bạn có chắc chắn?",
+        text: "Bạn sẽ xác nhận đề nghị thanh toán",
+        icon: "warning",
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Duyệt",
+        denyButtonText: "Từ chối",
+        cancelButtonText: "Huỷ"
+    }).then((result) => {
+        if (result.isConfirmed) {         
+            Swal.showLoading();   
+            $.ajax({
+                type: "PUT",
+                url: "/api/payment-requests/confirm/" + paymentReqId + "?isApproved=true",
+                headers: utils.defaultHeaders(),
+                success: async function (res) {
+                    Swal.close();
+                    if (res.code == 1000) {
+                        if ($('#payment-category-select').val() !== null || $('#filter-type-select').val() !== null) {
+                            await loadPaymentRequestData();
+                        }
+                        Toast.fire({
+                            icon: "success",
+                            title: "Đề nghị thanh toán đã được duyệt",
+                        });
+                    } else {
+                        Toast.fire({
+                            icon: "error",
+                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
+                    var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+                }
+            });
+        } 
+        else if (result.isDenied) {
+            Swal.showLoading();
+            $.ajax({
+                type: "PUT",
+                url: "/api/payment-requests/confirm/" + paymentReqId + "?isApproved=false",
+                headers: utils.defaultHeaders(),
+                success: async function (res) {
+                    Swal.close();
+                    if (res.code == 1000) {
+                        if ($('#payment-category-select').val() !== null || $('#filter-type-select').val() !== null) {
+                            await loadPaymentRequestData();
+                        }
+                        Toast.fire({
+                            icon: "success",
+                            title: "Đề nghị thanh toán đã bị từ chối",
+                        });
+                    } else {
+                        Toast.fire({
+                            icon: "error",
+                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
+                    var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+                }
+            });
+        }
+    });
+});
 
 
 // Hiển thị nút "Gửi" và nút "Xác nhận" tuỳ vào role của người dùng
@@ -686,18 +803,12 @@ async function confirmPaymentRequest() {
         denyButtonText: "Từ chối",
         cancelButtonText: "Huỷ"
     }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire("Đề nghị thanh toán đã được duyệt!", "", "success");
-            
+        if (result.isConfirmed) {            
             $.ajax({
                 type: "PUT",
                 url: "/api/payment-requests/confirm/" + paymentReqId + "?isApproved=true",
                 headers: utils.defaultHeaders(),
-                beforeSend: function () {
-                    Swal.showLoading();
-                },
                 success: function (res) {
-                    Swal.close();
                     if (res.code == 1000) {
                         Toast.fire({
                             icon: "success",
@@ -712,7 +823,6 @@ async function confirmPaymentRequest() {
                     }
                 },
                 error: function (xhr, status, error) {
-                    Swal.close();
                     var err = utils.handleAjaxError(xhr);
                     Toast.fire({
                         icon: "error",
@@ -722,16 +832,11 @@ async function confirmPaymentRequest() {
             });
         } 
         else if (result.isDenied) {
-            Swal.fire("Đề nghị thanh toán đã được từ chối!", "", "info");
             $.ajax({
                 type: "PUT",
                 url: "/api/payment-requests/confirm/" + paymentReqId + "?isApproved=false",
                 headers: utils.defaultHeaders(),
-                beforeSend: function () {
-                    Swal.showLoading();
-                },
                 success: function (res) {
-                    Swal.close();
                     if (res.code == 1000) {
                         Toast.fire({
                             icon: "success",
@@ -746,7 +851,6 @@ async function confirmPaymentRequest() {
                     }
                 },
                 error: function (xhr, status, error) {
-                    Swal.close();
                     var err = utils.handleAjaxError(xhr);
                     Toast.fire({
                         icon: "error",
@@ -756,11 +860,6 @@ async function confirmPaymentRequest() {
             });
         }
     });
-
-    // Nếu người dùng không xác nhận, dừng việc xử lý
-    if (!result.isConfirmed || !result.isDenied) {
-        return;
-    }
 
 }
 

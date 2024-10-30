@@ -1,7 +1,6 @@
 package com.tytngn.fundsmanagement.mapper;
 
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
-import com.tytngn.fundsmanagement.dto.response.FundContributionResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import org.mapstruct.Mapper;
@@ -14,6 +13,7 @@ public interface FundTransactionMapper {
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "fund", ignore = true)
     @Mapping(target = "transactionType", ignore = true)
+    @Mapping(target = "images", ignore = true)
     FundTransaction toFundTransaction(FundTransactionRequest request);
 
     @Mapping(target = "user", source = "user")
@@ -24,7 +24,6 @@ public interface FundTransactionMapper {
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "fund", ignore = true)
     @Mapping(target = "transactionType", ignore = true)
+    @Mapping(target = "images", ignore = true)
     void updateFundTransaction(@MappingTarget FundTransaction fundTransaction, FundTransactionRequest request);
-
-    FundContributionResponse toFundContributionResponse(String fullname, String transactionType, Double total);
 }

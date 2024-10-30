@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,17 +64,17 @@ public class FundController {
 
     @GetMapping("/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUNDS_BY_FILTER'})")
-    ApiResponse<List<FundResponse>> getFundsByFilter(@RequestParam(required = false) LocalDate start,
-                                                     @RequestParam(required = false) LocalDate end,
-                                                     @RequestParam(required = false) Integer status,
-                                                     @RequestParam(required = false) String departmentId,
-                                                     @RequestParam(required = false) String userId)
+    ApiResponse<Map<String, Object>> getFundsByFilter(@RequestParam(required = false) LocalDate start,
+                                                      @RequestParam(required = false) LocalDate end,
+                                                      @RequestParam(required = false) Integer status,
+                                                      @RequestParam(required = false) String departmentId,
+                                                      @RequestParam(required = false) String userId)
     {
         departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
         userId = (userId != null && !userId.isEmpty()) ? userId : null;
         status = (status != null) ? status : null;
 
-        return ApiResponse.<List<FundResponse>>builder()
+        return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
                 .result(fundService.filterFunds(start, end, status, departmentId, userId))
                 .build();

@@ -22,8 +22,6 @@ var endDate;
 var issuedTime; // thời gian phát hành hoá đơn
 
 $(document).ready(function () {
-    setButtonVisibility(); // thiết lập hiển thị nút "Gửi" hoặc "Xác nhận" tuỳ vào role của người dùng
-
     // Select 
     $('.select-2').select2({
         allowClear: true,
@@ -118,97 +116,8 @@ $(document).ready(function () {
 
 
     // Nhấn nút "Xem"
-    $("#btn-view-payment-request").on("click", function () {    
-        // Nếu không có giá trị thì gán ''
-        startDate = startDate || ''; 
-        endDate = endDate || ''; 
-
-        var categoryId = $('#payment-category-select').val() || ''; // Lấy giá trị của select loại thanh toán
-
-        var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
-        var status = ''; 
-
-        // Kiểm tra nếu không chọn bộ lọc nào hoặc chọn bộ lọc "theo thời gian" và không chọn danh mục thanh toán
-        // if ((!filter) || categoryId == '') {
-        //     Toast.fire({
-        //         icon: "warning",
-        //         title: "Vui lòng chọn bộ lọc!",
-        //     });
-        //     return;
-        // }
-
-        if (filter === 'time') {
-            if (startDate === '' && endDate === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn thời gian!",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'status') {
-            status = $('#status-select').val() || ''; // Trạng thái
-            if(status === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn trạng thái!",
-                });
-                return;
-            } 
-        } 
-       
-        // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
-        $.ajax({
-            url: "/api/payment-requests/filter?categoryId=" + categoryId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
-            type: "GET",
-            headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
-            success: function(res) {
-                Swal.close();
-                if (res.code == 1000) {
-                    
-                    var data = [];
-                    var counter = 1;
-                    res.result.forEach(function (paymentReq) {
-                        data.push({
-                            number: counter++, // Số thứ tự tự động tăng
-                            amount: paymentReq.amount, 
-                            description: paymentReq.description,
-                            status: paymentReq.status,
-                            createdDate: paymentReq.createDate,
-                            updatedDate: paymentReq.updateDate,
-                            trader: paymentReq.user.fullname,
-                            email: paymentReq.user.email,
-                            phone: paymentReq.user.phone,
-                            department: paymentReq.user.department.name,
-                            category: paymentReq.category.name,
-                            id: paymentReq.id, // ID của transaction 
-                        });
-                    });
-                    dataTable.clear().rows.add(data).draw();
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: res.message || "Error in fetching data",
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.close();
-                if (xhr.status == 401 || xhr.status == 403){
-                    Toast.fire ({
-                        icon: "error",
-                        title: "Bạn không có quyền truy cập!",
-                        timer: 1500,
-                        didClose: function() {
-                            window.location.href = "/";
-                        }
-                    });
-                }
-            },
-        });
+    $("#btn-view-payment-request").on("click", async function () {    
+        await loadPaymentRequestData();
     });
 
 
@@ -360,6 +269,96 @@ $(document).ready(function () {
         },
     });
 });
+
+
+// Gọi api lấy dữ liệu danh sách các đề nghị thanh toán của người dùng
+async function loadPaymentRequestData() {
+    // Nếu không có giá trị thì gán ''
+    startDate = startDate || ''; 
+    endDate = endDate || ''; 
+
+    var categoryId = $('#payment-category-select').val() || ''; // Lấy giá trị của select loại thanh toán
+
+    var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
+    var status = ''; 
+
+    if (filter === 'time') {
+        if (startDate === '' && endDate === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn thời gian!",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'status') {
+        status = $('#status-select').val() || ''; // Trạng thái
+        if(status === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn trạng thái!",
+            });
+            return;
+        } 
+    } 
+   
+    // Gọi API với AJAX để lấy dữ liệu 
+    await $.ajax({
+        url: "/api/payment-requests/user/filter?categoryId=" + categoryId + "&start=" + startDate + "&end=" + endDate + "&status=" + status, // Đường dẫn API 
+        type: "GET",
+        headers: utils.defaultHeaders(),
+        beforeSend: function () {
+            Swal.showLoading();
+        },
+        success: function(res) {
+            Swal.close();
+            if (res.code == 1000) {
+                // Cập nhật giá trị totalAmount vào thẻ h3
+                $('#total-amount-div').prop("hidden", false);
+                document.getElementById("total-amount").innerText = utils.formatCurrency(res.result.totalAmount);
+
+                var data = [];
+                var counter = 1;
+                res.result.paymentRequests.forEach(function (paymentReq) {
+                    data.push({
+                        number: counter++, // Số thứ tự tự động tăng
+                        totalAmount: res.result.totalAmount,
+                        amount: paymentReq.amount, 
+                        description: paymentReq.description,
+                        status: paymentReq.status,
+                        createdDate: paymentReq.createDate,
+                        updatedDate: paymentReq.updateDate,
+                        trader: paymentReq.user.fullname,
+                        email: paymentReq.user.email,
+                        phone: paymentReq.user.phone,
+                        department: paymentReq.user.department.name,
+                        category: paymentReq.category.name,
+                        id: paymentReq.id, // ID của transaction 
+                    });
+                });
+                dataTable.clear().rows.add(data).draw();
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: res.message || "Error in fetching data",
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.close();
+            if (xhr.status == 401 || xhr.status == 403){
+                Toast.fire ({
+                    icon: "error",
+                    title: "Bạn không có quyền truy cập!",
+                    timer: 1500,
+                    didClose: function() {
+                        window.location.href = "/";
+                    }
+                });
+            }
+        },
+    });
+}
 
 
 // Bắt sự kiện khi chọn dòng
@@ -570,17 +569,19 @@ $("#btn-add-payment-request").on("click", function () {
             });
             return;
         } else {
+            Swal.showLoading();
             $.ajax({
                 type: "POST",
                 url: "/api/payment-requests",
                 headers: utils.defaultHeaders(),
-                // contentType: "application/json",
                 data: JSON.stringify({
                     description: description,
                     category: category,
                 }),
-                success: function (res) {
+                success: async function (res) {
+                    Swal.close();
                     if(res.code==1000){
+                        await loadPaymentRequestData();
                         Toast.fire({
                             icon: "success",
                             title: "Đã thêm đề nghị thanh toán!",
@@ -595,6 +596,7 @@ $("#btn-add-payment-request").on("click", function () {
                     }
                 },
                 error: function (xhr, status, error) {
+                    Swal.close();
                     var err = utils.handleAjaxError(xhr);
                     Toast.fire({
                         icon: "error",
@@ -637,15 +639,12 @@ $("#btn-update-payment-request").on("click", function () {
     if(selectedData){
         var paymentReqId = selectedData.id; // Lấy ID của đề nghị thanh toán
         utils.clear_modal();
-
+        Swal.showLoading();
         // Gọi API lấy thông tin đề nghị thanh toán theo paymentReqId
         $.ajax({
             type: "GET",
             url: "/api/payment-requests/" + paymentReqId,
             headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
             success: function (res) {
                 Swal.close();
                 if (res.code === 1000) {
@@ -711,22 +710,20 @@ $("#btn-update-payment-request").on("click", function () {
                             });
                             return;
                         } else {
+                            Swal.showLoading();
                             $.ajax({
                                 type: "PUT",
                                 url: "/api/payment-requests?id=" + paymentReqId,
-                                // contentType: "application/json",
                                 headers: utils.defaultHeaders(),
                                 data: JSON.stringify({
                                     category: category,
                                     status: 1,
                                     description: description
                                 }),
-                                beforeSend: function () {
-                                    Swal.showLoading();
-                                },
-                                success: function (res) {
+                                success: async function (res) {
                                     Swal.close();
                                     if (res.code == 1000) {
+                                        await loadPaymentRequestData();
                                         Toast.fire({
                                             icon: "success",
                                             title: "Đã cập nhật đề nghị thanh toán",
@@ -816,23 +813,20 @@ $("#btn-remove-payment-request").on("click", async function () {
         if (!result.isConfirmed) {
             return;
         }
-
+        Swal.showLoading();
         // Thực hiện xoá đề nghị thanh toán
         await $.ajax({
             type: "DELETE",
             url: "/api/payment-requests?id=" + paymentReqId,
             headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
-            success: function (res) {
+            success: async function (res) {
                 Swal.close();
                 if (res.code == 1000) {
+                    await loadPaymentRequestData(); // load lại bảng đề nghị thanh toán
                     Toast.fire({
                         icon: "success",
                         title: "Đề nghị thanh toán đã được xoá",
                     });
-                    $("#btn-view-payment-request").click(); // load lại bảng đề nghị thanh toán
                 } else {
                     Toast.fire({
                         icon: "error",
@@ -859,6 +853,7 @@ $("#btn-remove-payment-request").on("click", async function () {
 });
 
 
+// Nhấn nút "Gửi" để gửi đề nghị thanh toán (chuyển trạng thái sang chờ duyệt)
 $("#btn-send-payment-request").on("click", async function () {
     // Kiểm tra nếu không có dữ liệu được chọn
     if (!selectedData) {
@@ -903,23 +898,21 @@ $("#btn-send-payment-request").on("click", async function () {
     if (!result.isConfirmed) {
         return;
     }
+    Swal.showLoading();
 
     // Thực hiện gửi đề nghị thanh toán
     await $.ajax({
         type: "PUT",
         url: "/api/payment-requests/send/" + paymentReqId,
         headers: utils.defaultHeaders(),
-        beforeSend: function () {
-            Swal.showLoading();
-        },
-        success: function (res) {
+        success: async function (res) {
             Swal.close();
             if (res.code == 1000) {
+                await loadPaymentRequestData();
                 Toast.fire({
                     icon: "success",
                     title: "Đề nghị thanh toán đã được gửi",
                 });
-                $("#btn-view-payment-request").click(); // load lại bảng đề nghị thanh toán
             } else {
                 Toast.fire({
                     icon: "error",
@@ -1619,7 +1612,6 @@ $("#btn-add-invoice").on("click", function () {
 
             // Thêm chuỗi Base64 của các file vào dữ liệu gửi
             invoiceData.images = base64Files;
-
 
             $.ajax({
                 type: "POST",

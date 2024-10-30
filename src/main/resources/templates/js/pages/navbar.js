@@ -16,17 +16,20 @@ $(document).ready(function(){
     const breadcrumbMap = {
         '/fund-management': { parent: 'Quản lý quỹ', parentUrl: '/fund-management', title: 'Thông tin quỹ' },
         '/fund-permission': { parent: 'Quản lý quỹ', parentUrl: '/fund-management', title: 'Phân quyền giao dịch' },
-        '/payment-request': { parent: 'Quản lý thanh toán', parentUrl: '/payment-request', title: 'Đề nghị thanh toán' },
+        
         '/contribution-management': { parent: 'Quản lý giao dịch', parentUrl: '/contribution-management', title: 'Quản lý đóng góp' },
         '/transaction-contribute': { parent: 'Quản lý giao dịch', parentUrl: '/transaction-contribute', title: 'Đóng góp quỹ' },
         '/withdrawal-management': { parent: 'Quản lý giao dịch', parentUrl: '/withdrawal-management', title: 'Quản lý rút quỹ' },
-        '/transaction-withdraw': { parent: 'Quản lý giao dịch', parentUrl: '/transaction-contribute', title: 'Rút quỹ' }
+        '/transaction-withdraw': { parent: 'Quản lý giao dịch', parentUrl: '/transaction-contribute', title: 'Rút quỹ' },
+
+        '/payment-management': { parent: 'Quản lý thanh toán', parentUrl: '/payment-management', title: 'Quản lý đề nghị' },
+        '/payment-request': { parent: 'Quản lý thanh toán', parentUrl: '/payment-request', title: 'Đề nghị thanh toán' }
     };
 
     // Nhóm các trang con dưới cùng một trang cha
     const parentChildMap = {
         'Quản lý quỹ': ['/fund-management', '/fund-permission'],
-        'Quản lý thanh toán': ['/payment-request'],
+        'Quản lý thanh toán': ['/payment-management', '/payment-request'],
         'Quản lý giao dịch': ['/contribution-management', '/transaction-contribute', '/withdrawal-management', '/transaction-withdraw']
     };
 

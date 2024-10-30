@@ -200,120 +200,8 @@ $(document).ready(function () {
 
 
     // Nhấn nút "Xem"
-    $("#btn-view-user").on("click", function () {    
-        // Nếu không có giá trị thì gán ''
-        startDate = startDate || ''; 
-        endDate = endDate || ''; 
-
-        var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
-        var status = '';
-        var departmentId = ''; 
-        var role = ''; 
-        var bankName = '';
-
-        if (filter === 'time') {
-            if (startDate === '' && endDate === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn thời gian!",
-                });
-                return;
-            }
-        }
-        else if (filter === 'status') {
-            status = $('#status-select').val() || ''; // Trạng thái
-            if (status === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn trạng thái!",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'department') {
-            departmentId = $('#department-select').val() || ''; // Phòng ban
-            if (departmentId === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn phòng ban!",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'role') {
-            role = $('#role-select').val() || ''; // Phân quyền của người dùng
-            if (role === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn phân quyền!",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'bank') {
-            bankName = $('#bank-select').val() || ''; // Tên ngân hàng
-            if (bankName === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn ngân hàng!",
-                });
-                return;
-            }
-        }
-       
-        // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
-        $.ajax({
-            url: "/api/users/filter?start=" + startDate + "&end=" + endDate + "&status=" + status + "&departmentId=" + departmentId + "&roleId=" + role + "&bankName=" + bankName, 
-            type: "GET",
-            headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
-            success: function(res) {
-                Swal.close();
-                if (res.code == 1000) {                    
-                    var data = [];
-                    var counter = 1;
-                    res.result.forEach(function (user) {                        
-                        data.push({
-                            number: counter++, // Số thứ tự tự động tăng
-                            username: user.username,
-                            fullname: user.fullname,
-                            gender: user.gender, 
-                            email: user.email,
-                            phone: user.phone,
-                            dob: user.dob,
-                            status: user.status,
-                            roles: user.roles,
-                            createDate: user.createdDate,
-                            updateDate: user.updatedDate,
-                            account: user.account,
-                            department: user.department.name,
-                            id: user.id, // ID của người dùng 
-                        });
-                    });
-                    dataTable.clear().rows.add(data).draw();
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: res.message || "Error in fetching data",
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.close();
-                if (xhr.status == 401 || xhr.status == 403){
-                    Toast.fire ({
-                        icon: "error",
-                        title: "Bạn không có quyền truy cập!",
-                        timer: 1500,
-                        didClose: function() {
-                            window.location.href = "/";
-                        }
-                    });
-                }
-            },
-        });
+    $("#btn-view-user").on("click",async function () {    
+        await loadUserData();
     });
 
 
@@ -457,6 +345,123 @@ $(document).ready(function () {
 });
 
 
+// Gọi api lấy dữ liệu danh sách các tài khoản
+async function loadUserData() {
+    // Nếu không có giá trị thì gán ''
+    startDate = startDate || ''; 
+    endDate = endDate || ''; 
+
+    var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
+    var status = '';
+    var departmentId = ''; 
+    var role = ''; 
+    var bankName = '';
+
+    if (filter === 'time') {
+        if (startDate === '' && endDate === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn thời gian!",
+            });
+            return;
+        }
+    }
+    else if (filter === 'status') {
+        status = $('#status-select').val() || ''; // Trạng thái
+        if (status === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn trạng thái!",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'department') {
+        departmentId = $('#department-select').val() || ''; // Phòng ban
+        if (departmentId === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn phòng ban!",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'role') {
+        role = $('#role-select').val() || ''; // Phân quyền của người dùng
+        if (role === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn phân quyền!",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'bank') {
+        bankName = $('#bank-select').val() || ''; // Tên ngân hàng
+        if (bankName === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn ngân hàng!",
+            });
+            return;
+        }
+    }
+   
+    // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
+    await $.ajax({
+        url: "/api/users/filter?start=" + startDate + "&end=" + endDate + "&status=" + status + "&departmentId=" + departmentId + "&roleId=" + role + "&bankName=" + bankName, 
+        type: "GET",
+        headers: utils.defaultHeaders(),
+        beforeSend: function () {
+            Swal.showLoading();
+        },
+        success: function(res) {
+            Swal.close();
+            if (res.code == 1000) {                    
+                var data = [];
+                var counter = 1;
+                res.result.forEach(function (user) {                        
+                    data.push({
+                        number: counter++, // Số thứ tự tự động tăng
+                        username: user.username,
+                        fullname: user.fullname,
+                        gender: user.gender, 
+                        email: user.email,
+                        phone: user.phone,
+                        dob: user.dob,
+                        status: user.status,
+                        roles: user.roles,
+                        createDate: user.createdDate,
+                        updateDate: user.updatedDate,
+                        account: user.account,
+                        department: user.department.name,
+                        id: user.id, // ID của người dùng 
+                    });
+                });
+                dataTable.clear().rows.add(data).draw();
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: res.message || "Error in fetching data",
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.close();
+            if (xhr.status == 401 || xhr.status == 403){
+                Toast.fire ({
+                    icon: "error",
+                    title: "Bạn không có quyền truy cập!",
+                    timer: 1500,
+                    didClose: function() {
+                        window.location.href = "/";
+                    }
+                });
+            }
+        },
+    });
+}
+
 // Hàm hiển thị hoặc ẩn mật khẩu
 function togglePasswordVisibility(passwordInputId, toggleButtonId, iconId) {
     const passwordInput = document.getElementById(passwordInputId);
@@ -551,8 +556,6 @@ $("#btn-add-user").on("click", function () {
         </button>
     `);
 
-    $('[data-toggle="tooltip"]').tooltip();
-
     $('#modal-gender-input').select2({
         allowClear: true,
         theme: "bootstrap",
@@ -621,6 +624,7 @@ $("#btn-add-user").on("click", function () {
             return;
         }
         else {
+            Swal.showLoading();
             $.ajax({
                 type: "POST",
                 url: "/api/users",
@@ -633,21 +637,16 @@ $("#btn-add-user").on("click", function () {
                     departmentId: department,
                     roleId: roles
                 }),
-                beforeSend: function () {
-                    Swal.showLoading();
-                },
-                success: function (res) {
+                success: async function (res) {
                     Swal.close();
                     if(res.code==1000){
+                        $("#modal-id").modal("hide");
+                        await loadUserData();
                         Toast.fire({
                             icon: "success",
                             title: "Đã tạo tài khoản!",
                             timer: 3000,
-                        });
-                        $("#modal-id").on('hidden.bs.modal', function () {
-                            $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-                        });
-                        $("#modal-id").modal("hide");
+                        });                        
                     }
                     else {
                         Toast.fire({
@@ -685,15 +684,12 @@ $("#btn-update-user").on("click", function () {
     if(selectedData){
         var userId = selectedData.id; // Lấy ID của user
         utils.clear_modal();
-
+        Swal.showLoading();
         // Gọi API lấy thông tin người dùng theo userId
         $.ajax({
             type: "GET",
             url: "/api/users/" + userId,
             headers: utils.defaultHeaders(),
-            beforeSend: function () {
-                Swal.showLoading();
-            },
             success: function (res) {
                 Swal.close();
                 if (res.code === 1000) {
@@ -769,8 +765,6 @@ $("#btn-update-user").on("click", function () {
                             <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
                         </button>
                     `);
-
-                    $('[data-toggle="tooltip"]').tooltip();
                     
                     // Date Picker
                     $('#modal-dob-input').daterangepicker({
@@ -855,25 +849,21 @@ $("#btn-update-user").on("click", function () {
                                 cancelButtonText: "Huỷ",
                             }).then((result) => { 
                                 if (result.isConfirmed){
+                                    Swal.showLoading();
                                     // gọi api vô hiệu hoá tài khoản của người dùng 
                                     $.ajax({
                                         type: "PUT",
                                         url: "/api/users/disable/" + userId ,
                                         headers: utils.defaultHeaders(),
-                                        beforeSend: function () {
-                                            Swal.showLoading();
-                                        },
-                                        success: function (res) {
+                                        success: async function (res) {
                                             Swal.close();
                                             if (res.code == 1000) {
+                                                $("#modal-id").modal("hide");
+                                                $(this).removeClass("update-modal");
+                                                await loadUserData(); 
                                                 Toast.fire({
                                                     icon: "success",
                                                     title: "Đã vô hiệu hoá tài khoản",
-                                                });
-                                                $("#modal-id").modal("hide");
-                                                $("#modal-id").on('hidden.bs.modal', function () {
-                                                    $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-                                                    $(this).removeClass("update-modal");
                                                 });
                                             } else {
                                                 Toast.fire({
@@ -895,6 +885,7 @@ $("#btn-update-user").on("click", function () {
                             });
                         }
                         else {
+                            Swal.showLoading();
                             $.ajax({
                                 type: "PUT",
                                 url: "/api/users/" + userId ,
@@ -910,20 +901,15 @@ $("#btn-update-user").on("click", function () {
                                     departmentId: department,
                                     roleId: roles
                                 }),
-                                beforeSend: function () {
-                                    Swal.showLoading();
-                                },
-                                success: function (res) {
+                                success:async function (res) {
                                     Swal.close();
                                     if (res.code == 1000) {
+                                        $("#modal-id").modal("hide");
+                                        await loadUserData(); 
+                                        $(this).removeClass("update-modal");
                                         Toast.fire({
                                             icon: "success",
                                             title: "Đã cập nhật tài khoản",
-                                        });
-                                        $("#modal-id").modal("hide");
-                                        $("#modal-id").on('hidden.bs.modal', function () {
-                                            $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-                                            $(this).removeClass("update-modal");
                                         });
                                     } else {
                                         Toast.fire({
@@ -957,14 +943,12 @@ $("#btn-update-user").on("click", function () {
                             cancelButtonText: "Huỷ",
                         }).then((result) => { 
                             if (result.isConfirmed){
+                                Swal.showLoading();
                                 // gọi api đặt lại mật khẩu mặc định cho tài khoản của người dùng 
                                 $.ajax({
                                     type: "PUT",
                                     url: "/api/users/reset-password/" + userId ,
                                     headers: utils.defaultHeaders(),
-                                    beforeSend: function () {
-                                        Swal.showLoading();
-                                    },
                                     success: function (res) {
                                         Swal.close();
                                         if (res.code == 1000) {
@@ -973,9 +957,6 @@ $("#btn-update-user").on("click", function () {
                                                 title: "Đã đặt lại mật khẩu cho tài khoản",
                                             });
                                             $("#modal-id").modal("hide");
-                                            // $("#modal-id").on('hidden.bs.modal', function () {
-                                            //     $("#btn-view-user").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn                                             
-                                            // });
                                         } else {
                                             Toast.fire({
                                                 icon: "error",
@@ -995,8 +976,6 @@ $("#btn-update-user").on("click", function () {
                             }
                         });
                     });
-
-
                     // Khi nhấn nút "Huỷ bỏ"
                     $("#modal-cancel-btn").click(function () {
                         $('#modal-id').modal('hide');
@@ -1048,23 +1027,20 @@ $("#btn-disable-user").on("click", async function () {
             if (!result.isConfirmed) {
                 return;
             }
-
+            Swal.showLoading();
             // Thực hiện vô hiệu hoá tài khoản 
             await $.ajax({
                 type: "PUT",
                 url: "/api/users/disable/" + userId,
                 headers: utils.defaultHeaders(),
-                beforeSend: function () {
-                    Swal.showLoading();
-                },
-                success: function (res) {
+                success: async function (res) {
                     Swal.close();
                     if (res.code == 1000) {
+                        await loadUserData(); // Tải lại danh sách tài khoản
                         Toast.fire({
                             icon: "success",
                             title: "Đã vô hiệu hoá tài khoản",
                         });
-                        $("#btn-view-user").click(); // Tải lại danh sách tài khoản
                     } else {
                         Toast.fire({
                             icon: "error",

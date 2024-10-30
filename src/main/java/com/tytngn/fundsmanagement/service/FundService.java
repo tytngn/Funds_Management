@@ -21,7 +21,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -76,15 +78,30 @@ public class FundService {
     }
 
     // Lấy danh sách quỹ theo bộ lọc: theo thời gian, theo trạng thái, theo phòng ban, theo thủ quỹ
-    public List<FundResponse> filterFunds(LocalDate start, LocalDate end, Integer status,
-                                          String departmentId, String userId)
-    {
+    public Map<String, Object> filterFunds(LocalDate start, LocalDate end, Integer status,
+                                           String departmentId, String userId) {
+        // Lấy danh sách quỹ theo bộ lọc
         var funds = fundRepository.filterFunds(start, end, status, departmentId, userId);
-        return funds.stream()
-                .map(fund -> fundMapper.toFundResponse(fund))
+
+        // Tính tổng số tiền của các quỹ
+        double totalAmount = funds.stream()
+                .mapToDouble(Fund::getBalance)
+                .sum();
+
+        // Chuyển đổi danh sách quỹ sang DTO và sắp xếp theo ngày tạo mới nhất
+        List<FundResponse> responses = funds.stream()
+                .map(fundMapper::toFundResponse)
                 .sorted(Comparator.comparing(FundResponse::getCreateDate).reversed())
                 .toList();
+
+        // Đưa kết quả vào Map và trả về
+        Map<String, Object> result = new HashMap<>();
+        result.put("funds", responses);
+        result.put("totalAmount", totalAmount);
+
+        return result;
     }
+
 
     // Cập nhật quỹ
     public FundResponse update(String id, FundRequest request) {

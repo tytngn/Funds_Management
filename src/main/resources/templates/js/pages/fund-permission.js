@@ -186,125 +186,8 @@ $(document).ready(function () {
 
 
     // Nhấn nút "Xem"
-    $("#btn-view-fund-permission").on("click", function () {    
-        // Nếu không có giá trị thì gán ''
-        startDate = startDate || ''; 
-        endDate = endDate || ''; 
-
-        var fundId = $('#fund-select').val() || ''; // Lấy giá trị của select quỹ
-
-        var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
-        var departmentId = ''; 
-        var userId = ''; 
-        var status = '';
-        var canContribute = '';
-        var canWithdraw = '';
-
-        // Kiểm tra nếu không chọn bộ lọc nào và không chọn quỹ
-        if (!filter && fundId == '') {
-            Toast.fire({
-                icon: "warning",
-                title: "Vui lòng chọn quỹ!",
-            });
-            return;
-        }
-
-        if (filter === 'time') {
-            if (startDate === '' && endDate === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn thời gian",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'status') {
-            status = $('#status-select').val() || ''; // Trạng thái
-            if(status === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn phân quyền!",
-                });
-                return;
-            } 
-            else if (status == 1){
-                canContribute = true;
-            }
-            else if (status == 2) {
-                canWithdraw = true;
-            }
-            else if (status == 0){
-                canContribute = true;
-                canWithdraw = true;
-            }
-        } 
-        else if (filter === 'department') {
-            departmentId = $('#department-select').val() || ''; // Phòng ban
-            if (departmentId === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn phòng ban!",
-                });
-                return;
-            }
-        } 
-        else if (filter === 'individual') {
-            departmentId = $('#department-select').val() || ''; // Phòng ban
-            userId = $('#individual-select').val() || ''; // Cá nhân 
-            if (userId === ''){
-                Toast.fire({
-                    icon: "warning",
-                    title: "Vui lòng chọn cá nhân!",
-                });
-                return;
-            }
-        }
-
-        // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
-        $.ajax({
-            url: "/api/fund-permissions/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&canContribute=" + canContribute + "&canWithdraw=" + canWithdraw + "&departmentId=" + departmentId + "&userId=" + userId,
-            type: "GET",
-            headers: utils.defaultHeaders(),
-            success: function(res) {
-                if (res.code == 1000) {
-                    console.log("success");
-                    
-                    var data = [];
-                    var counter = 1;
-                    res.result.forEach(function (fundPermission) {
-                        data.push({
-                            number: counter++, // Số thứ tự tự động tăng
-                            fund: fundPermission.fund.fundName,
-                            description: fundPermission.fund.description,
-                            trader: fundPermission.user.fullname,
-                            department: fundPermission.user.department.name,
-                            contribute: fundPermission.canContribute,
-                            withdraw: fundPermission.canWithdraw,
-                            grantedDate: fundPermission.grantedDate,
-                            id: fundPermission.id, // ID của fundPermission 
-                        });
-                    });
-                    dataTable.clear().rows.add(data).draw();
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: res.message || "Error in fetching data",
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                if (xhr.status == 401 || xhr.status == 403){
-                    Toast.fire ({
-                        icon: "error",
-                        title: "Bạn không có quyền truy cập!",
-                        timer: 1500,
-                        didClose: function() {
-                            window.location.href = "/";
-                        }
-                    });
-                }
-            },
-        });
+    $("#btn-view-fund-permission").on("click", async function () {    
+        await loadFundPermissionData();
     });
 
 
@@ -420,6 +303,129 @@ $(document).ready(function () {
 
     });
 });
+
+
+// Gọi api lấy dữ liệu danh sách các quỹ
+async function loadFundPermissionData() {
+    // Nếu không có giá trị thì gán ''
+    startDate = startDate || ''; 
+    endDate = endDate || ''; 
+
+    var fundId = $('#fund-select').val() || ''; // Lấy giá trị của select quỹ
+
+    var filter = $('#filter-type-select').val(); // Lấy giá trị của select loại bộ lọc
+    var departmentId = ''; 
+    var userId = ''; 
+    var status = '';
+    var canContribute = '';
+    var canWithdraw = '';
+
+    // Kiểm tra nếu không chọn bộ lọc nào và không chọn quỹ
+    if (!filter && fundId == '') {
+        Toast.fire({
+            icon: "warning",
+            title: "Vui lòng chọn quỹ!",
+        });
+        return;
+    }
+
+    if (filter === 'time') {
+        if (startDate === '' && endDate === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn thời gian",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'status') {
+        status = $('#status-select').val() || ''; // Trạng thái
+        if(status === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn phân quyền!",
+            });
+            return;
+        } 
+        else if (status == 1){
+            canContribute = true;
+        }
+        else if (status == 2) {
+            canWithdraw = true;
+        }
+        else if (status == 0){
+            canContribute = true;
+            canWithdraw = true;
+        }
+    } 
+    else if (filter === 'department') {
+        departmentId = $('#department-select').val() || ''; // Phòng ban
+        if (departmentId === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn phòng ban!",
+            });
+            return;
+        }
+    } 
+    else if (filter === 'individual') {
+        departmentId = $('#department-select').val() || ''; // Phòng ban
+        userId = $('#individual-select').val() || ''; // Cá nhân 
+        if (userId === ''){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn cá nhân!",
+            });
+            return;
+        }
+    }
+
+    // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
+    await $.ajax({
+        url: "/api/fund-permissions/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&canContribute=" + canContribute + "&canWithdraw=" + canWithdraw + "&departmentId=" + departmentId + "&userId=" + userId,
+        type: "GET",
+        headers: utils.defaultHeaders(),
+        success: function(res) {
+            if (res.code == 1000) {
+                console.log("success");
+                
+                var data = [];
+                var counter = 1;
+                res.result.forEach(function (fundPermission) {
+                    data.push({
+                        number: counter++, // Số thứ tự tự động tăng
+                        fund: fundPermission.fund.fundName,
+                        description: fundPermission.fund.description,
+                        trader: fundPermission.user.fullname,
+                        department: fundPermission.user.department.name,
+                        contribute: fundPermission.canContribute,
+                        withdraw: fundPermission.canWithdraw,
+                        grantedDate: fundPermission.grantedDate,
+                        id: fundPermission.id, // ID của fundPermission 
+                    });
+                });
+                dataTable.clear().rows.add(data).draw();
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: res.message || "Error in fetching data",
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            if (xhr.status == 401 || xhr.status == 403){
+                Toast.fire ({
+                    icon: "error",
+                    title: "Bạn không có quyền truy cập!",
+                    timer: 1500,
+                    didClose: function() {
+                        window.location.href = "/";
+                    }
+                });
+            }
+        },
+    });
+}
 
 
 // Bắt sự kiện khi chọn dòng
@@ -603,20 +609,23 @@ $("#btn-add-fund-permission").on("click", function () {
             });
             return;
         } else {
+            Swal.showLoading();
             $.ajax({
                 type: "POST",
                 url: "/api/fund-permissions",
-                // contentType: "application/json",
                 headers: utils.defaultHeaders(),
                 data: JSON.stringify({
                     userId: selectedUsers,
                     fundId: fundId,
                     canContribute: canContribute,
                     canWithdraw: canWithdraw,
-
                 }),
-                success: function (res) {
+                success: async function (res) {
+                    Swal.close();
                     if(res.code==1000){
+                        if ($('#fund-select').val() !== null || $('#filter-type-select').val() !== null){
+                            await loadFundPermissionData();
+                        }
                         Toast.fire({
                             icon: "success",
                             title: "Đã cấp quyền",
@@ -631,6 +640,7 @@ $("#btn-add-fund-permission").on("click", function () {
                     }
                 },
                 error: function(xhr, status, error){
+                    Swal.close();
                     var err = utils.handleAjaxError(xhr);
                         Toast.fire({
                             icon: "error",
@@ -639,9 +649,6 @@ $("#btn-add-fund-permission").on("click", function () {
                 },
             });
             $("#modal-id").modal("hide");
-            $("#modal-id").on('hidden.bs.modal', function () {
-                $("#btn-view-fund-permission").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-            });
         }
     });
 
@@ -659,6 +666,7 @@ $("#btn-update-fund-permission").on("click", function () {
     if(selectedData){
         var fundPermissionId = selectedData.id; // Lấy ID của fund permission
         utils.clear_modal();
+        Swal.showLoading();
 
         // Gọi API lấy thông tin quỹ theo fundPermissionId
         $.ajax({
@@ -666,6 +674,7 @@ $("#btn-update-fund-permission").on("click", function () {
             url: "/api/fund-permissions/" + fundPermissionId,
             headers: utils.defaultHeaders(),
             success: function (res) {
+                Swal.close();
                 if (res.code === 1000) {
                     let fundPermission = res.result;
                     
@@ -740,17 +749,18 @@ $("#btn-update-fund-permission").on("click", function () {
                                     cancelButtonText: "Huỷ",
                             }).then((result) => { 
                                 if (result.isConfirmed){
+                                    Swal.showLoading();
                                     // gọi api thu hồi quyền của người dùng 
                                     $.ajax({
                                         type: "DELETE",
                                         url: "/api/fund-permissions/" + fundPermission.id,
                                         headers: utils.defaultHeaders(),
-                                        beforeSend: function () {
-                                            Swal.showLoading();
-                                        },
-                                        success: function (res) {
+                                        success: async function (res) {
                                             Swal.close();
                                             if (res.code == 1000) {
+                                                if ($('#fund-select').val() !== null || $('#filter-type-select').val() !== null){
+                                                    await loadFundPermissionData();
+                                                }
                                                 Toast.fire({
                                                     icon: "success",
                                                     title: "Đã thu hồi quyền giao dịch",
@@ -772,19 +782,20 @@ $("#btn-update-fund-permission").on("click", function () {
                                         },
                                     });
                                     $("#modal-id").modal("hide");
-                                    $("#modal-id").on('hidden.bs.modal', function () {
-                                        $("#btn-view-fund-permission").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-                                    });
                                 }
                             });
                         } else {
+                            Swal.showLoading();
                             $.ajax({
                                 type: "PUT",
                                 url: "/api/fund-permissions?userId=" + userId + "&fundId=" + fundId + "&canContribute=" + canContribute + "&canWithdraw=" + canWithdraw,
-                                // contentType: "application/json",
                                 headers: utils.defaultHeaders(),
-                                success: function (res) {
+                                success: async function (res) {
+                                    Swal.close();
                                     if (res.code == 1000) {
+                                        if ($('#fund-select').val() !== null || $('#filter-type-select').val() !== null){
+                                            await loadFundPermissionData();
+                                        }
                                         Toast.fire({
                                             icon: "success",
                                             title: "Đã cập nhật phân quyền giao dịch",
@@ -797,6 +808,7 @@ $("#btn-update-fund-permission").on("click", function () {
                                     }
                                 },
                                 error: function(xhr, status, error){
+                                    Swal.close();
                                     var err = utils.handleAjaxError(xhr);
                                         Toast.fire({
                                             icon: "error",
@@ -805,9 +817,6 @@ $("#btn-update-fund-permission").on("click", function () {
                                 },
                             });
                             $("#modal-id").modal("hide");
-                            $("#modal-id").on('hidden.bs.modal', function () {
-                                $("#btn-view-fund-permission").click(); // Chỉ gọi sau khi modal đã hoàn toàn ẩn
-                            });
                         }
                     });
 
@@ -823,6 +832,7 @@ $("#btn-update-fund-permission").on("click", function () {
                 }
             },
             error: function (xhr, status, error) {
+                Swal.close();
                 var err = utils.handleAjaxError(xhr);
                     Toast.fire({
                         icon: "error",
@@ -855,19 +865,22 @@ $("#btn-revoke-fund-permission").on("click", function () {
             cancelButtonText: "Huỷ",
         }).then((result) => { 
             if (result.isConfirmed){
+                Swal.showLoading();
                 // gọi api thu hồi quyền của người dùng 
                 $.ajax({
                     type: "DELETE",
                     url: "/api/fund-permissions/" + fundPermissionId,
-                    // contentType: "application/json",
                     headers: utils.defaultHeaders(),
-                    success: function (res) {
+                    success: async function (res) {
+                        Swal.close();
                         if (res.code == 1000) {
+                            if ($('#fund-select').val() !== null || $('#filter-type-select').val() !== null){
+                                await loadFundPermissionData();
+                            }
                             Toast.fire({
                                 icon: "success",
                                 title: "Đã thu hồi quyền giao dịch",
                             });
-                            $("#btn-view-fund-permission").click();
                         } else {
                             Toast.fire({
                                 icon: "error",
@@ -876,6 +889,7 @@ $("#btn-revoke-fund-permission").on("click", function () {
                         }
                     },
                     error: function(xhr, status, error){
+                        Swal.close();
                         var err = utils.handleAjaxError(xhr);
                         Toast.fire({
                             icon: "error",

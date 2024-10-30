@@ -208,7 +208,7 @@ export function getLocalStorageObject(key) {
 }
 
 export async function getUserInfo() {
-    if (getCookie("authToken") !== null) {
+    if (getCookie("authToken") != null) {
         let userInfo = getLocalStorageObject("userInfo");
         
         if (userInfo == null) {

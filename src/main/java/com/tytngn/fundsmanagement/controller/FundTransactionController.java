@@ -56,7 +56,7 @@ public class FundTransactionController {
     // Lấy danh sách giao dịch đóng góp quỹ theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
     @GetMapping("/contribution/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_CONTRIBUTION_BY_FILTER'})")
-    public ApiResponse<List<FundTransactionResponse>> getContributionByFilter(
+    public ApiResponse<Map<String, Object>> getContributionByFilter(
             @RequestParam (required = false) String fundId,
             @RequestParam (required = false) String transTypeId,
             @RequestParam(required = false) String startDate,
@@ -73,7 +73,7 @@ public class FundTransactionController {
         userId = (userId != null && !userId.isEmpty()) ? userId : null;
         status = (status != null) ? status : null;
 
-        return ApiResponse.<List<FundTransactionResponse>>builder()
+        return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
                 .result(fundTransactionService.getContributionByFilter(fundId, transTypeId, startDate, endDate, departmentId, userId, status))
                 .build();
@@ -88,16 +88,14 @@ public class FundTransactionController {
             @RequestParam(required = false) String transTypeId,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String departmentId,
             @RequestParam(required = false) Integer status)
     {
         fundId = (fundId != null && !fundId.isEmpty()) ? fundId : null;
         transTypeId = (transTypeId != null && !transTypeId.isEmpty()) ? transTypeId : null;
-        departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
         status = (status != null) ? status : null;
 
         Map<String, Object> result = fundTransactionService.getUserContributionsByFilter(
-                fundId, transTypeId, startDate, endDate, departmentId, status);
+                fundId, transTypeId, startDate, endDate, status);
 
         return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
@@ -109,7 +107,7 @@ public class FundTransactionController {
     // Lấy danh sách giao dịch rút quỹ theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
     @GetMapping("/withdraw/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_WITHDRAW_BY_FILTER'})")
-    public ApiResponse<List<FundTransactionResponse>> getWithdrawByFilter(
+    public ApiResponse<Map<String, Object>> getWithdrawByFilter(
             @RequestParam (required = false) String fundId,
             @RequestParam (required = false) String transTypeId,
             @RequestParam(required = false) String startDate,
@@ -126,7 +124,7 @@ public class FundTransactionController {
         userId = (userId != null && !userId.isEmpty()) ? userId : null;
         status = status != null ? status : -1;
 
-        return ApiResponse.<List<FundTransactionResponse>>builder()
+        return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
                 .result(fundTransactionService.getWithdrawByFilter(fundId, transTypeId, startDate, endDate, departmentId, userId, status))
                 .build();
@@ -141,16 +139,14 @@ public class FundTransactionController {
             @RequestParam(required = false) String transTypeId,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String departmentId,
             @RequestParam(required = false) Integer status)
     {
         fundId = (fundId != null && !fundId.isEmpty()) ? fundId : null;
         transTypeId = (transTypeId != null && !transTypeId.isEmpty()) ? transTypeId : null;
-        departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
         status = (status != null) ? status : null;
 
         Map<String, Object> result = fundTransactionService.getUserWithdrawalsByFilter(
-                fundId, transTypeId, startDate, endDate, departmentId, status);
+                fundId, transTypeId, startDate, endDate, status);
 
         return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)

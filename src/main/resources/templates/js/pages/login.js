@@ -31,7 +31,7 @@ function login() {
         data: JSON.stringify({ username: username, password: password }),
         success: function (res) {
             if (res.code === 1000 && res.result.authenticated) {
-                const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút
+                const expirationTime = Date.now() + 24 * 60 * 60 * 1000; // 1 ngày
                 localStorage.setItem("tokenExpirationTime", expirationTime);
                 // Gửi yêu cầu với Bearer Token
                 window.location.href = '/';

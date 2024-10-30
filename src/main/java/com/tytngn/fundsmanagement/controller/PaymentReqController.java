@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class PaymentReqController {
     // Lấy danh sách đề nghị thanh toán theo bộ lọc
     @GetMapping("/filter")
     @PreAuthorize("@securityExpression.hasPermission({'FILTER_PAYMENT_REQUEST'})")
-    ApiResponse<List<PaymentReqResponse>> filterPaymentRequests(@RequestParam(required = false) String categoryId,
+    ApiResponse<Map<String, Object>> filterPaymentRequests(@RequestParam(required = false) String categoryId,
                                                                 @RequestParam(required = false) String start,
                                                                 @RequestParam(required = false) String end,
                                                                 @RequestParam(required = false) Integer status,
@@ -56,9 +57,31 @@ public class PaymentReqController {
         departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
         userId = (userId != null && !userId.isEmpty()) ? userId : null;
 
-        return ApiResponse.<List<PaymentReqResponse>>builder()
+        return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
                 .result(paymentReqService.filterPaymentRequests(categoryId, start, end, status, departmentId, userId))
+                .build();
+    }
+
+
+    // Lấy danh sách đề nghị thanh toán của một người dùng theo bộ lọc
+    @GetMapping("/user/filter")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_USER_PAYMENT_REQUESTS_BY_FILTER'})")
+    public ApiResponse<Map<String, Object>> getUserPaymentRequestsByFilter(
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Integer status)
+    {
+        categoryId = (categoryId != null && !categoryId.isEmpty()) ? categoryId : null;
+        status = (status != null) ? status : null;
+
+        Map<String, Object> result = paymentReqService.getUserPaymentRequestsByFilter(
+                categoryId, startDate, endDate, status);
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(result)
                 .build();
     }
 

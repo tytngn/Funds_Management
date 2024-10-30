@@ -55,7 +55,7 @@ const ErrorCode = {
 
     FUND_TRANSACTION_NOT_EXISTS: { code: 1039, message: "Giao dịch không tồn tại", statusCode: 404 },
     FUND_TRANSACTION_EXISTS: { code: 1040, message: "Giao dịch đã tồn tại", statusCode: 409 },
-    INSUFFICIENT_FUNDS_TRANSACTION: { code: 1041, message: "Giao dịch không đủ số dư", statusCode: 409 },
+    INSUFFICIENT_FUNDS_TRANSACTION: { code: 1041, message: "Quỹ không đủ số dư để thực hiện giao dịch", statusCode: 409 },
     TRANSACTION_ALREADY_PROCESSED: { code: 1042, message: "Giao dịch đã được xử lý", statusCode: 409 },
 
     PAYMENT_CATEGORY_EXISTS: { code: 1043, message: "Danh mục thanh toán đã tồn tại", statusCode: 409 },
