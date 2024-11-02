@@ -31,6 +31,8 @@ public class FundTransaction {
     @Column(nullable = false)
     LocalDateTime transDate;
 
+    LocalDateTime confirmDate;
+
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)

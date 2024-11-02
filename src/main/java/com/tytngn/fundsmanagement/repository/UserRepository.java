@@ -17,6 +17,8 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     boolean existsByUsername(String username);
 
+    boolean existsByEmail(String email);
+
     // Lấy danh sách người dùng theo các bộ lọc (theo thời gian, trạng thái, phòng ban, phân quyền, ngân hàng)
     @Query("SELECT u FROM User u " +
             "LEFT JOIN u.roles r " +

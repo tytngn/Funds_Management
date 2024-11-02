@@ -1,5 +1,6 @@
 package com.tytngn.fundsmanagement.repository;
 
+import com.tytngn.fundsmanagement.entity.Fund;
 import com.tytngn.fundsmanagement.entity.FundPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,14 @@ public interface FundPermissionRepository extends JpaRepository<FundPermission, 
     FundPermission findByUserIdAndFundId(String userId, String fundId);
 
     void deleteFundPermissionById(String id);
+
+    // Lấy danh sách quỹ mà người dùng có quyền đóng góp
+    @Query("SELECT fp.fund FROM FundPermission fp WHERE fp.user.id = :userId AND fp.canContribute = true")
+    List<Fund> findFundsWithContributePermission(String userId);
+
+    // Lấy danh sách quỹ mà người dùng có quyền rút quỹ
+    @Query("SELECT fp.fund FROM FundPermission fp WHERE fp.user.id = :userId AND fp.canWithdraw = true")
+    List<Fund> findFundsWithWithdrawPermission(String userId);
 
     // Lấy danh sách phân quyền giao dịch quỹ (FundPermission) theo quỹ, theo bộ lọc (theo thời gian, theo trạng thái, theo phòng ban, theo cá nhân)
     @Query("SELECT fp FROM FundPermission fp " +

@@ -1,6 +1,7 @@
 package com.tytngn.fundsmanagement.service;
 
 
+import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundPermissionRequest;
 import com.tytngn.fundsmanagement.dto.response.FundPermissionResponse;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
@@ -9,6 +10,7 @@ import com.tytngn.fundsmanagement.entity.FundPermission;
 import com.tytngn.fundsmanagement.entity.User;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
+import com.tytngn.fundsmanagement.mapper.FundMapper;
 import com.tytngn.fundsmanagement.mapper.FundPermissionMapper;
 import com.tytngn.fundsmanagement.repository.FundRepository;
 import com.tytngn.fundsmanagement.repository.FundPermissionRepository;
@@ -36,6 +38,9 @@ public class FundPermissionService {
     FundRepository fundRepository;
     UserRepository userRepository;
     FundPermissionMapper fundPermissionMapper;
+    FundMapper fundMapper;
+
+    SecurityExpression securityExpression;
 
     // cấp quyền cho danh sách người dùng
     @Transactional
@@ -95,6 +100,26 @@ public class FundPermissionService {
 
         // Chuyển đổi FundPermission thành FundPermissionResponse
         return fundPermissionMapper.toResponse(fundPermission);
+    }
+
+    // Lấy danh sách quỹ mà người dùng có quyền đóng góp
+    public List<FundResponse> getFundsUserCanContribute() {
+        String userId = securityExpression.getUserId();
+        var fund = fundPermissionRepository.findFundsWithContributePermission(userId);
+
+        return fund.stream()
+                .map(fundMapper::toFundResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Lấy danh sách quỹ mà người dùng có quyền rút quỹ
+    public List<FundResponse> getFundsUserCanWithdraw() {
+        String userId = securityExpression.getUserId();
+        var fund =  fundPermissionRepository.findFundsWithWithdrawPermission(userId);
+
+        return fund.stream()
+                .map(fundMapper::toFundResponse)
+                .collect(Collectors.toList());
     }
 
     // Lấy danh sách phân quyền giao dịch theo quỹ, theo bộ lọc (theo thời gian, theo trạng thái, theo phòng ban, theo cá nhân)

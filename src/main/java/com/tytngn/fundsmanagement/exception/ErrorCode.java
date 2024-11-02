@@ -47,6 +47,8 @@ public enum ErrorCode {
     EMAIL_REQUIRED(1015, "Email is required.", HttpStatus.BAD_REQUEST),
     // email không hợp lệ
     EMAIL_INVALID(1016, "Email should be valid.", HttpStatus.BAD_REQUEST),
+    // email đã tồn tại
+    EMAIL_EXISTS (1017, "Email already exists.", HttpStatus.CONFLICT),
 
     // ngày sinh là bắt buộc
     DOB_REQUIRED(1017, "Date of birth is required.", HttpStatus.BAD_REQUEST),
@@ -127,9 +129,17 @@ public enum ErrorCode {
     // đề nghị thanh toán không thể xoá
     PAYMENT_REQUEST_HAS_BUDGET_ACTIVITY(1049, "Cannot delete this payment request because it has related budget activity.", HttpStatus.CONFLICT),
     // đề nghị thanh toán không thể gửi
-    PAYMENT_REQUEST_NOT_SENDABLE (1050, "Payment request is not sendable", HttpStatus.CONFLICT),
+    PAYMENT_REQUEST_NOT_SENDABLE (1050, "Payment request is not sendable", HttpStatus.FORBIDDEN),
+    // Số tiền đề nghị thanh toán không được bằng 0
+    PAYMENT_REQUEST_AMOUNT_ZERO(1051, "The amount of the payment request cannot be zero", HttpStatus.BAD_REQUEST),
+    // Đã vượt quá giới hạn gửi đề nghị thanh toán. Bạn chỉ có thể gửi tối đa 3 lần
+    PAYMENT_REQUEST_SEND_LIMIT_EXCEEDED (1052, "Send limit exceeded for the payment request. You can only send a maximum of 3 times", HttpStatus.TOO_MANY_REQUESTS),
     // đề nghị thanh toán không thể xác nhận
     PAYMENT_REQUEST_NOT_CONFIRMABLE(1051, "Payment request is not confirmable", HttpStatus.CONFLICT),
+    // đề nghị thanh toán không thể thanh toán
+    PAYMENT_REQUEST_NOT_PAYABLE(1052, "Payment request is not payable", HttpStatus.CONFLICT),
+    // Đề nghị thanh toán chưa được thanh toán, không thể chuyển sang trạng thái đã nhận
+    PAYMENT_REQUEST_NOT_RECEIVABLE(1053, "The payment request has not been paid and cannot be marked as received", HttpStatus.CONFLICT),
 
     // hoá đơn không tồn tại
     INVOICE_NOT_EXISTS(1052, "Invoice not exists.", HttpStatus.NOT_FOUND),

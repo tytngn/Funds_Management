@@ -35,6 +35,11 @@ $(document).ready(function () {
         $('#individual-div').prop("hidden", true);
         $('#individual-select').prop('disabled', true);
 
+        // Clear lựa chọn của select
+        $('#status-select').val(null).trigger('change');
+        $('#department-select').val(null).trigger('change');
+        $('#individual-select').val(null).trigger('change');
+
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
             $('#trans-times-div').prop("hidden", false); // Hiển thị Date Picker
@@ -386,9 +391,7 @@ async function loadFundPermissionData() {
         type: "GET",
         headers: utils.defaultHeaders(),
         success: function(res) {
-            if (res.code == 1000) {
-                console.log("success");
-                
+            if (res.code == 1000) {                
                 var data = [];
                 var counter = 1;
                 res.result.forEach(function (fundPermission) {

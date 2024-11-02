@@ -3,6 +3,7 @@ package com.tytngn.fundsmanagement.controller;
 import com.tytngn.fundsmanagement.dto.request.FundPermissionRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
 import com.tytngn.fundsmanagement.dto.response.FundPermissionResponse;
+import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.service.FundPermissionService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -48,6 +49,26 @@ public class FundPermissionController {
         return ApiResponse.<FundPermissionResponse>builder()
                 .code(1000)
                 .result(fundPermissionService.getUserPermissionInFund(id))
+                .build();
+    }
+
+    // lấy danh sách quỹ mà người dùng có quyền đóng góp
+    @GetMapping("/contribute")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUNDS_USER_CAN_CONTRIBUTE'})")
+    public ApiResponse<List<FundResponse>> getFundsUserCanContribute() {
+        return ApiResponse.<List<FundResponse>>builder()
+                .code(1000)
+                .result(fundPermissionService.getFundsUserCanContribute())
+                .build();
+    }
+
+    // lấy danh sách quỹ mà người dùng có quyền rút quỹ
+    @GetMapping("/withdraw")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUNDS_USER_CAN_WITHDRAW'})")
+    public ApiResponse<List<FundResponse>> getFundsUserCanWithdraw() {
+        return ApiResponse.<List<FundResponse>>builder()
+                .code(1000)
+                .result(fundPermissionService.getFundsUserCanWithdraw())
                 .build();
     }
 

@@ -2,6 +2,7 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
+import com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import com.tytngn.fundsmanagement.entity.Image;
@@ -212,6 +213,63 @@ public class FundTransactionService {
     }
 
 
+    // Lấy báo cáo quỹ của một người dùng theo bộ lọc
+//    public List<FundTransactionReportResponse> getUserFundReport(String startDate, String endDate) {
+//        // Lấy userId người dùng đang đăng nhập
+//        String userId = securityExpression.getUserId();
+//
+//        LocalDateTime start = null;
+//        LocalDateTime end = null;
+//
+//        try {
+//            if (startDate != null && !startDate.isEmpty()) {
+//                start = LocalDateTime.parse(startDate + "T00:00:00");
+//            }
+//            if (endDate != null && !endDate.isEmpty()) {
+//                end = LocalDateTime.parse(endDate + "T23:59:59");
+//            }
+//        } catch (DateTimeParseException e) {
+//            throw new AppException(ErrorCode.DATA_INVALID);
+//        }
+//
+//        List<FundTransactionReportResponse> reportData = fundTransactionRepository.getUserFundReport(userId, start, end);
+//
+//        return reportData;
+//    }
+    public List<FundTransactionReportResponse> getUserFundReport(String startDate, String endDate, Integer year, Integer month) {
+        // Lấy userId người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        // Lấy dữ liệu từ repository
+        List<FundTransactionReportResponse> reportData = fundTransactionRepository.getUserFundReport(userId, year, month, start, end);
+
+        // Sắp xếp theo năm và tháng
+        List<FundTransactionReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing(FundTransactionReportResponse::getYear)
+                        .reversed()
+                        .thenComparing(Comparator.comparing(FundTransactionReportResponse::getMonth).reversed()))
+                .toList();
+
+        return sortedResponses;
+    }
+
+
     // Lấy danh sách giao dịch rút quỹ theo bộ lọc (theo quỹ, loại giao dịch, thời gian, phòng ban, cá nhân, trạng thái)
     public Map<String, Object> getWithdrawByFilter(String fundId, String transTypeId,
                                                    String startDate, String endDate,
@@ -394,6 +452,7 @@ public class FundTransactionService {
         }
 
         fundTransaction.setStatus(2); // Đánh dấu đã duyệt
+        fundTransaction.setConfirmDate(LocalDateTime.now());
         fundTransaction = fundTransactionRepository.save(fundTransaction);
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
     }
@@ -411,6 +470,7 @@ public class FundTransactionService {
 
         // Đặt trạng thái thành từ chối
         fundTransaction.setStatus(0); // Từ chối
+        fundTransaction.setConfirmDate(LocalDateTime.now());
 
         fundTransaction = fundTransactionRepository.save(fundTransaction);
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);

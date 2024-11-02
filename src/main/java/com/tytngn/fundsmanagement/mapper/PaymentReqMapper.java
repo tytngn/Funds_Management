@@ -11,17 +11,19 @@ import org.mapstruct.MappingTarget;
 public interface PaymentReqMapper {
 
     @Mapping(target = "user", ignore = true)
-    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "fund", ignore = true)
     @Mapping(target = "amount", ignore = true)
+    @Mapping(target = "images", ignore = true)
     PaymentReq toPaymentReq(PaymentReqRequest request);
 
     @Mapping(target = "user", source = "user")
-    @Mapping(target = "category", source = "category")
+    @Mapping(target = "fund", source = "fund")
     @Mapping(target = "invoices", source = "invoices")
     PaymentReqResponse toPaymentReqResponse(PaymentReq paymentReq);
 
     @Mapping(target = "user", ignore = true)
-    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "fund", ignore = true)
     @Mapping(target = "amount", ignore = true)
+    @Mapping(target = "images", ignore = true)
     void updatePaymentReq(@MappingTarget PaymentReq paymentReq, PaymentReqRequest request);
 }

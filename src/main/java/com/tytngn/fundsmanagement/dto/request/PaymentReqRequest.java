@@ -1,8 +1,10 @@
 package com.tytngn.fundsmanagement.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -10,10 +12,12 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PaymentReqRequest {
-
-    @NotNull(message = "DATA_INVALID")
-    int status = 1;
-
+    @NotBlank(message = "DATA_INVALID")
     String description;
-    String category;
+
+    @NotBlank(message = "DATA_INVALID")
+    String fund;
+
+    List<String> fileNames; // danh sách tên file ảnh
+    List<byte[]> images;
 }

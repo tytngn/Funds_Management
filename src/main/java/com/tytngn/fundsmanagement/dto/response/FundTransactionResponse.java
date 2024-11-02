@@ -17,6 +17,7 @@ public class FundTransactionResponse {
     String description;
     int status;
     LocalDateTime transDate;
+    LocalDateTime confirmDate;
 
     UserSimpleResponse user;
     FundSimpleResponse fund;

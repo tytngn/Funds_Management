@@ -3,7 +3,7 @@ package com.tytngn.fundsmanagement.service;
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.PaymentReqRequest;
 import com.tytngn.fundsmanagement.dto.response.PaymentReqResponse;
-import com.tytngn.fundsmanagement.entity.BudgetActivity;
+import com.tytngn.fundsmanagement.entity.Image;
 import com.tytngn.fundsmanagement.entity.PaymentReq;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +31,8 @@ public class PaymentReqService {
     PaymentReqMapper paymentReqMapper;
 
     UserRepository userRepository;
-    PaymentCategoryRepository paymentCategoryRepository;
-    BudgetActivityRepository budgetActivityRepository;
+    FundRepository fundRepository;
+    ImageRepository imageRepository;
     SecurityExpression securityExpression;
 
     // Tạo đề nghị thanh toán
@@ -55,49 +52,10 @@ public class PaymentReqService {
                 new AppException(ErrorCode.USER_NOT_EXISTS));
         paymentReq.setUser(user);
 
-        // loại danh mục thanh toán
-        var category = paymentCategoryRepository.findById(request.getCategory()).orElseThrow(() ->
+        // quỹ
+        var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_CATEGORY_NOT_EXISTS));
-        paymentReq.setCategory(category);
-
-        paymentReq = paymentReqRepository.save(paymentReq);
-
-        return paymentReqMapper.toPaymentReqResponse(paymentReq);
-    }
-
-
-    // Tạo đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
-    @Transactional
-    public PaymentReqResponse createPaymentReqFromBudgetActivities(PaymentReqRequest request){
-
-        // Lấy danh sách các BudgetActivity với trạng thái hoàn thành
-        List<BudgetActivity> budgetActivities = budgetActivityRepository.findByStatus(1);
-        if (budgetActivities.isEmpty())
-            throw new AppException(ErrorCode.BUDGET_ACTIVITY_NOT_EXISTS);
-
-        // Tạo đối tượng PaymentReq mới
-        PaymentReq paymentReq = paymentReqMapper.toPaymentReq(request);
-
-        // Tính tổng số tiền từ tất cả các BudgetActivity
-        double totalAmount = budgetActivities.stream()
-                .mapToDouble(BudgetActivity::getAmount)
-                .sum();
-
-        paymentReq.setAmount(totalAmount);
-        paymentReq.setStatus(1);
-        paymentReq.setCreateDate(LocalDateTime.now());
-
-        // Lấy thông tin người dùng đang đăng nhập
-        String id = securityExpression.getUserId();
-        // người thực hiện đề nghị thanh toán
-        var user = userRepository.findById(id).orElseThrow(() ->
-                new AppException(ErrorCode.USER_NOT_EXISTS));
-        paymentReq.setUser(user);
-
-        // loại danh mục thanh toán
-        var category = paymentCategoryRepository.findById(request.getCategory()).orElseThrow(() ->
-                new AppException(ErrorCode.PAYMENT_CATEGORY_NOT_EXISTS));
-        paymentReq.setCategory(category);
+        paymentReq.setFund(fund);
 
         paymentReq = paymentReqRepository.save(paymentReq);
 
@@ -117,8 +75,8 @@ public class PaymentReqService {
     }
 
 
-    // Lấy danh sách đề nghị thanh toán theo bộ lọc (theo loại thanh toán, thời gian, trạng thái, phòng ban, cá nhân)
-    public Map<String, Object> filterPaymentRequests(String categoryId, String startDate, String endDate,
+    // Lấy danh sách đề nghị thanh toán theo bộ lọc
+    public Map<String, Object> filterPaymentRequests(String fundId, String startDate, String endDate,
                                                           Integer status, String departmentId, String userId)
     {
         // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
@@ -139,7 +97,7 @@ public class PaymentReqService {
             throw new AppException(ErrorCode.DATA_INVALID);
         }
 
-        List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequests(categoryId, start, end, status, departmentId, userId);
+        List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequests(fundId, start, end, status, departmentId, userId);
 
         // Tính tổng số tiền của các đề nghị thanh toán
         double totalAmount = paymentRequests.stream()
@@ -161,8 +119,54 @@ public class PaymentReqService {
     }
 
 
-    // Lấy danh sách đề nghị thanh toán của một người dùng theo bộ lọc (theo loại thanh toán, thời gian, trạng thái)
-    public Map<String, Object> getUserPaymentRequestsByFilter(String categoryId, String startDate, String endDate, Integer status) {
+    // Lấy danh sách đề nghị thanh toán theo bộ lọc và phải thuộc quỹ của người dùng tạo ra
+    public Map<String, Object> filterPaymentRequestsByTreasurer(String fundId, String startDate, String endDate,
+                                                     Integer status, String departmentId, String userId)
+    {
+        String id = securityExpression.getUserId();
+
+        // Chuyển đổi startDate và endDate thành kiểu LocalDate nếu không null
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        // Chuyển đổi tham số ngày tháng sang LocalDateTime
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            // Xử lý lỗi định dạng ngày tháng
+            throw new AppException(ErrorCode.DATA_INVALID);
+        }
+
+        List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequestsByTreasurer(fundId, start, end, status, departmentId, userId, id);
+
+        // Tính tổng số tiền của các đề nghị thanh toán
+        double totalAmount = paymentRequests.stream()
+                .mapToDouble(PaymentReq::getAmount)
+                .sum();
+
+        // Map danh sách đề nghị thanh toán sang DTO và sắp xếp theo ngày tạo mới nhất
+        List<PaymentReqResponse> responses = paymentRequests.stream()
+                .map(paymentReqMapper::toPaymentReqResponse)
+                .sorted(Comparator.comparing(PaymentReqResponse::getCreateDate).reversed())
+                .toList();
+
+        // Đưa kết quả vào Map và trả về
+        Map<String, Object> result = new HashMap<>();
+        result.put("paymentRequests", responses);
+        result.put("totalAmount", totalAmount);
+
+        return result;
+    }
+
+
+    // Lấy danh sách đề nghị thanh toán của một người dùng theo bộ lọc
+    public Map<String, Object> getUserPaymentRequestsByFilter(String fundId, String startDate, String endDate, Integer status) {
         // Lấy userId người dùng đang đăng nhập
         String userId = securityExpression.getUserId();
 
@@ -184,7 +188,7 @@ public class PaymentReqService {
 
         // Gọi repository để lấy danh sách đề nghị thanh toán theo bộ lọc
         List<PaymentReq> paymentRequests = paymentReqRepository.filterPaymentRequests(
-                categoryId, start, end, status, null, userId);
+                fundId, start, end, status, null, userId);
 
         // Tính tổng số tiền của các đề nghị thanh toán
         double totalAmount = paymentRequests.stream()
@@ -220,13 +224,14 @@ public class PaymentReqService {
         PaymentReq paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
 
-        // kiểm tra trạng thái của đề nghị thanh toán
-        if(paymentReq.getStatus() != 1)
+        // Kiểm tra trạng thái của đề nghị thanh toán (chỉ cho phép nếu trạng thái là 0 hoặc 1)
+        if (paymentReq.getStatus() != 0 && paymentReq.getStatus() != 1) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
+        }
 
         // cập nhật đề nghị thanh toán
         paymentReqMapper.updatePaymentReq(paymentReq, request);
-
+        paymentReq.setStatus(1);
         paymentReq.setUpdateDate(LocalDateTime.now());
 
         // Lấy thông tin người dùng đang đăng nhập
@@ -236,42 +241,10 @@ public class PaymentReqService {
                 new AppException(ErrorCode.USER_NOT_EXISTS));
         paymentReq.setUser(user);
 
-        // loại danh mục thanh toán
-        var category = paymentCategoryRepository.findById(request.getCategory()).orElseThrow(() ->
+        // quỹ
+        var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_CATEGORY_NOT_EXISTS));
-        paymentReq.setCategory(category);
-
-        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
-    }
-
-
-    // Cập nhật đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
-    @Transactional
-    public PaymentReqResponse updatePaymentReqFromBudgetActivities(String id, PaymentReqRequest request) {
-
-        PaymentReq paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
-                new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
-
-        // kiểm tra trạng thái của đề nghị thanh toán
-        if(paymentReq.getStatus() != 1)
-            throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
-
-        // cập nhật đề nghị thanh toán
-        paymentReqMapper.updatePaymentReq(paymentReq, request);
-
-        paymentReq.setUpdateDate(LocalDateTime.now());
-
-        // Lấy thông tin người dùng đang đăng nhập
-        String userId = securityExpression.getUserId();
-        // người thực hiện giao dịch
-        var user = userRepository.findById(userId).orElseThrow(() ->
-                new AppException(ErrorCode.USER_NOT_EXISTS));
-        paymentReq.setUser(user);
-
-        // loại danh mục thanh toán
-        var category = paymentCategoryRepository.findById(request.getCategory()).orElseThrow(() ->
-                new AppException(ErrorCode.PAYMENT_CATEGORY_NOT_EXISTS));
-        paymentReq.setCategory(category);
+        paymentReq.setFund(fund);
 
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
     }
@@ -287,6 +260,16 @@ public class PaymentReqService {
         // kiểm tra trạng thái hiện tại (chỉ cho phép gửi nếu trạng thái là 1)
         if (paymentReq.getStatus() != 1) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_SENDABLE);
+        }
+
+        // Kiểm tra số tiền có bằng 0 không
+        if (paymentReq.getAmount() <= 0) {
+            throw new AppException(ErrorCode.PAYMENT_REQUEST_AMOUNT_ZERO);
+        }
+
+        int sendCount = paymentReqRepository.countByStatusAndId(2, paymentReq.getId());
+        if (sendCount > 3) {
+            throw new AppException(ErrorCode.PAYMENT_REQUEST_SEND_LIMIT_EXCEEDED);
         }
 
         // Đổi trạng thái thành 2 (đang chờ xác nhận)
@@ -324,25 +307,166 @@ public class PaymentReqService {
     }
 
 
+    // Tiến hành thanh toán và cập nhật số dư quỹ
+    @Transactional
+    public PaymentReqResponse processPaymentRequest(String id, PaymentReqRequest request) {
+
+        // Tìm đề nghị thanh toán
+        PaymentReq paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
+
+        // Kiểm tra trạng thái hiện tại (chỉ cho phép thanh toán nếu trạng thái là 3 - đã duyệt)
+        if (paymentReq.getStatus() != 3) {
+            throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_PAYABLE);
+        }
+
+        // Tải lên nhiều ảnh minh chứng
+        List<Image> savedImages = new ArrayList<>();
+        for (int i = 0; i < request.getImages().size(); i++) {
+            byte[] file = request.getImages().get(i);
+            String fileName = request.getFileNames().get(i);  // Lấy tên file tương ứng
+
+            Image image = new Image();
+            image.setImage(file); // Lưu dữ liệu ảnh dưới dạng byte[]
+            image.setFileName(fileName); // Lưu tên file ảnh
+            savedImages.add(imageRepository.save(image));
+        }
+        paymentReq.setImages(savedImages);
+
+        // Lấy quỹ liên kết với đề nghị thanh toán
+        var fund = paymentReq.getFund();
+        if (fund == null) {
+            throw new AppException(ErrorCode.FUND_NOT_EXISTS);
+        }
+
+        // Kiểm tra số dư quỹ có đủ để thanh toán không
+        if (fund.getBalance() < paymentReq.getAmount()) {
+            throw new AppException(ErrorCode.INSUFFICIENT_FUNDS_TRANSACTION);
+        }
+
+        // Trừ số tiền thanh toán từ quỹ
+        fund.setBalance(fund.getBalance() - paymentReq.getAmount());
+        fundRepository.save(fund);
+
+        // Cập nhật trạng thái đề nghị thanh toán thành 4 - đã thanh toán
+        paymentReq.setStatus(4);
+        paymentReq.setUpdateDate(LocalDateTime.now());
+
+        // Lưu thay đổi và trả về phản hồi
+        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+    }
+
+
+    // Xác nhận đã nhận tiền (trạng thái đã nhận - status = 5)
+    @Transactional
+    public PaymentReqResponse confirmReceipt(String id) {
+
+        // Tìm đề nghị thanh toán
+        PaymentReq paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
+
+        // Kiểm tra trạng thái hiện tại (chỉ cho phép chuyển sang "đã nhận" nếu trạng thái là 4 - đã thanh toán)
+        if (paymentReq.getStatus() != 4) {
+            throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_RECEIVABLE);
+        }
+
+        // Cập nhật trạng thái đề nghị thanh toán thành 5 - đã nhận
+        paymentReq.setStatus(5);
+        paymentReq.setUpdateDate(LocalDateTime.now());
+
+        // Lưu thay đổi và trả về phản hồi
+        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+    }
+
+
     // Xoá đề nghị thanh toán
     @Transactional
     public void delete(String id) {
 
+        // Tìm đề nghị thanh toán
         var paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
 
-        // kiểm tra trạng thái của đề nghị thanh toán
-        if(paymentReq.getStatus() != 1)
+        // Kiểm tra trạng thái của đề nghị thanh toán (chỉ cho phép xoá nếu trạng thái là 1 - chưa xử lý)
+        if (paymentReq.getStatus() != 1) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
-
-        // Kiểm tra xem có hóa đơn nào liên quan không
-        if (!paymentReq.getInvoices().isEmpty()) {
-            throw new AppException(ErrorCode.PAYMENT_REQUEST_HAS_INVOICES);
         }
 
+        // Xoá các liên kết khác
         paymentReq.setUser(null);
-        paymentReq.setCategory(null);
+        paymentReq.setFund(null);
 
         paymentReqRepository.deleteById(id);
     }
+
+
+
+    // Tạo đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
+//    @Transactional
+//    public PaymentReqResponse createPaymentReqFromBudgetActivities(PaymentReqRequest request){
+//
+//        // Lấy danh sách các BudgetActivity với trạng thái hoàn thành
+//        List<BudgetActivity> budgetActivities = budgetActivityRepository.findByStatus(1);
+//        if (budgetActivities.isEmpty())
+//            throw new AppException(ErrorCode.BUDGET_ACTIVITY_NOT_EXISTS);
+//
+//        // Tạo đối tượng PaymentReq mới
+//        PaymentReq paymentReq = paymentReqMapper.toPaymentReq(request);
+//
+//        // Tính tổng số tiền từ tất cả các BudgetActivity
+//        double totalAmount = budgetActivities.stream()
+//                .mapToDouble(BudgetActivity::getAmount)
+//                .sum();
+//
+//        paymentReq.setAmount(totalAmount);
+//        paymentReq.setStatus(1);
+//        paymentReq.setCreateDate(LocalDateTime.now());
+//
+//        // Lấy thông tin người dùng đang đăng nhập
+//        String id = securityExpression.getUserId();
+//        // người thực hiện đề nghị thanh toán
+//        var user = userRepository.findById(id).orElseThrow(() ->
+//                new AppException(ErrorCode.USER_NOT_EXISTS));
+//        paymentReq.setUser(user);
+//
+//        // quỹ
+//        var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
+//                new AppException(ErrorCode.PAYMENT_CATEGORY_NOT_EXISTS));
+//        paymentReq.setFund(fund);
+//
+//        paymentReq = paymentReqRepository.save(paymentReq);
+//
+//        return paymentReqMapper.toPaymentReqResponse(paymentReq);
+//    }
+
+    // Cập nhật đề nghị thanh toán khi hoạt động dự trù ở trạng thái hoàn thành
+//    @Transactional
+//    public PaymentReqResponse updatePaymentReqFromBudgetActivities(String id, PaymentReqRequest request) {
+//
+//        PaymentReq paymentReq = paymentReqRepository.findById(id).orElseThrow(() ->
+//                new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
+//
+//        // kiểm tra trạng thái của đề nghị thanh toán
+//        if(paymentReq.getStatus() != 1)
+//            throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
+//
+//        // cập nhật đề nghị thanh toán
+//        paymentReqMapper.updatePaymentReq(paymentReq, request);
+//
+//        paymentReq.setUpdateDate(LocalDateTime.now());
+//
+//        // Lấy thông tin người dùng đang đăng nhập
+//        String userId = securityExpression.getUserId();
+//        // người thực hiện giao dịch
+//        var user = userRepository.findById(userId).orElseThrow(() ->
+//                new AppException(ErrorCode.USER_NOT_EXISTS));
+//        paymentReq.setUser(user);
+//
+//        // quỹ
+//        var fund = fundRepository.findById(request.getFund()).orElseThrow(() ->
+//                new AppException(ErrorCode.PAYMENT_CATEGORY_NOT_EXISTS));
+//        paymentReq.setFund(fund);
+//
+//        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+//    }
 }

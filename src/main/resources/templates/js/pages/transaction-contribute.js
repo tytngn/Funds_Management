@@ -76,7 +76,7 @@ $(document).ready(function () {
     // Gọi api để lấy tên quỹ và Nạp dữ liệu lên mảng fundOption
     $.ajax({
         type: "GET",
-        url: "/api/funds/active",
+        url: "/api/fund-permissions/contribute",
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
@@ -204,6 +204,7 @@ $(document).ready(function () {
                             </summary> <br>
                             <p class="text-left" style="white-space: normal; !important">
                                 Ghi chú: ${row.description} <br>
+                                ${row.confirmDate ? "Ngày xác nhận: " + utils.formatDateTime(row.confirmDate) : ""} <br>
                                 ${html}
                             </p>
                         </details>`;
@@ -362,7 +363,8 @@ async function loadContributionData() {
                         amount: trans.amount, 
                         description: trans.description,
                         status: trans.status,
-                        transDate: trans.transDate,    
+                        transDate: trans.transDate,
+                        confirmDate: trans.confirmDate,    
                         proofImages: proofImagesHtml,                      
                         id: trans.id, // ID của transaction 
                     });

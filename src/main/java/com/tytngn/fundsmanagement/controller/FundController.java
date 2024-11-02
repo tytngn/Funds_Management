@@ -4,7 +4,6 @@ import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.service.FundService;
-import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +34,7 @@ public class FundController {
                 .build();
     }
 
+
     @GetMapping
     @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_FUNDS'})")
     ApiResponse<List<FundResponse>> getAllFunds() {
@@ -43,6 +43,7 @@ public class FundController {
                 .result(fundService.getAll())
                 .build();
     }
+
 
     @GetMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_BY_ID'})")
@@ -53,6 +54,8 @@ public class FundController {
                 .build();
     }
 
+
+    // lấy danh sách quỹ đang hoạt động
     @GetMapping("/active")
     @PreAuthorize("@securityExpression.hasPermission({'GET_ACTIVE_FUNDS'})")
     ApiResponse<List<FundResponse>> getActiveFunds() {
@@ -61,6 +64,18 @@ public class FundController {
                 .result(fundService.getActiveFunds())
                 .build();
     }
+
+
+    // lấy danh sách quỹ theo thủ quỹ
+    @GetMapping("/by-treasurer")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUNDS_BY_TREASURER'})")
+    ApiResponse<List<FundResponse>> getFundsByTreasurer() {
+        return ApiResponse.<List<FundResponse>>builder()
+                .code(1000)
+                .result(fundService.getFundsByTreasurer())
+                .build();
+    }
+
 
     @GetMapping("/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUNDS_BY_FILTER'})")
@@ -80,6 +95,35 @@ public class FundController {
                 .build();
     }
 
+
+    @GetMapping("/overview")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_OVERVIEW'})")
+    ApiResponse<Map<String, Object>> getFundOverviewReport(@RequestParam(required = false) Integer year,
+                                                           @RequestParam(required = false) Integer month,
+                                                           @RequestParam(required = false) LocalDate start,
+                                                           @RequestParam(required = false) LocalDate end) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundService.getFundOverview(year, month, start, end))
+                .build();
+    }
+
+
+    // Báo cáo chi tiết quỹ
+//    @GetMapping("/report")
+//    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_REPORT_FILTER'})")
+//    ApiResponse<List<FundReportResponse>> getFundReportByFilter(@RequestParam(required = false) Integer year,
+//                                                                @RequestParam(required = false) Integer month,
+//                                                                @RequestParam(required = false) LocalDate start,
+//                                                                @RequestParam(required = false) LocalDate end) {
+//        return ApiResponse.<List<FundReportResponse>>builder()
+//                .code(1000)
+//                .result(fundService.generateFundReport(year, month, start, end))
+//                .build();
+//    }
+
+
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND'})")
     ApiResponse<FundResponse> updateFund(@RequestParam String id, @RequestBody @Valid FundRequest request) {
@@ -88,6 +132,7 @@ public class FundController {
                 .result(fundService.update(id, request))
                 .build();
     }
+
 
     @DeleteMapping()
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_FUND'})")

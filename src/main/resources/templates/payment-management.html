@@ -117,9 +117,9 @@
                   <div class="card-body">
                     <div class="form-group row">
 
-                      <div id="payment-category-select-div" class="col-sm-3">
-                        <label for="payment-category-select">Danh mục thanh toán</label>
-                        <select class="form-control select-2" id="payment-category-select" style="width: 100%;" data-placeholder="Chọn danh mục thanh toán"></select>
+                      <div id="fund-select-div" class="col-sm-3">
+                        <label for="fund-select">Tên quỹ</label>
+                        <select class="form-control select-2" id="fund-select" style="width: 100%;" data-placeholder="Chọn quỹ"></select>
                       </div>
 
                       <div class="col-sm-3">
@@ -148,6 +148,8 @@
                           <option value="2">Chờ duyệt</option>
                           <option value="3">Đã duyệt</option>
                           <option value="0">Từ chối</option>
+                          <option value="4">Đã thanh toán</option>
+                          <option value="5">Đã nhận</option>
                         </select>
                       </div>
 
@@ -174,14 +176,15 @@
                       <h3 class="text-primary" id="total-amount"></h3>
                     </div>
                   </div>
-                  
+
                   <div class="card-body">
+                    <p class="card-description">Nháy đúp chuột để mở bảng hoá đơn của đề nghị thanh toán</p> 
                     <div class="table-responsive">
                       <table id="payment-request-table" class="table table-striped">
                         <thead>
                           <tr>
                             <th style="text-align: center" min-width="3%;">STT</th>
-                            <th style="text-align: center">Loại thanh toán</th>
+                            <th style="text-align: center">Tên quỹ</th>
                             <th style="text-align: center" min-width="20%;">Người thực hiện</th>
                             <th style="text-align: center" min-width="10%;">Số tiền</th>
                             <th style="text-align: center" min-width="10%;">Ngày tạo</th>

@@ -1,5 +1,6 @@
 package com.tytngn.fundsmanagement.repository;
 
+import com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,6 +30,26 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
                                          @Param("userId") String userId,
                                          @Param("status") Integer status
     );
+
+
+    // Lấy báo cáo giao dịch đóng góp của một người dùng theo bộ lọc
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse(" +
+            "t.fund.fundName, t.transactionType.name, " +
+            "SUM(t.amount), " +
+            "YEAR(t.transDate), MONTH(t.transDate)) " +
+            "FROM FundTransaction t " +
+            "WHERE t.user.id = :userId " +
+            "AND t.status = 2 " + // Lấy các giao dịch đã được duyệt
+            "AND (:year IS NULL OR YEAR(t.transDate) = :year) " +
+            "AND (:month IS NULL OR MONTH(t.transDate) = :month) " +
+            "AND (COALESCE(:start, null) IS NULL OR t.transDate >= :start) " +
+            "AND (COALESCE(:end, null) IS NULL OR t.transDate <= :end) " +
+            "GROUP BY t.fund.fundName, t.transactionType.name, YEAR(t.transDate), MONTH(t.transDate)")
+    List<FundTransactionReportResponse> getUserFundReport(@Param("userId") String userId,
+                                                          @Param("year") Integer year,
+                                                          @Param("month") Integer month,
+                                                          @Param("start") LocalDateTime start,
+                                                          @Param("end") LocalDateTime end);
 
 }
 

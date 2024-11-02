@@ -26,6 +26,6 @@ public class PaymentCategory {
     String description;
 
     // Relationships
-    @OneToMany(mappedBy = "category")
-    Set<PaymentReq> paymentRequests = new HashSet<>();
+//    @OneToMany(mappedBy = "category")
+//    Set<PaymentReq> paymentRequests = new HashSet<>();
 }

@@ -4,7 +4,6 @@ package com.tytngn.fundsmanagement.service;
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
-import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.Fund;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
@@ -18,12 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -56,17 +50,20 @@ public class FundService {
         return fundMapper.toFundResponse(fundRepository.save(fund));
     }
 
+
     // Lấy danh sách tất cả các quỹ
     public List<FundResponse> getAll() {
         var funds = fundRepository.findAll();
         return funds.stream().map(fund -> fundMapper.toFundResponse(fund)).toList();
     }
 
+
     // Lấy thông tin quỹ theo Id
     public FundResponse getById(String id) {
         return fundMapper.toFundResponse(fundRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.FUND_NOT_EXISTS)));
     }
+
 
     // lấy danh sách các quỹ đang hoạt động
     public List<FundResponse> getActiveFunds () {
@@ -76,6 +73,21 @@ public class FundService {
                 .sorted(Comparator.comparing(FundResponse::getCreateDate).reversed())
                 .toList();
     }
+
+
+    // lấy danh sách quỹ theo thủ quỹ
+    public List<FundResponse> getFundsByTreasurer() {
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
+
+        var funds = fundRepository.findByUserIdAndStatus(id, 1);
+
+        return funds.stream()
+                .map(fundMapper::toFundResponse)
+                .sorted(Comparator.comparing(FundResponse::getCreateDate).reversed())
+                .toList();
+    }
+
 
     // Lấy danh sách quỹ theo bộ lọc: theo thời gian, theo trạng thái, theo phòng ban, theo thủ quỹ
     public Map<String, Object> filterFunds(LocalDate start, LocalDate end, Integer status,
@@ -103,6 +115,29 @@ public class FundService {
     }
 
 
+    // Báo cáo tổng quan quỹ: tổng số tiền của tất cả quỹ, số lượng quỹ hoạt động và số lượng quỹ ngưng hoạt động
+    public Map<String, Object> getFundOverview(Integer year, Integer month, LocalDate start, LocalDate end) {
+        var funds = fundRepository.findFundsByDateFilter(year, month, start, end);
+
+        double totalBalance = funds.stream().mapToDouble(Fund::getBalance).sum();
+        long activeFundsCount = funds.stream().filter(fund -> fund.getStatus() == 1).count();
+        long inactiveFundsCount = funds.stream().filter(fund -> fund.getStatus() == 0).count();
+
+        Map<String, Object> report = new HashMap<>();
+        report.put("totalBalance", totalBalance);
+        report.put("activeFundsCount", activeFundsCount);
+        report.put("inactiveFundsCount", inactiveFundsCount);
+
+        return report;
+    }
+
+
+    // Báo cáo chi tiết quỹ
+//    public List<FundReportResponse> generateFundReport(Integer year, Integer month, LocalDate startDate, LocalDate endDate) {
+//        return fundRepository.getFundReport(year, month, startDate, endDate);
+//    }
+
+
     // Cập nhật quỹ
     public FundResponse update(String id, FundRequest request) {
 
@@ -124,6 +159,7 @@ public class FundService {
 
         return fundMapper.toFundResponse(fundRepository.save(fund));
     }
+
 
     // Xoá quỹ
     public void delete(String id) {

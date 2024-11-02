@@ -4,7 +4,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -20,5 +19,6 @@ public class PaymentReqSimpleResponse {
     LocalDateTime updateDate;
 
     UserSimpleResponse user;
-    PaymentCategoryResponse category;
+    FundSimpleResponse fund;
+//    PaymentCategoryResponse category;
 }

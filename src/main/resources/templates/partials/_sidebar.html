@@ -275,7 +275,7 @@
     </li>
 
     <!-- DỰ TRÙ KINH PHÍ -->
-    <li class="nav-item" id="budget-estimate">
+    <li class="nav-item" id="budget-estimate" hidden>
       <a class="nav-link" href="budget-estimate.html">
         <i class="icon-paper menu-icon"></i>
         <span class="menu-title">Dự trù kinh phí</span>
@@ -288,6 +288,38 @@
         <i class="icon-head menu-icon"></i>
         <span class="menu-title">Quản lý tài khoản</span>
       </a>
+    </li>
+
+    <!-- THỐNG KÊ BÁO CÁO -->
+    <li class="nav-item" id="reports">
+      <a class="nav-link" data-toggle="collapse" href="#reports" aria-expanded="false" aria-controls="reports" >
+        <i class="mdi mdi-square-inc-cash menu-icon"></i>
+        <span class="menu-title">Thống kê báo cáo</span>
+        <i class="menu-arrow"></i>
+      </a>
+
+      <div class="collapse" id="reports">
+       
+        <ul class="nav flex-column sub-menu" id="fund-overview-report">
+          <li class="nav-item">
+            <a class="nav-link" href="fund-overview-report.html">Tổng quan quỹ</a>
+          </li>
+        </ul>
+
+        <ul class="nav flex-column sub-menu" id="fund-report" hidden>
+          <li class="nav-item">
+            <a class="nav-link" href="fund-report.html">Báo cáo quỹ</a>
+          </li>
+        </ul>
+
+        <ul class="nav flex-column sub-menu" id="individual-contribution-report">
+          <li class="nav-item">
+            <a class="nav-link" href="individual-contribution-report.html">Đóng góp cá nhân</a>
+          </li>
+        </ul>
+
+      </div>
+      
     </li>
 
   </ul>

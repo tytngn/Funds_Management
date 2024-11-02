@@ -317,13 +317,14 @@ async function loadFundData() {
             return;
         }
     } 
-
+    Swal.showLoading();
     // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
     await $.ajax({
         url: "/api/funds/filter?start=" + startDate + "&end=" + endDate + "&status=" + status + "&departmentId=" + departmentId + "&userId=" + userId, 
         type: "GET",
         headers: utils.defaultHeaders(),
         success: function(res) {
+            Swal.close();
             if (res.code == 1000) {  
                 // Cập nhật giá trị totalAmount vào thẻ h3
                 $('#total-amount-div').prop("hidden", false);
@@ -355,6 +356,7 @@ async function loadFundData() {
             }
         },
         error: function (xhr, status, error) {
+            Swal.close();
             if (xhr.status == 401 || xhr.status == 403){
                 Toast.fire ({
                     icon: "error",

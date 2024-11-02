@@ -41,9 +41,10 @@ public class InvoiceService {
         var paymentReq = paymentReqRepository.findById(request.getPaymentReq()).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
 
-        // kiểm tra trạng thái của đề nghị thanh toán
-        if(paymentReq.getStatus() != 1)
+        // Kiểm tra trạng thái của đề nghị thanh toán (chỉ cho phép nếu trạng thái là 0 hoặc 1)
+        if (paymentReq.getStatus() != 0 && paymentReq.getStatus() != 1) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
+        }
 
         // tạo hoá đơn
         Invoice invoice = invoiceMapper.toInvoice(request);
@@ -63,8 +64,9 @@ public class InvoiceService {
         }
         invoice.setImages(savedImages);
 
-        // cập nhật tổng số tiền trong đề nghị thanh toán
+        // cập nhật tổng số tiền trong đề nghị thanh toán và trạng thái
         paymentReq.setAmount(paymentReq.getAmount() + request.getAmount());
+        paymentReq.setStatus(1);
 
         paymentReqRepository.save(paymentReq);
         invoice = invoiceRepository.save(invoice);
@@ -112,12 +114,16 @@ public class InvoiceService {
         var paymentReq = paymentReqRepository.findById(request.getPaymentReq()).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS));
 
-        // kiểm tra trạng thái của đề nghị thanh toán
-        if(paymentReq.getStatus() != 1)
+        // Kiểm tra trạng thái của đề nghị thanh toán (chỉ cho phép nếu trạng thái là 0 hoặc 1)
+        if (paymentReq.getStatus() != 0 && paymentReq.getStatus() != 1) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
+        }
 
         Invoice invoice = invoiceRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.INVOICE_NOT_EXISTS));
+
+        // Trừ số tiền cũ của hóa đơn từ tổng số tiền trong đề nghị thanh toán
+        paymentReq.setAmount(paymentReq.getAmount() - invoice.getAmount());
 
         // cập nhật hoá đơn
         invoiceMapper.updateInvoice(invoice, request);
@@ -137,8 +143,9 @@ public class InvoiceService {
         }
         invoice.setImages(savedImages);
 
-        // cập nhật tổng số tiền trong đề nghị thanh toán
+        // cập nhật tổng số tiền trong đề nghị thanh toán và trạng thái
         paymentReq.setAmount(paymentReq.getAmount() + request.getAmount());
+        paymentReq.setStatus(1);
 
         paymentReqRepository.save(paymentReq);
 
@@ -154,24 +161,15 @@ public class InvoiceService {
 
         var paymentReq = invoice.getPaymentReq();
 
-        // kiểm tra trạng thái của đề nghị thanh toán
-        if(paymentReq != null && paymentReq.getStatus() != 1)
+        // Kiểm tra trạng thái của đề nghị thanh toán (chỉ cho phép nếu trạng thái là 0 hoặc 1)
+        if (paymentReq.getStatus() != 0 && paymentReq.getStatus() != 1) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
-
-        // lấy danh sách các hóa đơn trong PaymentReq
-        List<Invoice> invoices = invoiceRepository.findByPaymentReq(paymentReq);
-        // Kiểm tra xem có phải hoá đơn cuối cùng hay không
-//        if(invoices.size() == 1)
-//            throw new AppException(ErrorCode.LAST_INVOICE_CANNOT_BE_DELETED);
+        }
 
         // cập nhật lại tổng số tiền ở PaymentReq và tiến hành xoá
         paymentReq.setAmount(paymentReq.getAmount() - invoice.getAmount());
+        paymentReq.setStatus(1);
+        paymentReqRepository.save(paymentReq);
         invoiceRepository.deleteById(id);
-
-        // Cập nhật trạng thái của PaymentReq nếu vẫn còn hoá đơn khác
-//        if (!invoices.isEmpty()) {
-//            paymentReq.setStatus(1);  // Cập nhật trạng thái về 1
-//            paymentReqRepository.save(paymentReq);
-//        }
     }
 }

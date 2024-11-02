@@ -2,6 +2,7 @@ package com.tytngn.fundsmanagement.controller;
 
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
+import com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.service.FundTransactionService;
 import jakarta.validation.Valid;
@@ -56,7 +57,7 @@ public class FundTransactionController {
     // Lấy danh sách giao dịch đóng góp quỹ theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
     @GetMapping("/contribution/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_CONTRIBUTION_BY_FILTER'})")
-    public ApiResponse<Map<String, Object>> getContributionByFilter(
+     ApiResponse<Map<String, Object>> getContributionByFilter(
             @RequestParam (required = false) String fundId,
             @RequestParam (required = false) String transTypeId,
             @RequestParam(required = false) String startDate,
@@ -98,6 +99,32 @@ public class FundTransactionController {
                 fundId, transTypeId, startDate, endDate, status);
 
         return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(result)
+                .build();
+    }
+
+
+    // Lấy báo cáo quỹ của một người dùng theo bộ lọc
+    @GetMapping("/user-fund-report")
+//    @PreAuthorize("@securityExpression.hasPermission({'GET_USER_FUND_REPORT'})")
+//     ApiResponse<List<FundTransactionReportResponse>> getUserFundReport(
+//            @RequestParam(required = false) String start,
+//            @RequestParam(required = false) String end) {
+//
+//        return ApiResponse.<List<FundTransactionReportResponse>>builder()
+//                .code(1000)
+//                .result(fundTransactionService.getUserFundReport(start, end))
+//                .build();
+//    }
+     ApiResponse<List<FundTransactionReportResponse>> getUserFundReport(
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        List<FundTransactionReportResponse> result = fundTransactionService.getUserFundReport(start, end, year, month);
+        return ApiResponse.<List<FundTransactionReportResponse>>builder()
                 .code(1000)
                 .result(result)
                 .build();

@@ -291,6 +291,7 @@ $(document).ready(function () {
                             </summary> <br>
                             <p class="text-left" style="white-space: normal; !important">
                                 ${row.description? "Ghi chú: " + row.description : ""} <br>
+                                ${row.confirmDate ? "Ngày xác nhận: " + utils.formatDateTime(row.confirmDate) : ""} <br>
                                 ${html}
                             </p>
                         </details>`;
@@ -484,6 +485,7 @@ async function loadWithdrawalData() {
                         description: transaction.description,
                         status: transaction.status,
                         transDate: transaction.transDate,
+                        confirmDate: transaction.confirmDate,
                         trader: transaction.user.fullname,
                         department: transaction.user.department.name,
                         fund: transaction.fund.fundName,

@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -20,6 +21,8 @@ public class PaymentReqResponse {
     LocalDateTime updateDate;
 
     UserSimpleResponse user;
-    PaymentCategoryResponse category;
+    FundSimpleResponse fund;
     Set<InvoiceResponse> invoices;
+    List<ImageResponse> images;
+//    PaymentCategoryResponse category;
 }

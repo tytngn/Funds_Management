@@ -19,6 +19,6 @@ public class FundResponse {
     LocalDate createDate;
     LocalDate updateDate;
 
-    // người quản lý
+    // thủ quỹ
     UserSimpleResponse user;
 }

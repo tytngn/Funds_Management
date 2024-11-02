@@ -531,7 +531,6 @@ $("#btn-add-user").on("click", function () {
                 <option value="" disabled selected>Chọn giới tính</option>
                 <option value="0">Nam</option>
                 <option value="1">Nữ</option>
-                <option value="2">Khác</option>
             </select>
         </div>
 
@@ -727,7 +726,6 @@ $("#btn-update-user").on("click", function () {
                                     <option value="" disabled selected>Chọn giới tính</option>
                                     <option value="0">Nam</option>
                                     <option value="1">Nữ</option>
-                                    <option value="2">Khác</option>
                                 </select>
                             </div>
 
