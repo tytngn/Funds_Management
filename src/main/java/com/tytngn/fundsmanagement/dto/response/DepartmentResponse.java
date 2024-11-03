@@ -13,6 +13,6 @@ import java.util.Set;
 public class DepartmentResponse {
     String id;
     String name;
-
+    int employeeCount;
     Set<UserSimpleResponse> users;
 }

@@ -434,7 +434,7 @@ $("#btn-add-fund").on("click", function () {
         if(ten == null || ten.trim()==""){
             Toast.fire({
                 icon: "error",
-                title: "Vui lòng điền tên quỹ!"
+                title: "Vui lòng nhập tên quỹ!"
             });
             return;
         } else {
@@ -545,7 +545,7 @@ $("#btn-update-fund").on("click", function () {
                         if (name == null || name.trim() == "") {
                             Toast.fire({
                                 icon: "error",
-                                title: "Vui lòng điền tên quỹ!"
+                                title: "Vui lòng nhập tên quỹ!"
                             });
                             return;
                         } 

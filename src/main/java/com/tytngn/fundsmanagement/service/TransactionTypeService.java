@@ -1,6 +1,7 @@
 package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.dto.request.TransactionTypeRequest;
+import com.tytngn.fundsmanagement.dto.response.DepartmentResponse;
 import com.tytngn.fundsmanagement.dto.response.PaymentCategoryResponse;
 import com.tytngn.fundsmanagement.dto.response.TransactionTypeResponse;
 import com.tytngn.fundsmanagement.entity.TransactionType;
@@ -45,9 +46,15 @@ public class TransactionTypeService {
         var transactionType = transactionTypeRepository.findAll()
                 .stream()
                 .map(type -> transactionTypeMapper.toTransactionTypeResponse(type))
+                .sorted(Comparator.comparing(TransactionTypeResponse::getName, vietnameseCollator))
                 .toList();
 
         return transactionType;
+    }
+
+    public TransactionTypeResponse getById(String id) {
+        return transactionTypeMapper.toTransactionTypeResponse(transactionTypeRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS)));
     }
 
     // Lấy danh sách loại giao dịch đóng góp quỹ
@@ -79,9 +86,13 @@ public class TransactionTypeService {
     }
 
     public void delete(String id) {
-        transactionTypeRepository.findById(id).orElseThrow(() ->
+        var transType = transactionTypeRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS));
 
+        var fundTransactions = transType.getFundTransactions();
+        if (!fundTransactions.isEmpty()) {
+            throw new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EMPTY);
+        }
         transactionTypeRepository.deleteById(id);
     }
 }

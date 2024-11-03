@@ -42,15 +42,28 @@ public class DepartmentService {
         return departmentMapper.toDepartmentSimpleResponse(departmentRepository.save(department));
     }
 
+
     public List<DepartmentResponse> getAllDepartments() {
         var departments = departmentRepository.findAll()
-                    .stream()
-                    .map(department -> departmentMapper.toDepartmentResponse(department))
-                    .sorted(Comparator.comparing(DepartmentResponse::getName, vietnameseCollator))
-                    .toList();
+                .stream()
+                .map(department -> {
+                    DepartmentResponse response = departmentMapper.toDepartmentResponse(department);
+                    int employeeCount = department.getUsers().size(); // Lấy số nhân viên trong phòng ban
+                    response.setEmployeeCount(employeeCount); // Gán số nhân viên vào response
+                    return response;
+                })
+                .sorted(Comparator.comparing(DepartmentResponse::getName, vietnameseCollator))
+                .toList();
 
         return departments;
     }
+
+
+    public DepartmentResponse getDepartmentById(String id) {
+        return departmentMapper.toDepartmentResponse(departmentRepository.findById(id).orElseThrow(() ->
+                new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS)));
+    }
+
 
     public DepartmentSimpleResponse updateDepartment(String id, DepartmentRequest request) {
         Department department = departmentRepository.findById(id).orElseThrow(() ->
@@ -66,10 +79,13 @@ public class DepartmentService {
                 new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS));
 
         var users = department.getUsers();
-        for (User user : users) {
-            user.setDepartment(null);
+
+        // Kiểm tra xem phòng ban có nhân viên hay không
+        if (!users.isEmpty()) {
+            throw new AppException(ErrorCode.DEPARTMENT_NOT_EMPTY);
         }
-        userRepository.saveAll(users);
+
+        // Nếu không có nhân viên, thực hiện xoá phòng ban
         departmentRepository.deleteById(id);
     }
 }

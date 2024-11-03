@@ -41,6 +41,15 @@ public class TransactionTypeController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TRANSACTION_TYPE_BY_ID'})")
+    ApiResponse<TransactionTypeResponse> getById(@PathVariable String id) {
+        return ApiResponse.<TransactionTypeResponse>builder()
+                .code(1000)
+                .result(transactionTypeService.getById(id))
+                .build();
+    }
+
     // Lấy danh sách loại giao dịch đóng góp quỹ
     @GetMapping("/contribute")
     @PreAuthorize("@securityExpression.hasPermission({'GET_TRANSTYPE_BY_STATUS_CONTRIBUTE'})")
@@ -61,9 +70,9 @@ public class TransactionTypeController {
                 .build();
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_TRANSACTION_TYPE'})")
-    ApiResponse<TransactionTypeResponse> updateTransactionType(@RequestParam String id,
+    ApiResponse<TransactionTypeResponse> updateTransactionType(@PathVariable String id,
                                                                @RequestBody @Valid TransactionTypeRequest request) {
         return ApiResponse.<TransactionTypeResponse>builder()
                 .code(1000)
@@ -71,9 +80,9 @@ public class TransactionTypeController {
                 .build();
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_TRANSACTION_TYPE'})")
-    ApiResponse<Void> deleteTransactionType(@RequestParam String id) {
+    ApiResponse<Void> deleteTransactionType(@PathVariable String id) {
         transactionTypeService.delete(id);
         return ApiResponse.<Void>builder().code(1000).build();
     }

@@ -26,11 +26,7 @@ public class FundPermission {
     @JoinColumn(name = "fund_id", referencedColumnName = "id", nullable = false)
     Fund fund;
 
-    @Column(nullable = false)
     boolean canContribute = false; // quyền đóng góp
-
-    @Column(nullable = false)
     boolean canWithdraw = false; // quyền rút quỹ
-
     LocalDate grantedDate; // ngày thêm quyền giao dịch
 }

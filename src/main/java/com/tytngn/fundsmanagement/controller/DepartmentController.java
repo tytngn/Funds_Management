@@ -42,18 +42,27 @@ public class DepartmentController {
                 .build();
     }
 
-    @PutMapping
+    @GetMapping("/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_DEPARTMENT_BY_ID'})")
+    ApiResponse<DepartmentResponse> getDepartmentById(@PathVariable String id) {
+        return ApiResponse.<DepartmentResponse>builder()
+                .result(departmentService.getDepartmentById(id))
+                .code(1000)
+                .build();
+    }
+
+    @PutMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_DEPARTMENTS'})")
-    ApiResponse<DepartmentSimpleResponse> updateDepartments(@RequestParam String id, @RequestBody @Valid DepartmentRequest request) {
+    ApiResponse<DepartmentSimpleResponse> updateDepartments(@PathVariable String id, @RequestBody @Valid DepartmentRequest request) {
         return ApiResponse.<DepartmentSimpleResponse>builder()
                 .result(departmentService.updateDepartment(id, request))
                 .code(1000)
                 .build();
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_DEPARTMENTS'})")
-    ApiResponse<Void> deleteDepartments(@RequestParam String id) {
+    ApiResponse<Void> deleteDepartments(@PathVariable String id) {
         departmentService.deleteDepartment(id);
         return ApiResponse.<Void>builder().code(1000).build();
     }

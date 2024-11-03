@@ -14,5 +14,4 @@ import java.util.Set;
 public class DepartmentRequest {
     @NotBlank(message = "BLANK_NAME")
     String name;
-
 }
