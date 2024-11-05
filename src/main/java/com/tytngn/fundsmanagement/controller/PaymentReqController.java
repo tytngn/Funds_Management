@@ -24,6 +24,7 @@ public class PaymentReqController {
 
     PaymentReqService paymentReqService;
 
+    // tạo đề nghị thanh toán
     @PostMapping
     @PreAuthorize("@securityExpression.hasPermission({'CREATE_PAYMENT_REQUEST'})")
     ApiResponse<PaymentReqResponse> createPaymentReq(@RequestBody @Valid PaymentReqRequest request) {
@@ -33,6 +34,8 @@ public class PaymentReqController {
                 .build();
     }
 
+
+    // lấy tất cả đề nghị thanh toán
     @GetMapping
     @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_PAYMENT_REQUEST'})")
     ApiResponse<List<PaymentReqResponse>> getAllPaymentReq() {
@@ -41,6 +44,7 @@ public class PaymentReqController {
                 .result(paymentReqService.getAll())
                 .build();
     }
+
 
     // Lấy danh sách đề nghị thanh toán theo bộ lọc
     @GetMapping("/filter")
@@ -85,6 +89,7 @@ public class PaymentReqController {
                 .build();
     }
 
+
     // Lấy danh sách đề nghị thanh toán theo bộ lọc và phải thuộc quỹ của người dùng tạo ra
     @GetMapping("/treasurer/filter")
     @PreAuthorize("@securityExpression.hasPermission({'FILTER_PAYMENT_REQUESTS_BY_TREASURER'})")
@@ -109,6 +114,8 @@ public class PaymentReqController {
                 .build();
     }
 
+
+    // Lấy thông tin đề nghị thanh toán theo Id
     @GetMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'GET_PAYMENT_REQUEST_BY_ID'})")
     ApiResponse<PaymentReqResponse> getFundById(@PathVariable String id) {
@@ -119,6 +126,7 @@ public class PaymentReqController {
     }
 
 
+    // cập nhật đề nghị thanh toán
     @PutMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_PAYMENT_REQUEST'})")
     ApiResponse<PaymentReqResponse> updatePaymentReq(@PathVariable String id,
@@ -174,6 +182,7 @@ public class PaymentReqController {
     }
 
 
+    // Xoá đề nghị thanh toán
     @DeleteMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_PAYMENT_REQUEST'})")
     ApiResponse<Void> deletePaymentReq(@PathVariable String id) {

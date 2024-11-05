@@ -38,18 +38,22 @@ function updateSidebarVisibility(roles) {
     });
 
     // Kiểm tra và ẩn/hiện từng mục trong sidebar dựa trên các permission
-    if (permissions.includes("GET_FUNDS_BY_FILTER")) {
+    if (permissions.includes("GET_FUNDS_BY_FILTER") || permissions.includes("FILTER_FUNDS_BY_TREASURER")) {
         $('#fund').prop("hidden", false);// Hiện phần Quản lý quỹ
-        $('#fund-management').prop("hidden", false); 
-        $('#fund-permission').prop("hidden", false);
+        $('#fund-management').prop("hidden", false); // Quản lý quỹ
     }
 
-    if (permissions.includes("GET_CONTRIBUTION_BY_FILTER")) {
+    if (permissions.includes("FILTER_FUND_PERMISSIONS_BY_TREASURER")) {
+        $('#fund').prop("hidden", false);// Hiện phần Quản lý quỹ
+        $('#fund-permission').prop("hidden", false); // Phân quyền giao dịch
+    }
+
+    if (permissions.includes("GET_CONTRIBUTION_BY_FILTER") || permissions.includes("FILTER_CONTRIBUTION_BY_TREASURER")) {
         $('#transaction').prop("hidden", false); // Hiện phần Quản lý giao dịch
         $('#contribution-management').prop("hidden", false); // Hiện phần Quản lý đóng góp
     } 
 
-    if (permissions.includes("GET_USER_CONTRIBUTIONS_BY_FILTER")) {
+    if (permissions.includes("GET_FUNDS_USER_CAN_CONTRIBUTE")) {
         $('#transaction').prop("hidden", false); // Hiện phần Quản lý giao dịch
         $('#contribution').prop("hidden", false); // Hiện phần Đóng góp quỹ
     } 
@@ -64,7 +68,7 @@ function updateSidebarVisibility(roles) {
         $('#withdrawal').prop("hidden", false); // Hiện phần Rút quỹ
     }
 
-    if (permissions.includes("FILTER_PAYMENT_REQUEST")) {
+    if (permissions.includes("FILTER_PAYMENT_REQUEST") || permissions.includes("FILTER_PAYMENT_REQUESTS_BY_TREASURER")) {
         $('#payment').prop("hidden", false); // Hiện phần Quản lý thanh toán
         $('#payment-management').prop("hidden", false); // Hiện phần Quản lý thanh toán  
     }
@@ -76,6 +80,16 @@ function updateSidebarVisibility(roles) {
 
     if (permissions.includes("GET_USERS_BY_FIFLTER")) {
         $('#account-management').prop("hidden", false); // Hiện phần Quản lý tài khoản
+    }
+
+    if (permissions.includes("CREATE_DEPARTMENT")) {
+        $('#category').prop("hidden", false); // Hiện phần Quản lý danh mục
+        $('#department').prop("hidden", false); // Hiện phần Danh mục phòng ban
+    }
+
+    if (permissions.includes("CREATE_TRANSACTION_TYPE")) {
+        $('#category').prop("hidden", false); // Hiện phần Quản lý danh mục
+        $('#transaction-type').prop("hidden", false); // Hiện phần Loại giao dịch
     }
 }
 

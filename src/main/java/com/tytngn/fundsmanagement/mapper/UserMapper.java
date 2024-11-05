@@ -22,6 +22,9 @@ public interface UserMapper {
     @Mapping(target = "account", source = "account")
     UserResponse toUserResponse(User user);
 
+    @Mapping(target = "department", source = "department")
+    UserSimpleResponse toUserSimpleResponse(User user);
+
     // Cập nhật user
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "department", source = "departmentId", ignore = true)

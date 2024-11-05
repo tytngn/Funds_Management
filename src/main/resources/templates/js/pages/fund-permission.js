@@ -13,10 +13,14 @@ var dataTable;
 let selectedData; // Biến lưu dữ liệu đã chọn
 var fundOption = [];
 
+var userRole;
+
 var startDate;
 var endDate;
 
-$(document).ready(function () {
+$(document).ready(async function () {
+    await setData();
+
     // Select 
     $('.select-2').select2({
         allowClear: true,
@@ -35,10 +39,7 @@ $(document).ready(function () {
         $('#individual-div').prop("hidden", true);
         $('#individual-select').prop('disabled', true);
 
-        // Clear lựa chọn của select
-        $('#status-select').val(null).trigger('change');
-        $('#department-select').val(null).trigger('change');
-        $('#individual-select').val(null).trigger('change');
+        clearFilter ();
 
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
@@ -86,10 +87,14 @@ $(document).ready(function () {
         $(this).val('');
     });
 
+    var urlFund = "/api/funds/by-treasurer";
+    if (userRole === 'ADMIN'){
+        urlFund = "/api/funds/active";
+    }
     // Gọi api để lấy tên quỹ và nạp dữ liệu vào mảng fundOption
     $.ajax({
         type: "GET",
-        url: "/api/funds/by-treasurer",
+        url: urlFund,
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
@@ -280,6 +285,28 @@ $(document).ready(function () {
 });
 
 
+// Hiển thị dữ liệu theo role của người dùng
+async function setData() {
+    const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
+    if (!userInfo) {
+        throw new Error("Không thể lấy thông tin người dùng");
+    }
+    
+    const roles = userInfo.roles.map(role => role.id); // Lấy danh sách các role của user
+
+    // Đối với Thủ quỹ
+    if (roles.includes('USER_MANAGER')) {
+        userRole = "USER_MANAGER";
+    } 
+    // Đối với Quản trị viên
+    if (roles.includes('ADMIN')) {
+        userRole = "ADMIN";
+    } 
+    
+    console.log(userRole);
+}
+
+
 // Gọi api lấy dữ liệu danh sách các quỹ
 async function loadFundPermissionData() {
     // Nếu không có giá trị thì gán ''
@@ -333,9 +360,13 @@ async function loadFundPermissionData() {
         }
     }
 
+    var urlFundPermision = "/api/fund-permissions/filter/by-treasurer?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId;
+    if (userRole === 'ADMIN'){
+        urlFundPermision = "/api/fund-permissions/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId;
+    }
     // Gọi API với AJAX để lấy dữ liệu theo quỹ, loại giao dịch và khoảng thời gian
     await $.ajax({
-        url: "/api/fund-permissions/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId,
+        url: urlFundPermision,
         type: "GET",
         headers: utils.defaultHeaders(),
         success: function(res) {
@@ -376,6 +407,17 @@ async function loadFundPermissionData() {
             }
         },
     });
+}
+
+
+function clearFilter () {
+    // Clear lựa chọn của select
+    $('#status-select').val(null).trigger('change');
+    $('#department-select').val(null).trigger('change');
+    $('#individual-select').val(null).trigger('change');
+
+    startDate = null;
+    endDate = null;
 }
 
 

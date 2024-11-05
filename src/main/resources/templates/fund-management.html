@@ -94,10 +94,7 @@
                         <i class="fas fa-eye mr-2"></i>Xem
                       </button>
                       
-                      <button 
-                        id="btn-add-fund" 
-                        type="button" 
-                        class="btn btn-success ml-2">
+                      <button id="btn-add-fund" type="button" class="btn btn-success ml-2" hidden>
                         <i class="fa-regular fa-square-plus mr-2"></i>Thêm mới
                       </button>
                       
@@ -178,7 +175,7 @@
                     </div>
                   </div>
 
-                  <div class="card-body">
+                  <div id="accountant" class="card-body">
                     <div class="table-responsive">
                       <table id="fund-table" class="table table-striped">
                         <thead>
@@ -186,7 +183,7 @@
                             <th class = "text-center" width="3%;">STT</th>
                             <th class = "text-center">Tên quỹ</th>
                             <th class = "text-center" width="12%;">Số dư</th>
-                            <th class = "text-center" min-width="17%;">Thủ quỹ</th>
+                            <th class = "text-center treasurer-column" min-width="17%;">Thủ quỹ</th>
                             <th class = "text-center" width="12%;">Ngày tạo</th>
                             <th class = "text-center" width="5%;">Trạng thái</th>
                           </tr>

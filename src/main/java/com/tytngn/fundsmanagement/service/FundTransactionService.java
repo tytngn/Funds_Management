@@ -168,6 +168,55 @@ public class FundTransactionService {
     }
 
 
+    // Lấy danh sách giao dịch đóng góp do thủ quỹ quản lý theo bộ lọc (theo quỹ, theo loại giao dịch, theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái)
+    public Map<String, Object> filterContributionByTreasurer(String fundId, String transTypeId,
+                                                       String startDate, String endDate,
+                                                       String departmentId, String userId,
+                                                       Integer status) {
+
+        // Chuyển đổi startDate và endDate thành kiểu LocalDateTime nếu không null
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        try {
+            if (startDate != null && !startDate.isEmpty()) {
+                start = LocalDateTime.parse(startDate + "T00:00:00");
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                end = LocalDateTime.parse(endDate + "T23:59:59");
+            }
+        } catch (DateTimeParseException e) {
+            // Xử lý lỗi định dạng ngày tháng
+            throw new AppException(ErrorCode.DATA_INVALID);
+        }
+
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
+
+        List<FundTransaction> fundTransactions = fundTransactionRepository.filterTransactionsByTreasurer(
+                fundId, transTypeId, start, end, departmentId, userId, status, id);
+
+        // Lọc các giao dịch đóng góp và tính tổng số tiền
+        double totalAmount = fundTransactions.stream()
+                .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 1) // Chỉ lấy loại giao dịch đóng góp
+                .mapToDouble(FundTransaction::getAmount)
+                .sum();
+
+        // Map danh sách giao dịch đóng góp sang DTO và sắp xếp theo ngày giao dịch mới nhất
+        List<FundTransactionResponse> responses = fundTransactions.stream()
+                .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 1) // Chỉ lấy loại giao dịch đóng góp
+                .map(fundTransactionMapper::toFundTransactionResponse)
+                .sorted(Comparator.comparing(FundTransactionResponse::getTransDate).reversed())
+                .toList();
+
+        // Đưa kết quả vào Map và trả về
+        Map<String, Object> result = new HashMap<>();
+        result.put("transactions", responses);
+        result.put("totalAmount", totalAmount);
+
+        return result;
+    }
+
 
     // Lấy danh sách giao dịch đóng góp của một người dùng theo bộ lọc và tính tổng số tiền
     public Map<String, Object> getUserContributionsByFilter(String fundId, String transTypeId,

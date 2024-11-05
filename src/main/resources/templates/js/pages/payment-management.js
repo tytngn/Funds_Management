@@ -16,12 +16,15 @@ var invoicesTable; // bảng hoá đơn
 let selectedInvoice; // Biến lưu hoá đơn đã chọn
 
 var fundOption = []; // quỹ
+var userRole;
 
 var startDate;
 var endDate;
 
 
 $(document).ready(async function () {
+    await setData();
+
     // Select 
     $('.select-2').select2({
         allowClear: true,
@@ -39,6 +42,8 @@ $(document).ready(async function () {
         $('#department-div').prop("hidden", true);
         $('#individual-div').prop("hidden", true);
         $('#individual-select').prop('disabled', true);
+
+        clearFilter ();
 
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
@@ -86,6 +91,57 @@ $(document).ready(async function () {
         startDate = '';
         endDate = '';
         $(this).val('');
+    });
+
+    var urlFund = "/api/funds/active";
+    if (userRole === 'USER_MANAGER'){
+        urlFund = "/api/funds/by-treasurer";
+
+        // Hiển thị button "Thanh toán" và ẩn nút "Xác nhận"
+        $('#btn-process-payment-request').prop("hidden", false);
+        $('#btn-confirm-payment-request').prop("hidden", true);
+    }
+    if (userRole === 'ADMIN'){
+        // Hiển thị button "Thanh toán" 
+        $('#btn-process-payment-request').prop("hidden", false);
+    }
+    // Gọi api để lấy tên quỹ và nạp dữ liệu vào mảng fundOption
+    $.ajax({
+        type: "GET",
+        url: urlFund,
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if (res.code === 1000) {
+                let funds = res.result;
+                let fundNameDropdown = $("#fund-select");
+                fundOption = [];
+    
+                // Thêm các quỹ vào dropdown
+                funds.forEach(function(fund) {
+                    fundOption.push({
+                        id: fund.id,
+                        text: fund.fundName,
+                    })
+                    fundNameDropdown.append($('<option>', {
+                        value: fund.id, // Gán giá trị cho thuộc tính value
+                        text: fund.fundName // Gán văn bản hiển thị
+                    }));
+                });
+                $('#fund-select').val("").trigger('change');
+            } else {
+                Toast.fire({
+                    icon: "error",
+                    title: "Không thể lấy danh sách quỹ<br>" + res.message,
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            var err = utils.handleAjaxError(xhr);
+            Toast.fire({
+                icon: "error",
+                title: err.message
+            });
+        }
     });
 
     // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
@@ -154,10 +210,6 @@ $(document).ready(async function () {
         });
     }
 
-
-    await setDataByRole();
-
-
     // Nhấn nút "Xem"
     $("#btn-view-payment-request").on("click", async function () {    
         await loadPaymentRequestData();
@@ -205,7 +257,7 @@ $(document).ready(async function () {
                     let html = ""; 
                     
                     if (row.proofImages.length >= 1){
-                        html = `<a class="view-image" role="button" style="color: white;" 
+                        html = `<a class="view-image" role="button" id="btn-view-image" style="color: white;" 
                                     data-images='${row.proofImages}'>
                                     <b> Xem hình ảnh </b>
                                 </a> `
@@ -342,7 +394,7 @@ async function loadPaymentRequestData() {
     var departmentId = ''; 
     var userId = ''; 
 
-    if ((!filter || filter === 'time') && fundId == '') {
+    if (!filter && fundId == '') {
         Toast.fire({
             icon: "warning",
             title: "Vui lòng chọn bộ lọc!",
@@ -390,9 +442,13 @@ async function loadPaymentRequestData() {
         }
     } 
    
+    var urlPaymentReq = "/api/payment-requests/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status;
+    if (userRole === 'USER_MANAGER') {
+        urlPaymentReq = "/api/payment-requests/treasurer/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status;
+    }
     // Gọi API với AJAX để lấy dữ liệu
     await $.ajax({
-        url: "/api/payment-requests/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, 
+        url: urlPaymentReq,
         type: "GET",
         headers: utils.defaultHeaders(),
         beforeSend: function () {
@@ -465,73 +521,37 @@ async function loadPaymentRequestData() {
 
 
 // Hiển thị dữ liệu tuỳ vào role của người dùng
-async function setDataByRole() {
-    try {
-        const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
-        if (!userInfo) {
-            throw new Error("Không thể lấy thông tin người dùng");
-        }
-        
-        const roles = userInfo.roles.map(role => role.id); // Lấy danh sách các role của user
-        let url = "";
+async function setData() {
+    const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
+    if (!userInfo) {
+        throw new Error("Không thể lấy thông tin người dùng");
+    }
+    
+    const roles = userInfo.roles.map(role => role.id); // Lấy danh sách các role của user
 
-        // Đối với Thủ quỹ
-        if (roles.includes('USER_MANAGER')) {
-            url = "/api/funds/by-treasurer";
-        } 
-        // Đối với Kế toán và Quản trị viên
-        else if (roles.includes('ACCOUNTANT') || roles.includes('ADMIN')) {
-            url = "/api/funds/active";
-        } 
-        else {
-            throw new Error("Role không hợp lệ để truy xuất quỹ");
-        }
-        
-        fetchFunds(url); // Gọi hàm fetchFunds để lấy danh sách quỹ
-    } catch (error) {
-        console.error(error.message);
-        Toast.fire({
-            icon: "error",
-            title: "Lỗi khi kiểm tra phân quyền của người dùng",
-        });
+    // Đối với Thủ quỹ
+    if (roles.includes('USER_MANAGER')) {
+        userRole = "USER_MANAGER";
+    } 
+    // Đối với Kế toán và Quản trị viên
+    if (roles.includes('ACCOUNTANT')) {
+        userRole = "ACCOUNTANT";
+    } 
+    // Đối với Quản trị viên
+    if (roles.includes('ADMIN')) {
+        userRole = "ADMIN";
     }
 }
 
 
-// Hàm lấy danh sách quỹ theo URL và cập nhật vào dropdown
-function fetchFunds(url) {
-    $.ajax({
-        type: "GET",
-        url: url,
-        headers: utils.defaultHeaders(),
-        success: function (res) {
-            if (res.code === 1000) {
-                let funds = res.result;
-                let fundNameDropdown = $("#fund-select");
-                fundNameDropdown.empty(); // Xóa các option cũ nếu có
+function clearFilter () {
+    // Clear lựa chọn của select
+    $('#status-select').val(null).trigger('change');
+    $('#department-select').val(null).trigger('change');
+    $('#individual-select').val(null).trigger('change');
 
-                funds.forEach(function(fund) {
-                    fundNameDropdown.append($('<option>', {
-                        value: fund.id, // Gán giá trị cho thuộc tính value
-                        text: fund.fundName // Gán văn bản hiển thị
-                    }));
-                });
-                $('#fund-select').val("").trigger('change');
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: "Không thể lấy danh sách quỹ<br>" + res.message,
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            const err = utils.handleAjaxError(xhr);
-            Toast.fire({
-                icon: "error",
-                title: err.message
-            });
-        }
-    });
+    startDate = null;
+    endDate = null;
 }
 
 
@@ -697,6 +717,229 @@ $("#btn-confirm-payment-request").on("click",async function () {
 });
 
 
+// Nhấn nút "Thanh toán"
+$("#btn-process-payment-request").on("click", async function () {
+    // Kiểm tra nếu không có dữ liệu được chọn
+    if (!selectedData) {
+        Toast.fire({
+            icon: "error",
+            title: "Vui lòng chọn đề nghị thanh toán để thực hiện!",
+        });
+        return;
+    }
+    // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái "đã duyệt" (status = 3) hoặc "từ chối" (status = 0)
+    if (selectedData.status == 0 || selectedData.status == 4 || selectedData.status == 5) {
+        Toast.fire({
+            icon: "error",
+            title: "Không thể xác nhận!",
+            text: "Đề nghị thanh toán đã được xử lý",
+        });
+        return;
+    }
+    else if (selectedData.status == 2) { 
+        Toast.fire({
+            icon: "error",
+            title: "Không thể xác nhận!",
+            text: "Đề nghị thanh toán chưa được xác nhận",
+        });
+        return;
+    }
+    else if (selectedData.status == 1) { 
+        Toast.fire({
+            icon: "error",
+            title: "Không thể xác nhận!",
+            text: "Đề nghị thanh toán chưa được gửi",
+        });
+        return;
+    }
+
+    console.log(selectedData);
+    
+    utils.clear_modal();
+  
+    $("#modal-title").text("Thanh toán");
+
+    $("#modal-body").append(`
+        <div class="form-group">
+            <label for="modal-fund-input">Tên quỹ</label>
+            <input type="text" class="form-control" id="modal-fund-input" value="${selectedData.fund.fundName}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-amount-input">Số tiền</label>
+            <input type="text" class="form-control" id="modal-amount-input" value="${utils.formatCurrency(selectedData.amount)}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="modal-description-input">Mô tả</label>
+            <textarea class="form-control" id="modal-description-input" rows="10" readonly>${selectedData.description}</textarea>
+        </div>
+
+        <div class="form-group">            
+            <label for="proof-image">Hình ảnh minh chứng</label><br>
+            <label class="custom-file-upload btn-primary btn-icon-text">
+                <i class="ti-upload btn-icon-prepend mr-2"></i>
+                <input type="file" id="fileUpload" accept="image/*" multiple>
+                Chọn file
+            </label><br>
+            <span id="selected-file-names" class="ml-2"></span>
+        </div>
+    `);
+
+    $("#modal-footer").append(`
+        <button type="submit" class="btn btn-primary mr-2" id="modal-submit-btn">
+            <i class="fa-regular fa-floppy-disk mr-2"></i>Lưu
+        </button>
+        <button class="btn btn-light" id="modal-cancel-btn">
+            <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
+        </button>
+    `);
+
+    // Sự kiện thay đổi file
+    $("#fileUpload").on("change", function () {
+        var files = $(this)[0].files; // Lấy danh sách file
+        var fileNamesHtml = '';
+
+        // Duyệt qua từng file và tạo button hiển thị tên file
+        for (var i = 0; i < files.length; i++) {
+            var fileName = files[i].name;
+            var fileId = "file-" + i;
+
+            // Tạo button có chứa tên file và nút x để xoá
+            fileNamesHtml += `
+                <button type="button" class="btn btn-outline-light btn-file btn-sm" id="${fileId}" data-file-index="${i}">${fileName} 
+                    <span class="ml-2 close" data-file-index="${i}" style="font-size: small">&times;</span>
+                </button>
+            `;
+        }
+
+        // Hiển thị danh sách tên file dưới dạng các button
+        $("#selected-file-names").html(fileNamesHtml);
+    });
+
+    // Xử lý sự kiện khi nhấn nút "x" để xoá file
+    $(document).on("click", ".close", function () {
+        var fileIndex = $(this).data('file-index');
+        
+        // Xoá file từ input file
+        var inputFile = $('#fileUpload')[0];
+        var dt = new DataTransfer(); // Tạo đối tượng DataTransfer để quản lý lại danh sách file
+
+        // Duyệt qua danh sách file và loại bỏ file đã chọn xoá
+        for (var i = 0; i < inputFile.files.length; i++) {
+            if (i !== fileIndex) {
+                dt.items.add(inputFile.files[i]); // Thêm file vào danh sách mới, trừ file bị xoá
+            }
+        }
+
+        inputFile.files = dt.files; // Cập nhật lại danh sách file vào input
+
+        // Xoá button tương ứng
+        $(this).parent().remove();
+    });
+
+    $("#modal-id").modal("show");
+
+    $("#modal-submit-btn").click(async function () {
+        var paymentReqId = selectedData.id; // Lấy ID của đề nghị thanh toán
+
+        // Hiển thị thông báo xác nhận từ người dùng
+        const result = await Swal.fire({
+            title: "Bạn có chắc chắn?",
+            text: "Bạn sẽ thanh toán " + utils.formatCurrency(selectedData.amount),
+            icon: "warning",
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: "Đồng ý",
+            denyButtonText: "Từ chối",
+            cancelButtonText: "Huỷ"
+        });
+
+        Swal.showLoading();
+        if (result.isConfirmed) {
+            // Chuẩn bị dữ liệu JSON để gửi
+            var data = {
+                description: $('#modal-description-input').val(),
+                fund: $('#modal-fund-input').val(),
+                fileNames: [],
+                images: []
+            };
+            // Xử lý file ảnh và chuyển đổi sang Base64
+            var files = $('#fileUpload')[0].files;
+            const base64Files = await Promise.all(Array.from(files).map(async file => {
+                let base64 = await utils.imageToBase64(file);
+                data.fileNames.push(file.name); // Lưu tên file vào mảng
+                return base64.split(",")[1]; // Loại bỏ phần "data:image/*;base64,"
+            }));
+
+            // Thêm chuỗi Base64 của các file vào dữ liệu gửi
+            data.images = base64Files;
+
+            $.ajax({
+                type: "PUT",
+                url: "/api/payment-requests/process/" + paymentReqId,
+                headers: utils.defaultHeaders(),
+                data: JSON.stringify(data),
+                processData: false, // không xử lý dữ liệu
+                success: async function (res) {
+                    Swal.close();
+                    if (res.code == 1000) {
+                        if ($('#fund-select').val() !== null || $('#filter-type-select').val() !== null) {
+                            await loadPaymentRequestData();
+                        }
+                        Toast.fire({
+                            icon: "success",
+                            title: "Đã thanh toán thành công!",
+                        });
+                    } else {
+                        Toast.fire({
+                            icon: "error",
+                            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
+                    var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
+                }
+            });
+        }
+        else if (result.isDenied) {
+            Swal.close();
+            return;
+        }
+        $("#modal-id").modal("hide"); 
+    });   
+    // Khi nhấn nút "Huỷ bỏ"
+    $("#modal-cancel-btn").click(function (){
+        // Đóng modal
+        $("#modal-id").modal('hide');
+    }); 
+});
+
+
+// Sự kiện khi người dùng nhấn vào nút "Xem hình ảnh"
+$(document).on('click', '#btn-view-image', function () {
+    utils.clear_modal();
+
+    $("#modal-title").text("Đề nghị thanh toán");
+
+    var images = $(this).data('images'); // Lấy dữ liệu hình ảnh từ nút
+    
+    if (images) {
+        $('#modal-body').html(images); // Đổ hình ảnh vào modal-body
+    } else {
+        $('#modal-body').html('<p>Không có hình ảnh để hiển thị</p>');
+    }
+
+    $('#modal-id').modal('show'); // Mở modal
+});
+
+
 // Hàm hiển thị dataTable Invoice: lấy tất cả hoá đơn của một đề nghị thanh toán
 function showDataTable(paymentReq) {
 
@@ -800,7 +1043,7 @@ function showDataTable(paymentReq) {
                     let html = ""; 
                     
                     if (row.proofImages.length >= 1){
-                        html = `<a class="view-image" role="button" style="color: white;" 
+                        html = `<a class="view-image" role="button" id="btn-image-invoice" style="color: white;" 
                                     data-images='${row.proofImages}'>
                                     <b> Xem hình ảnh </b>
                                 </a> `
@@ -892,7 +1135,7 @@ $(document).on('hidden.bs.modal', '.ekko-lightbox', function() {
 });
 
 // Sự kiện khi người dùng nhấn vào nút "Xem hình ảnh"
-$(document).on('click', '.view-image', function () {
+$(document).on('click', '#btn-image-invoice', function () {
     utils.clear_modal();
 
     $("#modal-title").text("Hoá đơn " + selectedInvoice.name);

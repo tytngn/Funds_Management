@@ -137,6 +137,22 @@ public class FundPermissionService {
                 .collect(Collectors.toList());
     }
 
+    // Lấy danh sách phân quyền đóng góp quỹ theo thủ quỹ, theo bộ lọc (theo quỹ, theo thời gian, theo trạng thái, theo phòng ban, theo cá nhân)
+    public List<FundPermissionResponse> filterFundPermissionsByTreasurer(String fundId, LocalDate start, LocalDate end, String departmentId, String userId)
+    {
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
+
+        List<FundPermission> fundPermissions = fundPermissionRepository.filterFundPermissionsByTreasurer(fundId, start, end,
+                true, false, departmentId, userId, id);
+
+        // Chuyển đổi danh sách FundPermission thành FundPermissionResponse
+        return fundPermissions.stream()
+                .map(fundPermissionMapper::toResponse)
+                .sorted(Comparator.comparing(FundPermissionResponse::getGrantedDate).reversed())
+                .collect(Collectors.toList());
+    }
+
     // Cập nhật quyền giao dịch của một người dùng
     @Transactional
     public FundPermissionResponse updateFundPermissions(String userId, String fundId, boolean canContribute, boolean canWithdraw) {

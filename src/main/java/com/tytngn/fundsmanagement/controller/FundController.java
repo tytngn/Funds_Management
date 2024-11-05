@@ -25,6 +25,7 @@ public class FundController {
 
     FundService fundService;
 
+    // tạo quỹ
     @PostMapping
     @PreAuthorize("@securityExpression.hasPermission({'CREATE_FUND'})")
     ApiResponse<FundResponse> createFund(@RequestBody @Valid FundRequest request) {
@@ -35,6 +36,7 @@ public class FundController {
     }
 
 
+    // lấy danh sách tâ cả quỹ
     @GetMapping
     @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_FUNDS'})")
     ApiResponse<List<FundResponse>> getAllFunds() {
@@ -45,6 +47,7 @@ public class FundController {
     }
 
 
+    // lấy quỹ theo ID
     @GetMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_BY_ID'})")
     ApiResponse<FundResponse> getFundById(@PathVariable String id) {
@@ -77,6 +80,7 @@ public class FundController {
     }
 
 
+    // lấy danh sách quỹ theo bộ lọc
     @GetMapping("/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUNDS_BY_FILTER'})")
     ApiResponse<Map<String, Object>> getFundsByFilter(@RequestParam(required = false) LocalDate start,
@@ -96,6 +100,23 @@ public class FundController {
     }
 
 
+    // Lấy danh sách quỹ do người dùng làm thủ quỹ theo bộ lọc
+    @GetMapping("/filter/by-treasurer")
+    @PreAuthorize("@securityExpression.hasPermission({'FILTER_FUNDS_BY_TREASURER'})")
+    ApiResponse<Map<String, Object>> filterFundsByTreasurer(@RequestParam(required = false) LocalDate start,
+                                                      @RequestParam(required = false) LocalDate end,
+                                                      @RequestParam(required = false) Integer status)
+    {
+        status = (status != null) ? status : null;
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundService.filterFundsByTreasurer(start, end, status))
+                .build();
+    }
+
+
+    // lấy báo cáo tổng quan quỹ
     @GetMapping("/overview")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_OVERVIEW'})")
     ApiResponse<Map<String, Object>> getFundOverviewReport(@RequestParam(required = false) Integer year,
@@ -124,9 +145,10 @@ public class FundController {
 //    }
 
 
-    @PutMapping
+    // cập nhật quỹ
+    @PutMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND'})")
-    ApiResponse<FundResponse> updateFund(@RequestParam String id, @RequestBody @Valid FundRequest request) {
+    ApiResponse<FundResponse> updateFund(@PathVariable String id, @RequestBody @Valid FundRequest request) {
         return ApiResponse.<FundResponse>builder()
                 .code(1000)
                 .result(fundService.update(id, request))
@@ -134,6 +156,29 @@ public class FundController {
     }
 
 
+    // Chuyển thủ quỹ
+    @PutMapping("/assign-treasurer/{id}/{userId}")
+    @PreAuthorize("@securityExpression.hasPermission({'ASSIGN_TREASURER'})")
+    ApiResponse<FundResponse> assignTreasurer(@PathVariable String id, @PathVariable String userId) {
+        return ApiResponse.<FundResponse>builder()
+                .code(1000)
+                .result(fundService.assignTreasurer(id, userId))
+                .build();
+    }
+
+
+    // Vô hiệu hoá quỹ
+    @PutMapping("/disable/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'DISABLE_FUND'})")
+    ApiResponse<FundResponse> disableFund(@PathVariable String id) {
+        return ApiResponse.<FundResponse>builder()
+                .code(1000)
+                .result(fundService.disable(id))
+                .build();
+    }
+
+
+    // xoá quỹ
     @DeleteMapping()
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_FUND'})")
     ApiResponse<Void> deleteFund(@RequestParam String id) {

@@ -36,7 +36,8 @@ $(document).ready(function () {
         $('#role-div').prop("hidden", true);
         $('#bank-div').prop("hidden", true);
 
-
+        clearFilter ();
+    
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
             $('#trans-times-div').prop("hidden", false); // Hiển thị Date Picker
@@ -461,6 +462,19 @@ async function loadUserData() {
         },
     });
 }
+
+
+function clearFilter () {
+    // Clear lựa chọn của select
+    $('#status-select').val(null).trigger('change');
+    $('#department-select').val(null).trigger('change');
+    $('#role-select').val(null).trigger('change');
+    $('#bank-select').val(null).trigger('change');
+
+    startDate = null;
+    endDate = null;
+}
+
 
 // Hàm hiển thị hoặc ẩn mật khẩu
 function togglePasswordVisibility(passwordInputId, toggleButtonId, iconId) {

@@ -25,6 +25,7 @@ public class FundPermissionController {
 
     FundPermissionService fundPermissionService;
 
+    // cấp quyền cho danh sách người dùng
     @PostMapping
     @PreAuthorize("@securityExpression.hasPermission({'GRANT_PERMISSIONS_TO_USERS'})")
     ApiResponse<List<FundPermissionResponse>> grantPermissionsToUsers(@RequestBody @Valid FundPermissionRequest request) {
@@ -34,6 +35,7 @@ public class FundPermissionController {
                 .build();
     }
 
+    // Lấy danh sách người dùng đã được cấp quyền giao dịch
     @GetMapping
     @PreAuthorize("@securityExpression.hasPermission({'GET_USERS_WITH_PERMISSIONS'})")
     ApiResponse<List<FundPermissionResponse>> getUsersWithPermissions(@RequestParam String fundId) {
@@ -43,6 +45,7 @@ public class FundPermissionController {
                 .build();
     }
 
+    // Lấy thông tin phân quyền của người dùng trong quỹ
     @GetMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'GET_USERS_PERMISSIONS_IN_FUND'})")
     ApiResponse<FundPermissionResponse> getUserPermissionInFund(@PathVariable String id) {
@@ -86,6 +89,24 @@ public class FundPermissionController {
     {
         List<FundPermissionResponse> filteredPermissions = fundPermissionService.filterFundPermissions(fundId, start, end,
                 canContribute, canWithdraw, departmentId, userId);
+
+        return ApiResponse.<List<FundPermissionResponse>>builder()
+                .code(1000)
+                .result(filteredPermissions)
+                .build();
+    }
+
+    // Lấy danh sách phân quyền đóng góp theo thủ quỹ, theo bộ lọc (theo quỹ, theo thời gian, theo trạng thái)
+    @GetMapping("/filter/by-treasurer")
+    @PreAuthorize("@securityExpression.hasPermission({'FILTER_FUND_PERMISSIONS_BY_TREASURER'})")
+    public ApiResponse<List<FundPermissionResponse>> filterFundPermissionsByTreasurer(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) LocalDate start,
+            @RequestParam(required = false) LocalDate end,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) String userId)
+    {
+        List<FundPermissionResponse> filteredPermissions = fundPermissionService.filterFundPermissionsByTreasurer(fundId, start, end, departmentId, userId);
 
         return ApiResponse.<List<FundPermissionResponse>>builder()
                 .code(1000)

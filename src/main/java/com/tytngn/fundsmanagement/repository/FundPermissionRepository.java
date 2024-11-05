@@ -45,4 +45,23 @@ public interface FundPermissionRepository extends JpaRepository<FundPermission, 
                                                @Param("userId") String userId
     );
 
+    // Lấy danh sách phân quyền giao dịch quỹ (FundPermission) theo thủ quỹ, theo bộ lọc (theo quỹ, theo thời gian, theo trạng thái, theo phòng ban, theo cá nhân)
+    @Query("SELECT fp FROM FundPermission fp " +
+            "WHERE (COALESCE(:fundId, '') = '' OR fp.fund.id = :fundId) " +
+            "AND (COALESCE(:start, null) IS NULL OR fp.grantedDate >= :start) " +
+            "AND (COALESCE(:end, null) IS NULL OR fp.grantedDate <= :end) " +
+            "AND (COALESCE(:canContribute, null) IS NULL OR fp.canContribute = :canContribute) " +
+            "AND (COALESCE(:canWithdraw, null) IS NULL OR fp.canWithdraw = :canWithdraw) " +
+            "AND (COALESCE(:departmentId, '') = '' OR fp.user.department.id = :departmentId) " +
+            "AND (COALESCE(:userId, '') = '' OR fp.user.id = :userId)" +
+            "AND fp.fund.user.id = :treasurerId")
+    List<FundPermission> filterFundPermissionsByTreasurer(@Param("fundId") String fundId,
+                                               @Param("start") LocalDate start,
+                                               @Param("end") LocalDate end,
+                                               @Param("canContribute") Boolean canContribute,
+                                               @Param("canWithdraw") Boolean canWithdraw,
+                                               @Param("departmentId") String departmentId,
+                                               @Param("userId") String userId,
+                                               @Param("treasurerId") String treasurerId
+    );
 }

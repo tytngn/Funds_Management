@@ -41,6 +41,8 @@ $(document).ready(function () {
         $('#individual-div').prop("hidden", true);
         $('#individual-select').prop('disabled', true);
 
+        clearFilter ();
+
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
             $('#trans-times-div').prop("hidden", false); // Hiển thị Date Range Picker
@@ -517,6 +519,17 @@ async function loadWithdrawalData() {
         },
     });
 }
+
+function clearFilter () {
+    // Clear lựa chọn của select
+    $('#status-select').val(null).trigger('change');
+    $('#department-select').val(null).trigger('change');
+    $('#individual-select').val(null).trigger('change');
+
+    startDate = null;
+    endDate = null;
+}
+
 
 // Bắt sự kiện khi chọn dòng
 $('#withdrawal-management-table tbody').on('click', 'tr', function () {

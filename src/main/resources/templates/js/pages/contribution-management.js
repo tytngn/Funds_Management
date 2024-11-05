@@ -14,11 +14,14 @@ let selectedData; // Biến lưu dữ liệu đã chọn
 var fundOption = [];
 var transTypeOption = [];
 
+var userRole;
+
 var startDate;
 var endDate;
 
 
-$(document).ready(function () {
+$(document).ready(async function () {
+    await setData();
 
     // Select 
     $('.select-2').select2({
@@ -40,6 +43,8 @@ $(document).ready(function () {
         $('#department-div').prop("hidden", true);
         $('#individual-div').prop("hidden", true);
         $('#individual-select').prop('disabled', true);
+
+        clearFilter ();
 
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
@@ -95,10 +100,14 @@ $(document).ready(function () {
         $(this).val('');
     });
 
+    var urlFund = "/api/funds/by-treasurer";
+    if (userRole === 'ADMIN'){
+        urlFund = "/api/funds/active";
+    } 
     // Gọi api để lấy tên quỹ và Nạp dữ liệu lên mảng fundOption
     $.ajax({
         type: "GET",
-        url: "/api/funds/active",
+        url: urlFund,
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
@@ -380,6 +389,28 @@ $(document).ready(function () {
 });
 
 
+// Hiển thị dữ liệu theo role của người dùng
+async function setData() {
+    const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
+    if (!userInfo) {
+        throw new Error("Không thể lấy thông tin người dùng");
+    }
+    
+    const roles = userInfo.roles.map(role => role.id); // Lấy danh sách các role của user
+
+    // Đối với Thủ quỹ
+    if (roles.includes('USER_MANAGER')) {
+        userRole = "USER_MANAGER";
+    } 
+    // Đối với Kế toán và Quản trị viên
+    if (roles.includes('ACCOUNTANT') || roles.includes('ADMIN')) {
+        userRole = "ACCOUNTANT";
+    } 
+    
+    console.log(userRole);
+}
+
+
 // Gọi api lấy dữ liệu danh sách các giao dịch đóng góp quỹ
 async function loadContributionData() {
     // Nếu không có giá trị thì gán ''
@@ -443,9 +474,13 @@ async function loadContributionData() {
         }
     } 
 
+    var urlTrans = "/api/fund-transactions/contribution/filter/by-treasurer?fundId=" + fundId + "&transTypeId=" + transTypeId + "&startDate=" + startDate + "&endDate=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status;
+    if (userRole === 'ADMIN'){
+        urlTrans = "/api/fund-transactions/contribution/filter?fundId=" + fundId + "&transTypeId=" + transTypeId + "&startDate=" + startDate + "&endDate=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status;
+    }
     // Gọi API với AJAX để lấy dữ liệu 
     await $.ajax({
-        url: "/api/fund-transactions/contribution/filter?fundId=" + fundId + "&transTypeId=" + transTypeId + "&startDate=" + startDate + "&endDate=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status, // Đường dẫn API của bạn
+        url: urlTrans,
         type: "GET",
         headers: utils.defaultHeaders(),
         beforeSend: function(){
@@ -516,6 +551,17 @@ async function loadContributionData() {
             }
         },
     });
+}
+
+
+function clearFilter () {
+    // Clear lựa chọn của select
+    $('#status-select').val(null).trigger('change');
+    $('#department-select').val(null).trigger('change');
+    $('#individual-select').val(null).trigger('change');
+
+    startDate = null;
+    endDate = null;
 }
 
 

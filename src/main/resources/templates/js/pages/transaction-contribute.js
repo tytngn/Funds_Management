@@ -34,6 +34,8 @@ $(document).ready(function () {
         $('#trans-times-div').prop("hidden", true);
         $('#status-div').prop("hidden", true);
 
+        clearFilter ();
+
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
             $('#trans-times-div').prop("hidden", false); // Hiển thị Date Range Picker
@@ -393,6 +395,14 @@ async function loadContributionData() {
     });
 }
 
+
+function clearFilter () {
+    // Clear lựa chọn của select
+    $('#status-select').val(null).trigger('change');
+
+    startDate = null;
+    endDate = null;
+}
 
 // Bắt sự kiện khi chọn dòng
 $('#transaction-contribute-table tbody').on('click', 'tr', function () {

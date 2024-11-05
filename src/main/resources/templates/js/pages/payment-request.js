@@ -37,6 +37,8 @@ $(document).ready(function () {
         $('#trans-times-div').prop("hidden", true);
         $('#status-div').prop("hidden", true);
 
+        clearFilter ();
+
         // Hiển thị trường tương ứng với loại bộ lọc đã chọn
         if (filterType === 'time') {
             $('#trans-times-div').prop("hidden", false); // Hiển thị Date Range Picker
@@ -162,7 +164,7 @@ $(document).ready(function () {
                     let html = ""; 
                     
                     if (row.proofImages.length >= 1){
-                        html = `<a class="view-image" role="button" style="color: white;" 
+                        html = `<a class="view-image" role="button" id="btn-view-image" style="color: white;" 
                                     data-images='${row.proofImages}'>
                                     <b> Xem hình ảnh </b>
                                 </a> `
@@ -223,6 +225,8 @@ $(document).ready(function () {
                 render: function (data, type, row) {
                     var statusClass = '';
                     var statusText = '';
+                    var tooltipText = ''; 
+
                     // Xử lý các trạng thái
                     switch (data) {
                         case 0:
@@ -244,6 +248,7 @@ $(document).ready(function () {
                         case 4:
                             statusClass = 'btn-inverse-primary';
                             statusText = 'Đã thanh toán';
+                            tooltipText = 'Nhấn nút để xác nhận đã nhận tiền';
                             break;
                         case 5:
                             statusClass = 'btn-inverse-info';
@@ -252,7 +257,7 @@ $(document).ready(function () {
                     }
 
                     return `
-                        <div class="d-flex justify-content-center align-items-center">
+                        <div class="d-flex justify-content-center align-items-center" title="${tooltipText}" data-toggle="tooltip">
                             <button type="button" class="btn ${statusClass} btn-sm">${statusText}</button>
                         </div>
                     `;
@@ -269,19 +274,20 @@ $(document).ready(function () {
                     cell.innerHTML = start + i + 1;
                 });
 
-            // Gọi modal khi click vào nút "Đã duyệt"
+            // Khởi tạo tooltips cho các nút sau khi vẽ lại bảng
+            $('[data-toggle="tooltip"]').tooltip();
+            // Gọi modal khi click vào nút "Đã thanh toán"
             $('#payment-request-table tbody').on('click', 'button.btn-inverse-primary', async function () {
                 var data = $('#payment-request-table').DataTable().row($(this).parents('tr')).data();
                 await confirmReceivedPayment(data);  // Gọi modal xác nhận đã nhận tiền 
-                console.log(data);
-            });
-
+                $(this).tooltip('hide');
+            });           
         },
 
         initComplete: function() {
             $('.dataTables_paginate').addClass('custom-paginate'); // phân trang của table
         },
-    });
+    });            
 });
 
 
@@ -438,6 +444,15 @@ async function confirmReceivedPayment(data){
             });
         }
     });
+}
+
+
+function clearFilter () {
+    // Clear lựa chọn của select
+    $('#status-select').val(null).trigger('change');
+
+    startDate = null;
+    endDate = null;
 }
 
 
@@ -915,6 +930,24 @@ $("#btn-send-payment-request").on("click", async function () {
 });
 
 
+// Sự kiện khi người dùng nhấn vào nút "Xem hình ảnh"
+$(document).on('click', '#btn-view-image', function () {
+    utils.clear_modal();
+
+    $("#modal-title").text("Đề nghị thanh toán");
+
+    var images = $(this).data('images'); // Lấy dữ liệu hình ảnh từ nút
+    
+    if (images) {
+        $('#modal-body').html(images); // Đổ hình ảnh vào modal-body
+    } else {
+        $('#modal-body').html('<p>Không có hình ảnh để hiển thị</p>');
+    }
+
+    $('#modal-id').modal('show'); // Mở modal
+});
+
+
 // Hàm hiển thị dataTable Invoice: lấy tất cả hoá đơn của một đề nghị thanh toán
 function showDataTable(paymentReq) {
 
@@ -1020,7 +1053,7 @@ function showDataTable(paymentReq) {
                     let html = ""; 
                     
                     if (row.proofImages.length >= 1){
-                        html = `<a class="view-image" role="button" style="color: white;" 
+                        html = `<a class="view-image" role="button" id="btn-image-invoice" style="color: white;" 
                                     data-images='${row.proofImages}'>
                                     <b> Xem hình ảnh </b>
                                 </a> `
@@ -1112,7 +1145,7 @@ $(document).on('hidden.bs.modal', '.ekko-lightbox', function() {
 });
 
 // Sự kiện khi người dùng nhấn vào nút "Xem hình ảnh"
-$(document).on('click', '.view-image', function () {
+$(document).on('click', '#btn-image-invoice', function () {
     utils.clear_modal();    
 
     $("#modal-title").text("Hoá đơn " + selectedInvoice.name);

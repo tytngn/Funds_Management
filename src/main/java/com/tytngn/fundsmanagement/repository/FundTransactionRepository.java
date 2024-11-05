@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface FundTransactionRepository extends JpaRepository<FundTransaction, String> {
 
-    // Lấy danh sách giao dịch theo bộ lọc (theo quỹ, theo loại giao dịch, theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái
+    // Lấy danh sách giao dịch theo bộ lọc (theo quỹ, theo loại giao dịch, theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái)
     @Query("SELECT t FROM FundTransaction t " +
             "WHERE (COALESCE(:fundId, '') = '' OR t.fund.id = :fundId) " +
             "AND (COALESCE(:transTypeId, '') = '' OR t.transactionType.id = :transTypeId) " +
@@ -29,6 +29,27 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
                                          @Param("departmentId") String departmentId,
                                          @Param("userId") String userId,
                                          @Param("status") Integer status
+    );
+
+
+    // Lấy danh sách giao dịch do thủ quỹ quản lý theo bộ lọc (theo quỹ, theo loại giao dịch, theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái)
+    @Query("SELECT t FROM FundTransaction t " +
+            "WHERE (COALESCE(:fundId, '') = '' OR t.fund.id = :fundId) " +
+            "AND (COALESCE(:transTypeId, '') = '' OR t.transactionType.id = :transTypeId) " +
+            "AND (COALESCE(:start, null) IS NULL OR t.transDate >= :start) " +
+            "AND (COALESCE(:end, null) IS NULL OR t.transDate <= :end) " +
+            "AND (COALESCE(:departmentId, '') = '' OR t.user.department.id = :departmentId) " +
+            "AND (COALESCE(:userId, '') = '' OR t.user.id = :userId) " +
+            "AND (COALESCE(:status, -1) = -1 OR t.status = :status)" +
+            "AND t.fund.user.id = :treasurerId")
+    List<FundTransaction> filterTransactionsByTreasurer(@Param("fundId") String fundId,
+                                             @Param("transTypeId") String transTypeId,
+                                             @Param("start") LocalDateTime start,
+                                             @Param("end") LocalDateTime end,
+                                             @Param("departmentId") String departmentId,
+                                             @Param("userId") String userId,
+                                             @Param("status") Integer status,
+                                             @Param("treasurerId") String treasurerId
     );
 
 

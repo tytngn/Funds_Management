@@ -25,6 +25,7 @@ public class FundTransactionController {
 
     FundTransactionService fundTransactionService;
 
+    // Tạo giao dịch
     @PostMapping
     @PreAuthorize("@securityExpression.hasPermission({'CREATE_FUND_TRANSACTION'})")
     ApiResponse<FundTransactionResponse> createTransaction(@RequestBody @Valid FundTransactionRequest request) {
@@ -35,6 +36,7 @@ public class FundTransactionController {
     }
 
 
+    // Lấy danh sách tất cả giao dịch
     @GetMapping
     @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_FUND_TRANSACTIONS'})")
     ApiResponse<List<FundTransactionResponse>> getAllTransaction() {
@@ -45,6 +47,7 @@ public class FundTransactionController {
     }
 
 
+    // Lấy giao dịch bằng ID
     @GetMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_TRANSACTION_BY_ID'})")
     ApiResponse<FundTransactionResponse> getTransactionById(@PathVariable String id) {
@@ -81,6 +84,33 @@ public class FundTransactionController {
     }
 
 
+    // Lấy danh sách giao dịch đóng góp do thủ quỹ quản lý theo bộ lọc (theo quỹ, theo loại giao dịch, theo thời gian, theo phòng ban, theo cá nhân, theo trạng thái)
+    @GetMapping("/contribution/filter/by-treasurer")
+    @PreAuthorize("@securityExpression.hasPermission({'FILTER_CONTRIBUTION_BY_TREASURER'})")
+    ApiResponse<Map<String, Object>> filterContributionByTreasurer(
+            @RequestParam (required = false) String fundId,
+            @RequestParam (required = false) String transTypeId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) Integer status
+    )
+    {
+
+        fundId = (fundId != null && !fundId.isEmpty()) ? fundId : null;
+        transTypeId = (transTypeId != null && !transTypeId.isEmpty()) ? transTypeId : null;
+        departmentId = (departmentId != null && !departmentId.isEmpty()) ? departmentId : null;
+        userId = (userId != null && !userId.isEmpty()) ? userId : null;
+        status = (status != null) ? status : null;
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.filterContributionByTreasurer(fundId, transTypeId, startDate, endDate, departmentId, userId, status))
+                .build();
+    }
+
+
     // Lấy danh sách giao dịch đóng góp của một người dùng theo bộ lọc và tính tổng số tiền
     @GetMapping("/user-contributions/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_USER_CONTRIBUTIONS_BY_FILTER'})")
@@ -107,17 +137,7 @@ public class FundTransactionController {
 
     // Lấy báo cáo quỹ của một người dùng theo bộ lọc
     @GetMapping("/user-fund-report")
-//    @PreAuthorize("@securityExpression.hasPermission({'GET_USER_FUND_REPORT'})")
-//     ApiResponse<List<FundTransactionReportResponse>> getUserFundReport(
-//            @RequestParam(required = false) String start,
-//            @RequestParam(required = false) String end) {
-//
-//        return ApiResponse.<List<FundTransactionReportResponse>>builder()
-//                .code(1000)
-//                .result(fundTransactionService.getUserFundReport(start, end))
-//                .build();
-//    }
-     ApiResponse<List<FundTransactionReportResponse>> getUserFundReport(
+    ApiResponse<List<FundTransactionReportResponse>> getUserFundReport(
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end,
             @RequestParam(required = false) Integer year,
@@ -182,6 +202,7 @@ public class FundTransactionController {
     }
 
 
+    // cập nhật giao dịch
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND_TRANSACTION'})")
     ApiResponse<FundTransactionResponse> updateTransaction(@RequestParam String id,
@@ -192,6 +213,7 @@ public class FundTransactionController {
                 .build();
     }
 
+    // duyệt giao dịch
     @PutMapping("/approve/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'APPROVE_FUND_TRANSACTION'})")
     ApiResponse<FundTransactionResponse> approveTransaction(@PathVariable String id) {
@@ -201,6 +223,8 @@ public class FundTransactionController {
                 .build();
     }
 
+
+    // từ chối giao dịch
     @PutMapping("/reject/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'REJECT_FUND_TRANSACTION'})")
     ApiResponse<FundTransactionResponse> rejectTransaction(@PathVariable String id) {
@@ -210,6 +234,8 @@ public class FundTransactionController {
                 .build();
     }
 
+
+    // xoá giao dịch
     @DeleteMapping()
     @PreAuthorize("@securityExpression.hasPermission({'DELETE_FUND_TRANSACTION'})")
     ApiResponse<Void> deleteTransaction(@RequestParam String id) {

@@ -1,14 +1,13 @@
 package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.dto.request.DepartmentRequest;
-import com.tytngn.fundsmanagement.dto.response.DepartmentResponse;
-import com.tytngn.fundsmanagement.dto.response.DepartmentSimpleResponse;
-import com.tytngn.fundsmanagement.dto.response.TransactionTypeResponse;
+import com.tytngn.fundsmanagement.dto.response.*;
 import com.tytngn.fundsmanagement.entity.Department;
 import com.tytngn.fundsmanagement.entity.User;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
 import com.tytngn.fundsmanagement.mapper.DepartmentMapper;
+import com.tytngn.fundsmanagement.mapper.UserMapper;
 import com.tytngn.fundsmanagement.repository.DepartmentRepository;
 import com.tytngn.fundsmanagement.repository.UserRepository;
 import lombok.AccessLevel;
@@ -20,6 +19,8 @@ import org.springframework.stereotype.Service;
 import java.text.Collator;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,9 +30,10 @@ public class DepartmentService {
 
     DepartmentRepository departmentRepository;
     DepartmentMapper departmentMapper;
-    UserRepository userRepository;
+    UserMapper userMapper;
     Collator vietnameseCollator;
 
+    // tạo phòng ban
     public DepartmentSimpleResponse createDepartment(DepartmentRequest request) {
 
         if (departmentRepository.existsByName(request.getName()))
@@ -43,13 +45,24 @@ public class DepartmentService {
     }
 
 
+    // lấy danh sách tất cả phòng ban và tổng số nhân viên
     public List<DepartmentResponse> getAllDepartments() {
         var departments = departmentRepository.findAll()
                 .stream()
                 .map(department -> {
                     DepartmentResponse response = departmentMapper.toDepartmentResponse(department);
-                    int employeeCount = department.getUsers().size(); // Lấy số nhân viên trong phòng ban
+                    int employeeCount = (int) department.getUsers().stream()
+                            .filter(user -> user.getStatus() == 1)
+                            .count(); // Lấy số nhân viên trong phòng ban
                     response.setEmployeeCount(employeeCount); // Gán số nhân viên vào response
+
+                    // Lọc danh sách nhân viên đang hoạt động và chuyển đổi sang UserSimpleResponse
+                    Set<UserSimpleResponse> activeUsers = department.getUsers().stream()
+                            .filter(user -> user.getStatus() == 1)
+                            .map(userMapper::toUserSimpleResponse)
+                            .collect(Collectors.toSet());
+                    response.setUsers(activeUsers);
+
                     return response;
                 })
                 .sorted(Comparator.comparing(DepartmentResponse::getName, vietnameseCollator))
@@ -59,12 +72,14 @@ public class DepartmentService {
     }
 
 
+    // lấy thông tin phòng ban theo ID
     public DepartmentResponse getDepartmentById(String id) {
         return departmentMapper.toDepartmentResponse(departmentRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS)));
     }
 
 
+    // cập nhật phòng ban
     public DepartmentSimpleResponse updateDepartment(String id, DepartmentRequest request) {
         Department department = departmentRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS));
@@ -74,6 +89,8 @@ public class DepartmentService {
         return departmentMapper.toDepartmentSimpleResponse(departmentRepository.save(department));
     }
 
+
+    // xoá phòng ban
     public void deleteDepartment(String id) {
         var department = departmentRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.DEPARTMENT_NOT_EXISTS));

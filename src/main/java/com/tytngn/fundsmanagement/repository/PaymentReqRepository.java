@@ -34,7 +34,7 @@ public interface PaymentReqRepository extends JpaRepository<PaymentReq, String> 
     // Lấy danh sách đề nghị thanh toán theo bộ lọc và thuộc quỹ do người dùng tạo
     @Query("""
             SELECT p FROM PaymentReq p 
-            JOIN Fund f
+            JOIN p.fund f
             WHERE (COALESCE(:fundId, '') = '' OR p.fund.id = :fundId) 
             AND (COALESCE(:start, null) IS NULL OR p.createDate >= :start) 
             AND (COALESCE(:end, null) IS NULL OR p.createDate <= :end) 
