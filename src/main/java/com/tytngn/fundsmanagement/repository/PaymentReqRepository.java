@@ -51,5 +51,19 @@ public interface PaymentReqRepository extends JpaRepository<PaymentReq, String> 
                                            @Param("userId") String userId,
                                            @Param("treasurerId") String treasurerId);
 
+
+    // Báo cáo chi tiết quỹ: Tính tổng thanh toán của quỹ
+    @Query("SELECT COALESCE(SUM(pr.amount), 0) FROM PaymentReq pr WHERE pr.fund.id = :fundId " +
+            "AND (pr.status = 4 OR pr.status = 5) " + // trạng thái đã thanh toán hoặc đã nhận
+            "AND (COALESCE(:startDate, null) IS NULL OR pr.updateDate >= :startDate) " +
+            "AND (COALESCE(:endDate, null) IS NULL OR pr.updateDate <= :endDate) " +
+            "AND (COALESCE(:year, null ) IS NULL OR YEAR(pr.updateDate) = :year) " +
+            "AND (COALESCE(:month, null) IS NULL OR MONTH(pr.updateDate) = :month)")
+    double sumPayments(
+            @Param("fundId") String fundId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("year") Integer year,
+            @Param("month") Integer month);
 }
 

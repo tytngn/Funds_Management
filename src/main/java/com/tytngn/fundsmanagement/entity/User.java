@@ -54,9 +54,6 @@ public class User {
     )
     Set<Role> roles = new HashSet<>();
 
-    @OneToMany(mappedBy = "user")
-    Set<Report> reports = new HashSet<>();
-
     @OneToOne(mappedBy = "user")
     BankAccount account;
 

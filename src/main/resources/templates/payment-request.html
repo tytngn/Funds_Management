@@ -7,7 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <title>Fund Management</title>
+    <title>Đề nghị thanh toán | Fund Management</title>
 
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/feather/feather.css" />
@@ -59,10 +59,10 @@
 
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_settings-panel.html -->
-         <div id="setting-panel"></div>
+         <!-- <div id="setting-panel"></div>
          <script>
           $("#setting-panel").load("partials/_settings-panel.html");
-        </script>
+        </script> -->
         <!-- partial -->
 
         <!-- partial:partials/_sidebar.html -->
@@ -182,7 +182,7 @@
                     </div>
                   </div>
                   <div class="card-body">
-                    <p class="card-description">Nháy đúp chuột để mở bảng hoá đơn của đề nghị thanh toán</p> 
+                    <p id="card-description" class="card-description" hidden>Nháy đúp chuột để mở bảng hoá đơn của đề nghị thanh toán</p> 
                     <div class="table-responsive">
                       <table id="payment-request-table" class="table table-striped"> 
                         <thead>

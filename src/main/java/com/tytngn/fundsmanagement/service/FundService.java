@@ -3,23 +3,28 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundRequest;
+import com.tytngn.fundsmanagement.dto.response.FundReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.entity.Fund;
 import com.tytngn.fundsmanagement.entity.FundPermission;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
 import com.tytngn.fundsmanagement.mapper.FundMapper;
-import com.tytngn.fundsmanagement.repository.FundPermissionRepository;
-import com.tytngn.fundsmanagement.repository.FundRepository;
-import com.tytngn.fundsmanagement.repository.UserRepository;
+import com.tytngn.fundsmanagement.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.text.Collator;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -29,9 +34,14 @@ public class FundService {
 
     FundRepository fundRepository;
     FundMapper fundMapper;
+
     UserRepository userRepository;
     FundPermissionRepository fundPermissionRepository;
+    FundTransactionRepository fundTransactionRepository;
+    PaymentReqRepository paymentReqRepository;
+
     SecurityExpression securityExpression;
+    Collator vietnameseCollator;
 
     // Tạo quỹ
     public FundResponse create(FundRequest request) {
@@ -173,9 +183,86 @@ public class FundService {
 
 
     // Báo cáo chi tiết quỹ
-//    public List<FundReportResponse> generateFundReport(Integer year, Integer month, LocalDate startDate, LocalDate endDate) {
-//        return fundRepository.getFundReport(year, month, startDate, endDate);
-//    }
+    public Map<String, Object> generateFundReport(LocalDate startDate, LocalDate endDate, Integer year, Integer month) {
+        // Xác định khoảng thời gian
+        LocalDateTime start = startDate != null ? startDate.atTime(00,00,00) : null;
+        LocalDateTime end = endDate != null ? endDate.atTime(23, 59, 59) : null;
+        LocalDateTime yearStart = year != null ? LocalDateTime.of(year, 1, 1, 00, 00, 00) : null;
+        LocalDateTime monthStart = month != null ? LocalDateTime.of(year, month, 1, 00, 00, 00) : null;
+
+//        log.info(monthStart.toString());
+        // Lấy danh sách các quỹ có các điều kiện về giao dịch, đề nghị thanh toán hoặc phân quyền
+        List<Fund> funds = fundRepository.findFundsByFilters(start, end, year, month);
+        List<FundReportResponse> report = new ArrayList<>();
+
+        double totalIncome = 0.0;
+        double totalExpenditure = 0.0;
+        double totalBalance = 0.0;
+        double totalBeginningBalance = 0.0;
+        double totalRemainingBalance = 0.0;
+
+        for (Fund fund : funds) {
+            FundReportResponse dto = new FundReportResponse();
+            dto.setFundName(fund.getFundName());
+            dto.setBalance(fund.getBalance());
+            dto.setStatus(fund.getStatus());
+
+            // Số dư đầu kỳ (trước thời gian được chọn)
+            double beginningBalance = 0.0;
+            if (year != null) {
+                beginningBalance = fundTransactionRepository.calculateBeginningBalance(fund.getId(), null, null, yearStart);
+            } else if (month != null) {
+                beginningBalance = fundTransactionRepository.calculateBeginningBalance(fund.getId(),null, null, monthStart);
+            }
+            else {
+                beginningBalance = fundTransactionRepository.calculateBeginningBalance(fund.getId(), null, null, start);
+            }
+            dto.setBeginningBalance(beginningBalance);
+            totalBeginningBalance += beginningBalance;
+
+            // Tổng thu (đóng góp quỹ đã duyệt)
+            double fundIncome = fundTransactionRepository.sumContributions(fund.getId(), start, end, year, month);
+            dto.setIncome(fundIncome);
+            totalIncome += fundIncome;
+
+            // Tổng chi (rút quỹ đã duyệt và thanh toán có status = 4 hoặc status = 5)
+            double fundExpenditure = fundTransactionRepository.sumWithdrawals(fund.getId(), start, end, year, month)
+                    + paymentReqRepository.sumPayments(fund.getId(), start, end, year, month);
+            dto.setExpense(fundExpenditure);
+            totalExpenditure += fundExpenditure;
+
+            // Tồn = (Số dư đầu kỳ + Thu) - Chi
+            double remainingBalance = (beginningBalance + fundIncome) - fundExpenditure;
+            dto.setRemainingBalance(remainingBalance);
+            totalRemainingBalance += remainingBalance;
+
+            // Cộng dồn số dư
+            totalBalance += fund.getBalance();
+
+            // Số nhân viên có quyền đóng góp
+            int contributorsCount = fundPermissionRepository.countContributors(fund.getId(), startDate, endDate, year, month);
+            dto.setContributorsCount(contributorsCount);
+
+            report.add(dto);
+        }
+
+        // Sắp xếp theo tên và số dư
+        List<FundReportResponse> sortedResponses = report.stream()
+                .sorted(Comparator.comparing(FundReportResponse::getFundName, vietnameseCollator)
+                        .thenComparing(FundReportResponse::getBalance))
+                .toList();
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("report", sortedResponses);
+        result.put("totalIncome", totalIncome);
+        result.put("totalExpenditure", totalExpenditure);
+        result.put("totalBalance", totalBalance);
+        result.put("totalBeginningBalance", totalBeginningBalance);
+        result.put("totalRemainingBalance", totalRemainingBalance);
+
+        return result;
+    }
 
 
     // Cập nhật quỹ
@@ -217,7 +304,9 @@ public class FundService {
         // Tìm kiếm người dùng trong cơ sở dữ liệu
         var newUser = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
-
+        if(!userRepository.existsByIdAndRolesId(userId, "USER_MANAGER")){
+            throw new AppException(ErrorCode.USER_NO_TREASURER_PERMISSION);
+        }
         fund.setUpdateDate(LocalDate.now());
         fund.setUser(newUser);
         fundRepository.save(fund);

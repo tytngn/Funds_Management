@@ -22,6 +22,13 @@ const getCookie = (name) => {
 function login() {
     let username = $("#username").val();
     let password = $("#password").val();
+    if (username == null || username.trim() == "" || password == null || password.trim() == ""){
+        Toast.fire({
+            icon: "error",
+            title: "Tên đăng nhập và mật khẩu không được trống!"
+        });
+        return;
+    }
     $.ajax({
         url: "/api/auth/login",
         type: "POST",

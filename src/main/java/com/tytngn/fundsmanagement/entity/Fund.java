@@ -42,8 +42,14 @@ public class Fund {
     @JoinColumn(name = "user_id", referencedColumnName = "id",nullable = false)
     User user;
 
-    @OneToMany(mappedBy = "fund")
+    @OneToMany(mappedBy = "fund", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     Set<FundTransaction> fundTransactions = new HashSet<>();
+
+    @OneToMany(mappedBy = "fund", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<FundPermission> fundPermissions = new HashSet<>();
+
+    @OneToMany(mappedBy = "fund", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<PaymentReq> paymentRequests = new HashSet<>();
 
     @OneToMany(mappedBy = "fund")
     Set<BudgetEstimate> budgetEstimates = new HashSet<>();

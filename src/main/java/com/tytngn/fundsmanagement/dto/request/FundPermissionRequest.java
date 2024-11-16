@@ -16,7 +16,4 @@ public class FundPermissionRequest {
     String fundId;
 
     boolean canContribute;
-
-    boolean canWithdraw;
-
 }

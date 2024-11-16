@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,23 +52,39 @@ public class FundPermissionService {
 
         List<FundPermissionResponse> responseList = new ArrayList<>();
 
+        // Tải toàn bộ người dùng và quyền hiện có trước
+        List<User> users = userRepository.findAllById(request.getUserId());
+        if (users.size() < request.getUserId().size()) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTS);
+        }
+
+        Map<String, FundPermission> existingPermissions = fundPermissionRepository
+                .findByFundId(request.getFundId())
+                .stream()
+                .collect(Collectors.toMap(p -> p.getUser().getId(), p -> p));
+
         // Duyệt qua danh sách từng user
-        for (String userId : request.getUserId()) {
-            User user = userRepository.findById(userId).orElseThrow(() ->
-                    new AppException(ErrorCode.USER_NOT_EXISTS));
+        for (User user : users) {
+            FundPermission existingPermission = existingPermissions.get(user.getId());
 
-            // Kiểm tra xem quyền đã tồn tại chưa
-            FundPermission existingPermission = fundPermissionRepository.findByUserIdAndFundId(userId, request.getFundId());
-
-            if (existingPermission != null) {
-                throw new AppException(ErrorCode.FUND_PERMISSION_EXISTS);
+            // Nếu người dùng đã có quyền đóng góp
+            if (existingPermission != null && existingPermission.isCanContribute()) {
+                continue;
             }
 
-            // Tạo quyền mới cho user
-            FundPermission fundPermission = fundPermissionMapper.toFundPermission(request);
-            fundPermission.setUser(user);
-            fundPermission.setFund(fund);
-            fundPermission.setGrantedDate(LocalDate.now());
+            FundPermission fundPermission;
+            // Nếu người dùng là thủ quỹ và đã có quyền rút quỹ
+            if (existingPermission != null && existingPermission.isCanWithdraw()) {
+                // Nếu đã có quyền nhưng chưa có quyền đóng góp, cập nhật quyền
+                existingPermission.setCanContribute(request.isCanContribute());
+                fundPermission = existingPermission;
+            } else {
+                // Tạo quyền mới nếu chưa có
+                fundPermission = fundPermissionMapper.toFundPermission(request);
+                fundPermission.setUser(user);
+                fundPermission.setFund(fund);
+                fundPermission.setGrantedDate(LocalDate.now());
+            }
             fundPermissionRepository.save(fundPermission);
 
             // Chuyển đổi sang FundPermissionResponse và thêm vào danh sách
@@ -124,11 +141,11 @@ public class FundPermissionService {
 
     // Lấy danh sách phân quyền giao dịch theo quỹ, theo bộ lọc (theo thời gian, theo trạng thái, theo phòng ban, theo cá nhân)
     public List<FundPermissionResponse> filterFundPermissions(String fundId, LocalDate start, LocalDate end,
-                                                              Boolean canContribute, Boolean canWithdraw,
+                                                              Boolean canContribute,
                                                               String departmentId, String userId)
     {
         List<FundPermission> fundPermissions = fundPermissionRepository.filterFundPermissions(fundId, start, end,
-                canContribute, canWithdraw, departmentId, userId);
+                canContribute, null, departmentId, userId);
 
         // Chuyển đổi danh sách FundPermission thành FundPermissionResponse
         return fundPermissions.stream()
@@ -144,7 +161,7 @@ public class FundPermissionService {
         String id = securityExpression.getUserId();
 
         List<FundPermission> fundPermissions = fundPermissionRepository.filterFundPermissionsByTreasurer(fundId, start, end,
-                true, false, departmentId, userId, id);
+                true, null, departmentId, userId, id);
 
         // Chuyển đổi danh sách FundPermission thành FundPermissionResponse
         return fundPermissions.stream()
@@ -165,7 +182,7 @@ public class FundPermissionService {
                 new AppException(ErrorCode.FUND_NOT_EXISTS));
 
         // Lấy quyền của người dùng trên quỹ
-        FundPermission existingPermission = fundPermissionRepository.findByUserIdAndFundId(userId, fundId);
+        FundPermission existingPermission = fundPermissionRepository.findByUserIdAndFundIdAndCanContribute(userId, fundId, true);
         if (existingPermission == null) {
             throw new AppException(ErrorCode.FUND_PERMISSION_NOT_EXISTS);
         }

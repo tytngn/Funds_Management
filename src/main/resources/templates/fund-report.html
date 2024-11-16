@@ -7,7 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <title>Fund Management</title>
+    <title>Báo cáo quỹ | Fund Management</title>
 
     <!-- plugins:css -->
     <link rel="stylesheet" href="vendors/feather/feather.css" />
@@ -55,10 +55,10 @@
 
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_settings-panel.html -->
-         <div id="setting-panel"></div>
+         <!-- <div id="setting-panel"></div>
          <script>
           $("#setting-panel").load("partials/_settings-panel.html");
-        </script>
+        </script> -->
         <!-- partial -->
 
         <!-- partial:partials/_sidebar.html -->
@@ -139,6 +139,27 @@
                     </div>
                   </div>
 
+                  <div class="card-body" id="total-amount-div" hidden>
+                    <div class="form-group row">
+                      <div class="col-sm-3 text-center">
+                        <p class="card-title">Tổng dư đầu kỳ</p>
+                        <h3 class="text-primary" id="total-beginning-balance"></h3>
+                      </div>
+                      <div class="col-sm-3 text-center">
+                        <p class="card-title">Tổng thu</p>
+                        <h3 class="text-primary" id="total-income"></h3>
+                      </div>
+                      <div class="col-sm-3 text-center">
+                        <p class="card-title">Tổng chi</p>
+                        <h3 class="text-primary" id="total-expenditure"></h3>
+                      </div>
+                      <div class="col-sm-3 text-center">
+                        <p class="card-title">Tổng tồn</p>
+                        <h3 class="text-primary" id="total-remaining-balance"></h3>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="card-body">
                     <div class="table-responsive">
                       <table id="fund-report-table" class="table table-striped">
@@ -146,11 +167,12 @@
                           <tr>
                             <th class = "text-center" width="3%;">STT</th>
                             <th class = "text-center">Tên quỹ</th>
-                            <th class = "text-center" width="12%;">Số dư</th>
-                            <th class = "text-center" width="12%;">Thủ quỹ</th>
-                            <th class = "text-center" width="12%;">Số nhân viên đóng góp</th>
-                            <th class = "text-center" width="12%;">Số nhân viên rút quỹ</th>
-                            <th class = "text-center" width="5%;">Trạng thái</th>
+                            <th class = "text-center" width="10%;">Số dư đầu kỳ</th>
+                            <th class = "text-center" width="10%;">Thu</th>
+                            <th class = "text-center" width="10%;">Chi</th>
+                            <th class = "text-center" width="10%;">Tồn</th>
+                            <th class = "text-center" width="10%;">Số nhân viên đóng góp</th>
+                            <th class = "text-center" width="10%;">Trạng thái</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -178,9 +200,9 @@
     </div>
 
     <!-- Modal for adding new fund -->
-    <div id="fund-modal"></div>
+    <div id="fund-report-modal"></div>
     <script>
-      $("#fund-modal").load("partials/_modal.html");
+      $("#fund-report-modal").load("partials/_modal.html");
     </script>
 
     <!-- container-scroller -->
@@ -212,6 +234,19 @@
     <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
+    <!-- Xuất Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Xuất PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>    
+    <!-- Buttons JS -->
+    <script src="https://cdn.datatables.net/buttons/2.1.0/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.1.0/js/buttons.html5.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    
     <script type="module" src="js/pages/fund-report.js"></script>
     <script src="js/pages/services/refresh-token.js"></script>
     <!-- End custom js for this page-->

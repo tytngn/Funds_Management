@@ -233,19 +233,8 @@ $(document).ready(function () {
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
-        columnDefs: [
-            {
-                targets: '_all', // Áp dụng cho tất cả các cột
-                className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
-            },
-            {
-                targets: 1, // Cột tên 
-                className: 'text-left align-middle', // Căn lề trái nội dung của cột tên 
-            }
-        ],
-
         columns: [
-        { data: "number" },
+        { data: "number", className: "text-center" },
         { data: "fullname", 
             render: function (data, type, row) {
                 let html = "";
@@ -278,6 +267,7 @@ $(document).ready(function () {
             }
         },
         { data: "gender",
+            className: "text-center",
             render: function (data, type, row) {
                 if (data == 0) {
                     return `
@@ -315,6 +305,7 @@ $(document).ready(function () {
             data: "status",
             orderable: true, // Cho phép sắp xếp dựa trên cột này
             searchable: true, // Cho phép tìm kiếm dựa trên cột này
+            className: "text-center",
             render: function (data, type, row) {
                 var statusClass = data === 1 || data === 9999 ? 'btn-inverse-success' : 'btn-inverse-danger';
                 var statusText = data === 1 || data === 9999 ? 'Hoạt động' : 'Ngừng hoạt động';
@@ -359,7 +350,7 @@ async function loadUserData() {
     var bankName = '';
 
     if (filter === 'time') {
-        if (startDate === '' && endDate === ''){
+        if (startDate === '' || endDate === ''){
             Toast.fire({
                 icon: "warning",
                 title: "Vui lòng chọn thời gian!",
@@ -526,7 +517,7 @@ $("#btn-add-user").on("click", function () {
         <div class="form-group">
             <label for="modal-username-input">Tên đăng nhập</label>
             <input type="text" class="form-control" id="modal-username-input" placeholder="Nhập tên đăng nhập">
-            <p class="card-description" style="color: #76838f;">Chỉ được phép chứa các chữ cái không dấu và không có khoảng trắng</p>
+            <p class="card-description" style="color: #76838f;">Tên đăng nhập chỉ được phép chứa các chữ cái không dấu, chữ số và không có khoảng trắng</p>
         </div>
 
         <div class="form-group">
@@ -875,7 +866,7 @@ $("#btn-update-user").on("click", function () {
                                                 await loadUserData(); 
                                                 Toast.fire({
                                                     icon: "success",
-                                                    title: "Đã vô hiệu hoá tài khoản",
+                                                    title: "Đã vô hiệu hoá tài khoản!",
                                                 });
                                             } else {
                                                 Toast.fire({
@@ -921,7 +912,7 @@ $("#btn-update-user").on("click", function () {
                                         $(this).removeClass("update-modal");
                                         Toast.fire({
                                             icon: "success",
-                                            title: "Đã cập nhật tài khoản",
+                                            title: "Đã cập nhật tài khoản!",
                                         });
                                     } else {
                                         Toast.fire({
@@ -966,7 +957,7 @@ $("#btn-update-user").on("click", function () {
                                         if (res.code == 1000) {
                                             Toast.fire({
                                                 icon: "success",
-                                                title: "Đã đặt lại mật khẩu cho tài khoản",
+                                                title: "Đã đặt lại mật khẩu cho tài khoản!",
                                             });
                                             $("#modal-id").modal("hide");
                                         } else {
@@ -1012,7 +1003,7 @@ $("#btn-update-user").on("click", function () {
     else {
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn người dùng để cập nhật!",
+            title: "Vui lòng chọn tài khoản để thực hiện!",
         });
     }
 });
@@ -1051,7 +1042,7 @@ $("#btn-disable-user").on("click", async function () {
                         await loadUserData(); // Tải lại danh sách tài khoản
                         Toast.fire({
                             icon: "success",
-                            title: "Đã vô hiệu hoá tài khoản",
+                            title: "Đã vô hiệu hoá tài khoản!",
                         });
                     } else {
                         Toast.fire({
@@ -1079,7 +1070,7 @@ $("#btn-disable-user").on("click", async function () {
     else {
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn tài khoản để vô hiệu hoá!",
+            title: "Vui lòng chọn tài khoản để thực hiện!",
         });
     }
 });

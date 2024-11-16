@@ -150,15 +150,8 @@ $(document).ready(function () {
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
-        columnDefs: [
-            {
-                targets: '_all', // Áp dụng cho tất cả các cột
-                className: 'text-left align-middle' // Căn trái nội dung của tất cả các cột
-            }
-        ],
-
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center" },
             { data: "fund", 
                 render: function (data, type, row) {
                     let html = ""; 
@@ -293,6 +286,8 @@ $(document).ready(function () {
 
 // Gọi api lấy dữ liệu danh sách các đề nghị thanh toán của người dùng
 async function loadPaymentRequestData() {
+    $('#card-description').prop("hidden", false); // Hiển thị mô tả mở hoá đơn
+
     // Nếu không có giá trị thì gán ''
     startDate = startDate || ''; 
     endDate = endDate || ''; 
@@ -426,7 +421,7 @@ async function confirmReceivedPayment(data){
                 await loadPaymentRequestData(); // load lại bảng đề nghị thanh toán
                 Toast.fire({
                     icon: "success",
-                    title: "Đã xác nhận thành công",
+                    title: "Đã xác nhận thành công!",
                 });
             } else {
                 Toast.fire({
@@ -622,7 +617,7 @@ $("#btn-update-payment-request").on("click", function () {
     if (!selectedData){
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn đề nghị thanh toán để cập nhật!",
+            title: "Vui lòng chọn đề nghị thanh toán để thực hiện!",
         });
         return;
     }
@@ -718,7 +713,7 @@ $("#btn-update-payment-request").on("click", function () {
                             Swal.showLoading();
                             $.ajax({
                                 type: "PUT",
-                                url: "/api/payment-requests?id=" + paymentReqId,
+                                url: "/api/payment-requests/" + paymentReqId,
                                 headers: utils.defaultHeaders(),
                                 data: JSON.stringify({
                                     description: description,
@@ -730,7 +725,7 @@ $("#btn-update-payment-request").on("click", function () {
                                         await loadPaymentRequestData();
                                         Toast.fire({
                                             icon: "success",
-                                            title: "Đã cập nhật đề nghị thanh toán",
+                                            title: "Đã cập nhật đề nghị thanh toán!",
                                         });
                                         $("#modal-id").modal("hide");
                                     } else {
@@ -781,7 +776,7 @@ $("#btn-remove-payment-request").on("click", async function () {
     if (!selectedData) {
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn đề nghị thanh toán để xoá!",
+            title: "Vui lòng chọn đề nghị thanh toán để thực hiện!",
         });
         return;
     }
@@ -829,7 +824,7 @@ $("#btn-remove-payment-request").on("click", async function () {
                     await loadPaymentRequestData(); // load lại bảng đề nghị thanh toán
                     Toast.fire({
                         icon: "success",
-                        title: "Đã xoá đề nghị thanh toán",
+                        title: "Đã xoá đề nghị thanh toán!",
                     });
                 } else {
                     Toast.fire({
@@ -857,7 +852,7 @@ $("#btn-send-payment-request").on("click", async function () {
     if (!selectedData) {
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn đề nghị thanh toán để gửi!",
+            title: "Vui lòng chọn đề nghị thanh toán để thực hiện!",
         });
         return;
     }
@@ -885,7 +880,7 @@ $("#btn-send-payment-request").on("click", async function () {
     // Hiển thị thông báo xác nhận từ người dùng
     const result = await Swal.fire({
         title: 'Bạn có chắc chắn?',
-        text: "Bạn sẽ gửi đề nghị thanh toán cho thủ quỹ?",
+        text: "Bạn sẽ gửi đề nghị thanh toán cho kế toán?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Đồng ý",
@@ -1188,7 +1183,7 @@ $("#invoices-search-input").on("keyup", function () {
 // Nhấn nút "Thêm mới" để thêm hoá đơn
 $("#btn-add-invoice").on("click", function () {
     // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái 
-    if (selectedData.status == 0 || selectedData.status == 3 || selectedData.status == 4 || selectedData.status == 5) {
+    if (selectedData.status == 3 || selectedData.status == 4 || selectedData.status == 5) {
         Toast.fire({
             icon: "error",
             title: "Không thể thêm hoá đơn!",
@@ -1360,10 +1355,10 @@ $("#btn-add-invoice").on("click", function () {
             });
             return; 
         } 
-        else if (amount === ""){
+        else if (!amount || isNaN(amount) || parseFloat(amount) <= 0){
             Toast.fire({
                 icon: "error",
-                title: "Vui lòng nhập số tiền!"
+                title: "Số tiền không hợp lệ!"
             });
             return; 
         } 
@@ -1406,7 +1401,7 @@ $("#btn-add-invoice").on("click", function () {
                     if(res.code==1000){
                         Toast.fire({
                             icon: "success",
-                            title: "Đã thêm hoá đơn thành công!",
+                            title: "Đã thêm hoá đơn!",
                             timer: 3000,
                         });
                         showDataTable(selectedData.id); // load lại bảng hoá đơn
@@ -1443,7 +1438,7 @@ $("#btn-add-invoice").on("click", function () {
 // Nhấn nút "Cập nhật" để cập nhật hoá đơn  
 $("#btn-update-invoice").on("click", function () {
     // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái 
-    if (selectedData.status == 0 || selectedData.status == 3 || selectedData.status == 4 || selectedData.status == 5) {
+    if (selectedData.status == 3 || selectedData.status == 4 || selectedData.status == 5) {
         Toast.fire({
             icon: "error",
             title: "Không thể cập nhật hoá đơn!",
@@ -1463,7 +1458,7 @@ $("#btn-update-invoice").on("click", function () {
     if (!selectedInvoice){
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn hoá đơn để cập nhật!",
+            title: "Vui lòng chọn hoá đơn để thực hiện!",
         });
         return;
     }
@@ -1661,8 +1656,12 @@ $("#btn-update-invoice").on("click", function () {
                         let name = $("#modal-invoice-name-input").val();
                         let amount = utils.getRawValue("#modal-invoice-amount-input");
                         let description = $("#modal-invoice-description-input").val();
-                        let issuedDate = issuedTime || invoice.issuedDate;
-
+                        let issuedDate = issuedTime || invoice.issuedDate;                  
+                        
+                        if (issuedDate) {
+                            issuedDate = moment(issuedDate).format('YYYY-MM-DD HH:mm:00');
+                            console.log(issuedDate);  // In ra kết quả
+                        }
                         if (name == null || name.trim() == "") {
                             Toast.fire({
                                 icon: "error",
@@ -1670,10 +1669,10 @@ $("#btn-update-invoice").on("click", function () {
                             });
                             return;
                         } 
-                        else if (amount === ""){
+                        else if (!amount || isNaN(amount) || parseFloat(amount) <= 0){
                             Toast.fire({
                                 icon: "error",
-                                title: "Vui lòng nhập số tiền!"
+                                title: "Số tiền không hợp lệ!"
                             });
                             return; 
                         } 
@@ -1724,7 +1723,7 @@ $("#btn-update-invoice").on("click", function () {
                                     if (res.code == 1000) {
                                         Toast.fire({
                                             icon: "success",
-                                            title: "Đã cập nhật hoá đơn thành công!",
+                                            title: "Đã cập nhật hoá đơn!",
                                         });
                                         showDataTable(selectedData.id); // load lại bảng hoá đơn
                                     } else {
@@ -1774,7 +1773,7 @@ $("#btn-update-invoice").on("click", function () {
 // Nhấn nút "Xoá" để xoá hoá đơn
 $("#btn-remove-invoice").on("click", async function () {
     // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái
-    if (selectedData.status == 0 || selectedData.status == 3 || selectedData.status == 4 || selectedData.status == 5) {
+    if (selectedData.status == 3 || selectedData.status == 4 || selectedData.status == 5) {
         Toast.fire({
             icon: "error",
             title: "Không thể xoá hoá đơn!",
@@ -1794,7 +1793,7 @@ $("#btn-remove-invoice").on("click", async function () {
     if (!selectedInvoice){
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn hoá đơn để xoá!",
+            title: "Vui lòng chọn hoá đơn để thực hiện!",
         });
         return;
     }

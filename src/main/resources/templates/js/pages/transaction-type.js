@@ -48,7 +48,7 @@ $(document).ready(function () {
         dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center"},
             { data: "name" },
             { data: "status", 
                 render: function (data, type, row) {

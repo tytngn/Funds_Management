@@ -281,7 +281,7 @@ $(document).ready(async function () {
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center" },
             { data: "fund" ,
                 render: function (data, type, row) {
                     let html = ""; 
@@ -342,6 +342,7 @@ $(document).ready(async function () {
                 data: "status",
                 orderable: true, // Cho phép sắp xếp dựa trên cột này
                 searchable: true, // Cho phép tìm kiếm dựa trên cột này
+                className: "text-center",
                 render: function (data, type, row) {
                     var statusClass = '';
                     var statusText = '';
@@ -402,12 +403,10 @@ async function setData() {
     if (roles.includes('USER_MANAGER')) {
         userRole = "USER_MANAGER";
     } 
-    // Đối với Kế toán và Quản trị viên
-    if (roles.includes('ACCOUNTANT') || roles.includes('ADMIN')) {
-        userRole = "ACCOUNTANT";
+    // Đối với Quản trị viên
+    if (roles.includes('ADMIN')) {
+        userRole = "ADMIN";
     } 
-    
-    console.log(userRole);
 }
 
 
@@ -594,7 +593,7 @@ $("#btn-confirm-contribute").on("click", async function () {
     if (!selectedData) {
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn đề nghị thanh toán để xác nhận!",
+            title: "Vui lòng chọn giao dịch để thực hiện!",
         });
         return;
     }
@@ -624,7 +623,7 @@ $("#btn-confirm-contribute").on("click", async function () {
                 }                               
                 Toast.fire({
                     icon: "success",
-                    title: "Đã duyệt giao dịch",
+                    title: "Đã duyệt giao dịch!",
                 });
             } 
             else {
@@ -657,7 +656,7 @@ $("#btn-confirm-contribute").on("click", async function () {
                 }
                 Toast.fire({
                     icon: "success",
-                    title: "Đã từ chối giao dịch",
+                    title: "Đã từ chối giao dịch!",
                 });
             } else {
                 Toast.fire({

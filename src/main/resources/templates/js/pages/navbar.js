@@ -23,14 +23,24 @@ $(document).ready(function(){
         '/transaction-withdraw': { parent: 'Quản lý giao dịch', parentUrl: '/transaction-contribute', title: 'Rút quỹ' },
 
         '/payment-management': { parent: 'Quản lý thanh toán', parentUrl: '/payment-management', title: 'Quản lý đề nghị' },
-        '/payment-request': { parent: 'Quản lý thanh toán', parentUrl: '/payment-request', title: 'Đề nghị thanh toán' }
+        '/payment-request': { parent: 'Quản lý thanh toán', parentUrl: '/payment-request', title: 'Đề nghị thanh toán' },
+
+        '/account-management': { parent: 'Quản lý tài khoản', parentUrl: '/account-management', title: 'Quản lý tài khoản' },
+
+        '/fund-report': { parent: 'Thống kê báo cáo', parentUrl: '/fund-report', title: 'Báo cáo tổng quan' },
+
+        '/department-list': { parent: 'Quản lý danh mục', parentUrl: '/department-list', title: 'Danh mục phòng ban' },
+        '/transaction-type': { parent: 'Quản lý danh mục', parentUrl: '/transaction-type', title: 'Loại giao dịch' },
     };
 
     // Nhóm các trang con dưới cùng một trang cha
     const parentChildMap = {
         'Quản lý quỹ': ['/fund-management', '/fund-permission'],
         'Quản lý thanh toán': ['/payment-management', '/payment-request'],
-        'Quản lý giao dịch': ['/contribution-management', '/transaction-contribute', '/withdrawal-management', '/transaction-withdraw']
+        'Quản lý giao dịch': ['/contribution-management', '/transaction-contribute', '/withdrawal-management', '/transaction-withdraw'],
+        'Quản lý tài khoản': ['/account-management'], 
+        'Thống kê báo cáo': ['/fund-report'],
+        'Quản lý danh mục': ['/department-list', '/transaction-type'],
     };
 
     // Lấy URL hiện tại
@@ -54,31 +64,37 @@ $(document).ready(function(){
         dropdownLink.textContent = parent;
         parentCrumb.appendChild(dropdownLink);
 
-        // Tạo một danh sách không có thứ tự để chứa các trang con.
-        const dropdownMenu = document.createElement('ul');
-        dropdownMenu.classList.add('dropdown-menu');
+        // Nếu parent không phải là 'Quản lý tài khoản', tạo danh sách con
+        if (parent !== 'Quản lý tài khoản') {
+            // Tạo một danh sách không có thứ tự để chứa các trang con.
+            const dropdownMenu = document.createElement('ul');
+            dropdownMenu.classList.add('dropdown-menu');
 
-        // tạo ra từng mục danh sách và liên kết cho từng trang con tương ứng
-        parentChildMap[parent].forEach(function (childPath) {
-            const childCrumb = document.createElement('li');
-            const childLink = document.createElement('a');
-            childLink.classList.add('dropdown-item');
-            childLink.href = childPath;
-            childLink.textContent = breadcrumbMap[childPath].title;
-            childCrumb.appendChild(childLink);
-            dropdownMenu.appendChild(childCrumb);
-        });
+            // tạo ra từng mục danh sách và liên kết cho từng trang con tương ứng
+            parentChildMap[parent].forEach(function (childPath) {
+                const childCrumb = document.createElement('li');
+                const childLink = document.createElement('a');
+                childLink.classList.add('dropdown-item');
+                childLink.href = childPath;
+                childLink.textContent = breadcrumbMap[childPath].title;
+                childCrumb.appendChild(childLink);
+                dropdownMenu.appendChild(childCrumb);
+            });
 
-        parentCrumb.appendChild(dropdownMenu);
+            parentCrumb.appendChild(dropdownMenu);
+        }
+
         breadcrumb.appendChild(parentCrumb);
 
-        // Tạo breadcrumb cho trang hiện tại
-        const currentCrumb = document.createElement('li');
-        currentCrumb.classList.add('breadcrumb-item', 'active');
-        currentCrumb.setAttribute('aria-current', 'page');
-        currentCrumb.textContent = title;
-        breadcrumb.appendChild(currentCrumb);
+        if (parent !== 'Quản lý tài khoản') {
+            const currentCrumb = document.createElement('li');
+            currentCrumb.classList.add('breadcrumb-item', 'active');
+            currentCrumb.setAttribute('aria-current', 'page');
+            currentCrumb.textContent = title;
+            breadcrumb.appendChild(currentCrumb);
+        }
     }
+
 
 
     // Hiển thị tên người dùng đang đăng nhập

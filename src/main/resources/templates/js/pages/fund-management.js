@@ -27,14 +27,10 @@ $(document).ready(async function () {
         // Ẩn các tùy chọn có value là 'department' và 'treasurer'
         $('#filter-type-select option[value="department"]').remove();
         $('#filter-type-select option[value="treasurer"]').remove();
-
-        // Ẩn tiêu đề cột
-        $('#fund-table thead th.treasurer-column').hide();
-            
-        // Ẩn dữ liệu của cột trong tbody
-        $('#fund-table tbody tr').each(function() {
-            $(this).find('td.treasurer-column').hide();
-        });
+    }
+    if (userRole === 'ADMIN'){
+        // Hiển thị button "Thêm mới"
+        $('#btn-add-fund').prop("hidden", false);
     }
 
     // Select 
@@ -205,7 +201,7 @@ $(document).ready(async function () {
         dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center" },
             { data: "name", 
                 render: function (data, type, row) {
                     return `
@@ -256,6 +252,7 @@ $(document).ready(async function () {
                 data: "status",
                 orderable: true, // Cho phép sắp xếp dựa trên cột này
                 searchable: true, // Cho phép tìm kiếm dựa trên cột này
+                className: "text-center",
                 render: function (data, type, row) {
                     var statusClass = data === 1 ? 'btn-inverse-success' : 'btn-inverse-danger';
                     var statusText = data === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
@@ -281,6 +278,10 @@ $(document).ready(async function () {
         },
         initComplete: function() {
             $('.dataTables_paginate').addClass('custom-paginate'); // phân trang của table
+            if (userRole === 'USER_MANAGER') {   
+                // Ẩn cột "Thủ quỹ"
+                this.api().column(3).visible(false);
+            }
         },
     });
 });
@@ -299,10 +300,13 @@ async function setData() {
     if (roles.includes('USER_MANAGER')) {
         userRole = "USER_MANAGER";
     } 
-    // Đối với Kế toán và Quản trị viên
-    if (roles.includes('ACCOUNTANT') || roles.includes('ADMIN')) {
+    // Đối với Kế toán 
+    if (roles.includes('ACCOUNTANT')) {
         userRole = "ACCOUNTANT";
     } 
+    if (roles.includes('ADMIN')){
+        userRole = "ADMIN";
+    }
 }
 
 
@@ -362,7 +366,7 @@ async function loadFundData() {
     if (userRole === 'USER_MANAGER') {
         url = "/api/funds/filter/by-treasurer?start=" + startDate + "&end=" + endDate + "&status=" + status;
     }
-    else if (userRole === 'ACCOUNTANT') {
+    else if (userRole === 'ACCOUNTANT' || userRole === "ADMIN") {
         url = "/api/funds/filter?start=" + startDate + "&end=" + endDate + "&status=" + status + "&departmentId=" + departmentId + "&userId=" + userId;
     }
     Swal.showLoading();
@@ -457,7 +461,7 @@ $("#fund-search-input").on("keyup", function () {
 $("#btn-add-fund").on("click", function () {
     utils.clear_modal();
   
-    $("#modal-title").text("Tạo quỹ mới");
+    $("#modal-title").text("Thêm quỹ mới");
   
     $("#modal-body").append(`
       <div class="form-group">
@@ -511,7 +515,7 @@ $("#btn-add-fund").on("click", function () {
                         await loadFundData();                    
                         Toast.fire({
                             icon: "success",
-                            title: "Đã thêm quỹ",
+                            title: "Đã thêm quỹ mới!",
                             timer: 3000,
                         });
                     }
@@ -545,7 +549,7 @@ $("#btn-add-fund").on("click", function () {
 
 
 // Nhấn nút "Cập nhật"
-$("#btn-update-fund").on("click", function () {
+$("#btn-update-fund").on("click", async function () {
     if (!selectedData) {
         Toast.fire({
             icon: "error",
@@ -553,6 +557,25 @@ $("#btn-update-fund").on("click", function () {
         });
         return;
     }
+    if (userRole === 'ADMIN') {
+        const result = await Swal.fire({
+            title: "Bạn sẽ cập nhật?",
+            text: "Vui lòng chọn chức năng để thực hiện!",
+            icon: "info",
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: "Cập nhật thông tin quỹ",
+            denyButtonText: "Cập nhật thủ quỹ",
+            cancelButtonText: "Huỷ"
+        });
+        if (result.isConfirmed){
+            userRole = 'USER_MANAGER';
+        }
+        else if (result.isDenied){
+            userRole = 'ACCOUNTANT';
+        }
+    }
+
     if(userRole === 'USER_MANAGER'){
         var fundId = selectedData.id; // Lấy ID của quỹ
         utils.clear_modal();
@@ -568,7 +591,7 @@ $("#btn-update-fund").on("click", function () {
                 if (res.code === 1000) {
                     let fund = res.result;
                     
-                    $("#modal-title").text("Cập nhật quỹ");
+                    $("#modal-title").text("Cập nhật thông tin quỹ");
                     
                     // Hiển thị dữ liệu quỹ trong modal
                     $("#modal-body").append(`
@@ -647,7 +670,7 @@ $("#btn-update-fund").on("click", function () {
                                     await loadFundData();  
                                     Toast.fire({
                                         icon: "success",
-                                        title: "Đã cập nhật quỹ",
+                                        title: "Đã cập nhật quỹ!",
                                     });
                                 } else {
                                     Toast.fire({
@@ -868,6 +891,7 @@ $("#btn-update-fund").on("click", function () {
             }
         });
     }
+    await setData();
 });
 
 
@@ -904,7 +928,7 @@ $("#btn-disable-fund").on("click", async function () {
                         await loadFundData();  
                         Toast.fire({
                             icon: "success",
-                            title: "Quỹ đã được vô hiệu hoá",
+                            title: "Đã vô hiệu hoá quỹ!",
                         });
                     } else {
                         Toast.fire({
@@ -932,7 +956,7 @@ $("#btn-disable-fund").on("click", async function () {
     else {
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn quỹ để vô hiệu hoá!",
+            title: "Vui lòng chọn quỹ để thực hiện!",
         });
     }
 });

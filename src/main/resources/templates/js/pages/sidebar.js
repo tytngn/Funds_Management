@@ -82,6 +82,11 @@ function updateSidebarVisibility(roles) {
         $('#account-management').prop("hidden", false); // Hiện phần Quản lý tài khoản
     }
 
+    if (permissions.includes("GET_FUND_REPORT_FILTER")) {
+        $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
+        $('#fund-report').prop("hidden", false); // Hiện phần Báo cáo quỹ
+    }
+    
     if (permissions.includes("CREATE_DEPARTMENT")) {
         $('#category').prop("hidden", false); // Hiện phần Quản lý danh mục
         $('#department').prop("hidden", false); // Hiện phần Danh mục phòng ban

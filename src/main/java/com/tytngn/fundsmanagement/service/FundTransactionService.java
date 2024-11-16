@@ -17,7 +17,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import java.text.Collator;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -37,6 +37,7 @@ public class FundTransactionService {
     FundPermissionRepository fundPermissionRepository;
     ImageRepository imageRepository;
     SecurityExpression securityExpression;
+    Collator vietnameseCollator;
 
     // Tạo giao dịch
     @Transactional
@@ -81,20 +82,23 @@ public class FundTransactionService {
                 new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS));
         fundTransaction.setTransactionType(transactionType);
 
-        // Kiểm tra quyền của người dùng đối với quỹ này
-        var fundPermission = fundPermissionRepository.findByUserIdAndFundId(user.getId(), fund.getId());
-        if (fundPermission == null) {
-            throw new AppException(ErrorCode.FUND_PERMISSION_NOT_EXISTS);
-        }
+        // Nếu người dùng không phải ADMIN
+        if (user.getStatus() != 9999){
+            // Kiểm tra quyền của người dùng đối với quỹ này
+            var fundPermission = fundPermissionRepository.findByUserIdAndFundId(user.getId(), fund.getId());
+            if (fundPermission == null) {
+                throw new AppException(ErrorCode.FUND_PERMISSION_NOT_EXISTS);
+            }
 
-        // Kiểm tra quyền đóng góp quỹ
-        if ((transactionType.getStatus() == 1) && !fundPermission.isCanContribute()) {
-            throw new AppException(ErrorCode.NO_CONTRIBUTION_PERMISSION);
-        }
+            // Kiểm tra quyền đóng góp quỹ
+            if ((transactionType.getStatus() == 1) && !fundPermission.isCanContribute()) {
+                throw new AppException(ErrorCode.NO_CONTRIBUTION_PERMISSION);
+            }
 
-        // Kiểm tra quyền rút quỹ
-        if ((transactionType.getStatus() == 0) && !fundPermission.isCanWithdraw()) {
-            throw new AppException(ErrorCode.NO_WITHDRAW_PERMISSION);
+            // Kiểm tra quyền rút quỹ
+            if ((transactionType.getStatus() == 0) && !fundPermission.isCanWithdraw()) {
+                throw new AppException(ErrorCode.NO_WITHDRAW_PERMISSION);
+            }
         }
 
         fundTransaction = fundTransactionRepository.save(fundTransaction);
@@ -285,7 +289,7 @@ public class FundTransactionService {
 //
 //        return reportData;
 //    }
-    public List<FundTransactionReportResponse> getUserFundReport(String startDate, String endDate, Integer year, Integer month) {
+    public Map<String, Object> getPersonalContributionReport(String fundId, String transTypeId, String startDate, String endDate, Integer year, Integer month) {
         // Lấy userId người dùng đang đăng nhập
         String userId = securityExpression.getUserId();
 
@@ -305,17 +309,42 @@ public class FundTransactionService {
             }
         }
 
-        // Lấy dữ liệu từ repository
-        List<FundTransactionReportResponse> reportData = fundTransactionRepository.getUserFundReport(userId, year, month, start, end);
+        if (fundId == null || fundId.isEmpty()) {
+            fundId = null;
+        }
+        if (transTypeId == null || transTypeId.isEmpty()) {
+            transTypeId = null;
+        }
 
-        // Sắp xếp theo năm và tháng
+        // Lấy dữ liệu từ repository
+        List<FundTransactionReportResponse> reportData = fundTransactionRepository.getUserFundReport(userId, fundId, transTypeId, 1, year, month, start, end);
+
+        // Tính tổng số tiền giao dịch
+        double totalAmount = reportData.stream()
+                .mapToDouble(FundTransactionReportResponse::getAmount) // Lấy tổng số tiền từ báo cáo
+                .sum();
+
+        // Tính tổng số giao dịch
+        long totalTransactions = reportData.stream()
+                .mapToLong(FundTransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                .sum();
+
+        // Sắp xếp
         List<FundTransactionReportResponse> sortedResponses = reportData.stream()
-                .sorted(Comparator.comparing(FundTransactionReportResponse::getYear)
-                        .reversed()
-                        .thenComparing(Comparator.comparing(FundTransactionReportResponse::getMonth).reversed()))
+                .sorted(Comparator.comparing((FundTransactionReportResponse::getFundName), vietnameseCollator).thenComparing(
+                        Comparator.comparing(FundTransactionReportResponse::getTransType, vietnameseCollator)
+                                .thenComparingLong(FundTransactionReportResponse::getQuantity)
+                                .thenComparingDouble(FundTransactionReportResponse::getAmount)))
                 .toList();
 
-        return sortedResponses;
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);  // Dữ liệu báo cáo chi tiết đã được sắp xếp
+        result.put("totalAmount", totalAmount); // Tổng số tiền giao dịch
+        result.put("totalTransactions", totalTransactions); // Tổng số giao dịch
+
+        return result;
     }
 
 
@@ -531,6 +560,19 @@ public class FundTransactionService {
     public void delete(String id) {
         var fundTransaction = fundTransactionRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.TRANSACTION_TYPE_NOT_EXISTS));
+
+        var fund = fundTransaction.getFund();
+        var transactionType = fundTransaction.getTransactionType();
+
+        // Nếu là giao dịch đóng góp quỹ
+        if (transactionType.getStatus() == 1) {
+            fund.setBalance(fund.getBalance() - fundTransaction.getAmount());
+        }
+
+        // nếu là giao dịch rút quỹ
+        if (transactionType.getStatus() == 0) {
+            fund.setBalance(fund.getBalance() + fundTransaction.getAmount());
+        }
 
         fundTransaction.setUser(null);
         fundTransaction.setFund(null);

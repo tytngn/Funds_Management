@@ -83,12 +83,11 @@ public class FundPermissionController {
             @RequestParam(required = false) LocalDate start,
             @RequestParam(required = false) LocalDate end,
             @RequestParam(required = false) Boolean canContribute,
-            @RequestParam(required = false) Boolean canWithdraw,
             @RequestParam(required = false) String departmentId,
             @RequestParam(required = false) String userId)
     {
         List<FundPermissionResponse> filteredPermissions = fundPermissionService.filterFundPermissions(fundId, start, end,
-                canContribute, canWithdraw, departmentId, userId);
+                canContribute, departmentId, userId);
 
         return ApiResponse.<List<FundPermissionResponse>>builder()
                 .code(1000)

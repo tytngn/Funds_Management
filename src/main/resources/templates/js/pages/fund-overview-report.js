@@ -14,8 +14,12 @@ var dataTable;
 var startDate;
 var endDate;
 
+var name;
 
-$(document).ready(function () {
+$(document).ready(async function () {
+    const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
+    name = userInfo.fullname;
+
     // Select 
     $('.select2').select2({
         allowClear: true,
@@ -140,20 +144,19 @@ $(document).ready(function () {
         buttons: [
             {
                 extend: 'pdfHtml5',
-                title: 'Báo cáo tổng quan quỹ',
+                title: 'BÁO CÁO TỔNG QUAN QUỸ',
                 orientation: 'landscape',
                 pageSize: 'A4',
                 exportOptions: {
                     columns: [1, 2, 3] // Chỉ định cột muốn xuất (bỏ qua cột đầu tiên)
                 },
-                customize: function (doc) {
+                customize: function (doc) {               
                     // Thiết lập chiều rộng cho các cột trong PDF
                     doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*'); // Cập nhật chiều rộng cột tự động
 
                     // Tạo lại cấu trúc bảng với border
                     const body = [];
-                    // Thêm tiêu đề bảng
-                    body.push(doc.content[1].table.body[0]); // Giả sử hàng đầu tiên là tiêu đề
+                    body.push(doc.content[1].table.body[0]); // Hàng đầu tiên là tiêu đề
 
                     // Duyệt qua từng hàng và cột để cấu trúc lại
                     for (let i = 1; i < doc.content[1].table.body.length; i++) {
@@ -168,21 +171,40 @@ $(document).ready(function () {
 
                     // Gán lại body cho bảng
                     doc.content[1].table.body = body;
-                    
+
                     // Thêm ngày xuất file dưới tiêu đề
                     const date = new Date().toLocaleDateString('vi-VN', {
                         year: 'numeric', 
                         month: '2-digit', 
                         day: '2-digit'
                     });
-                    doc.content.splice(1, 0, { text: 'Ngày: ' + date, alignment: 'right', margin: [0, 10, 0, 10] });
+
+                    const filterType = $('#filter-type-select').val();
+                    let reportTime = '';
+                    if (filterType === 'year') {
+                        reportTime = 'Năm ' + $('#year-select').val();
+                    } else if (filterType === 'month') {
+                        reportTime = 'Tháng ' + $('#month-select').val() + ' Năm ' + $('#year-select').val();
+                    } else if (filterType === 'time') {
+                        reportTime = 'Từ ' + utils.formatDate(startDate) + ' đến ' + utils.formatDate(endDate);
+                    }
+
+                    doc.content.splice(1, 0, { text: '' + reportTime, fontSize: 12, alignment: 'center', margin: [0, 5, 0, 5] });
+                    doc.content.splice(2, 0, { text: 'Ngày: ' + date, alignment: 'right', margin: [0, 5, 0, 5] });
+
+                    body.push([
+                        { text: 'Người lập báo cáo', alignment: 'right', colSpan: 3, margin: [0, 40, 0, 20] }, {}, {},
+                    ]);
+                    body.push([
+                        { text: '' + name, alignment: 'right', colSpan: 3, margin: [0, 20, 5, 0] }, {}, {},
+                    ]);
                 }
             }
         ],
 
         columnDefs: [
             {
-                targets: [0, 1, 2, 3], // Áp dụng cho tất cả các cột
+                targets: [0, 2, 3], // Áp dụng cho tất cả các cột
                 className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
             }
         ],
@@ -190,6 +212,7 @@ $(document).ready(function () {
         columns: [
             { data: null },
             { data: "totalBalance", 
+                className: "text-right",
                 render: function (data, type, row) {
                     return utils.formatCurrency(data);
                 }
@@ -284,9 +307,7 @@ async function loadFundOverview() {
                         activeFundsCount: res.result.activeFundsCount || 0,
                         inactiveFundsCount: res.result.inactiveFundsCount || 0
                     }
-                ];           
-                console.log(data);
-                
+                ];                           
                 dataTable.clear().rows.add(data).draw();
             } else {
                 Toast.fire({
@@ -314,18 +335,59 @@ async function loadFundOverview() {
 
 // Xuất Excel
 function exportTableToExcel() {
-    // Lấy bảng HTML
-    const table = document.getElementById("fund-report-table");
-  
-    // Chuyển đổi bảng HTML thành worksheet
-    const worksheet = XLSX.utils.table_to_sheet(table);
-  
-    // Tạo workbook và thêm worksheet vào workbook
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
-  
-    // Xuất file Excel
-    XLSX.writeFile(workbook, "data.xlsx");
+
+    const date = new Date().toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    
+    const filterType = $('#filter-type-select').val();
+    let reportTime = '';
+    if (filterType === 'year') {
+        reportTime = 'Năm ' + $('#year-select').val();
+    } else if (filterType === 'month') {
+        reportTime = 'Tháng ' + $('#month-select').val() + ' Năm ' + $('#year-select').val();
+    } else if (filterType === 'time') {
+        reportTime = 'Từ ' + utils.formatDate(startDate) + ' đến ' + utils.formatDate(endDate);
+    }
+
+    // Dữ liệu cho các dòng tiêu đề
+    const titleData = [
+        ["BÁO CÁO TỔNG QUAN QUỸ"],
+        [`Thời gian báo cáo: ${reportTime}`],
+        [`Người xuất báo cáo: ${name}`],
+        [`Ngày xuất báo cáo: ${date}`],
+        []
+    ];
+
+    // Tạo worksheet từ tiêu đề
+    const worksheet = XLSX.utils.aoa_to_sheet(titleData);
+    
+    // Hợp nhất các ô từ A1 đến D4
+    worksheet['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // A1:D1
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }, // A2:D2
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } }, // A3:D3
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 3 } }, // A4:D4
+    ];
+
+    // Trích xuất dữ liệu từ bảng HTML
+    const table = document.getElementById("fund-report-table");
+    const tableData = [];
+    for (let row of table.rows) {
+        const rowData = [];
+        for (let cell of row.cells) {
+            rowData.push(cell.innerText);
+        }
+        tableData.push(rowData);
+    }
+
+    XLSX.utils.sheet_add_aoa(worksheet, tableData, { origin: "A5" });
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo tổng quan quỹ");
+    XLSX.writeFile(workbook, "Bao_cao_tong_quan_quy.xlsx");
 }
   
 
@@ -337,3 +399,4 @@ $("#btn-export-excel").on("click", function () {
 $("#btn-export-pdf").on("click", function () {
     dataTable.button('.buttons-pdf').trigger();
 });
+

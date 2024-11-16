@@ -243,15 +243,8 @@ $(document).ready(async function () {
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
-        columnDefs: [
-            {
-                targets: '_all', // Áp dụng cho tất cả các cột
-                className: 'text-left align-middle' // Căn trái nội dung của tất cả các cột
-            }
-        ],
-
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center" },
             { data: "fund", 
                 render: function (data, type, row) {
                     let html = ""; 
@@ -441,7 +434,9 @@ async function loadPaymentRequestData() {
             return;
         }
     } 
-   
+    
+    $('#card-description').prop("hidden", false);
+    
     var urlPaymentReq = "/api/payment-requests/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status;
     if (userRole === 'USER_MANAGER') {
         urlPaymentReq = "/api/payment-requests/treasurer/filter?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&departmentId=" + departmentId + "&userId=" + userId + "&status=" + status;

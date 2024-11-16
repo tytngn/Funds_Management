@@ -2,6 +2,7 @@ package com.tytngn.fundsmanagement.controller;
 
 import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
+import com.tytngn.fundsmanagement.dto.response.FundReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.service.FundService;
 import jakarta.validation.Valid;
@@ -132,17 +133,17 @@ public class FundController {
 
 
     // Báo cáo chi tiết quỹ
-//    @GetMapping("/report")
-//    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_REPORT_FILTER'})")
-//    ApiResponse<List<FundReportResponse>> getFundReportByFilter(@RequestParam(required = false) Integer year,
-//                                                                @RequestParam(required = false) Integer month,
-//                                                                @RequestParam(required = false) LocalDate start,
-//                                                                @RequestParam(required = false) LocalDate end) {
-//        return ApiResponse.<List<FundReportResponse>>builder()
-//                .code(1000)
-//                .result(fundService.generateFundReport(year, month, start, end))
-//                .build();
-//    }
+    @GetMapping("/report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_REPORT_FILTER'})")
+    ApiResponse<Map<String, Object>> getFundReportByFilter(@RequestParam(required = false) Integer year,
+                                                                @RequestParam(required = false) Integer month,
+                                                                @RequestParam(required = false) LocalDate start,
+                                                                @RequestParam(required = false) LocalDate end) {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundService.generateFundReport(start, end, year, month))
+                .build();
+    }
 
 
     // cập nhật quỹ

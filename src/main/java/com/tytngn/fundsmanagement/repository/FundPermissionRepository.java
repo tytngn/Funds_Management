@@ -17,6 +17,10 @@ public interface FundPermissionRepository extends JpaRepository<FundPermission, 
 
     FundPermission findByUserIdAndFundId(String userId, String fundId);
 
+    List<FundPermission> findByFundIdAndCanContributeTrue(String fundId);
+
+    FundPermission findByUserIdAndFundIdAndCanContribute(String userId, String fundId, boolean canContribute);
+
     void deleteFundPermissionById(String id);
 
     // Lấy danh sách quỹ mà người dùng có quyền đóng góp
@@ -64,4 +68,19 @@ public interface FundPermissionRepository extends JpaRepository<FundPermission, 
                                                @Param("userId") String userId,
                                                @Param("treasurerId") String treasurerId
     );
+
+
+    // Báo cáo chi tiết quỹ: Tính số nhân viên đóng góp của quỹ
+    @Query("SELECT COUNT(fp) FROM FundPermission fp WHERE fp.fund.id = :fundId " +
+            "AND fp.canContribute = true " +
+            "AND (COALESCE(:startDate, null) IS NULL OR fp.grantedDate >= :startDate) " +
+            "AND (COALESCE(:endDate, null) IS NULL OR fp.grantedDate <= :endDate) " +
+            "AND (COALESCE(:year, null ) IS NULL OR YEAR(fp.grantedDate) = :year) " +
+            "AND (COALESCE(:month, null) IS NULL OR MONTH(fp.grantedDate) = :month)")
+    int countContributors(
+            @Param("fundId") String fundId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("year") Integer year,
+            @Param("month") Integer month);
 }

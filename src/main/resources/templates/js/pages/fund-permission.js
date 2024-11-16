@@ -229,7 +229,7 @@ $(document).ready(async function () {
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center" },
             { data: "fund",
                 render: function (data, type, row) {
                     return `
@@ -381,7 +381,6 @@ async function loadFundPermissionData() {
                         trader: fundPermission.user.fullname,
                         department: fundPermission.user.department.name,
                         contribute: fundPermission.canContribute,
-                        withdraw: fundPermission.canWithdraw,
                         grantedDate: fundPermission.grantedDate,
                         id: fundPermission.id, // ID của fundPermission 
                     });
@@ -590,7 +589,6 @@ $("#btn-add-fund-permission").on("click", function () {
                 userId: selectedUsers,
                 fundId: fundId,
                 canContribute: true,
-                canWithdraw: false,
             }),
             success: async function (res) {
                 Swal.close();
@@ -630,195 +628,6 @@ $("#btn-add-fund-permission").on("click", function () {
     });
 
 });
-
-
-// Nhấn nút "Cập nhật" để cập nhật quyền giao dịch quỹ của người dùng
-// $("#btn-update-fund-permission").on("click", function () {
-//     if(selectedData){
-//         var fundPermissionId = selectedData.id; // Lấy ID của fund permission
-//         utils.clear_modal();
-//         Swal.showLoading();
-
-//         // Gọi API lấy thông tin quỹ theo fundPermissionId
-//         $.ajax({
-//             type: "GET",
-//             url: "/api/fund-permissions/" + fundPermissionId,
-//             headers: utils.defaultHeaders(),
-//             success: function (res) {
-//                 Swal.close();
-//                 if (res.code === 1000) {
-//                     let fundPermission = res.result;
-                    
-//                     $("#modal-title").text("Cập nhật quyền đóng góp quỹ");
-                    
-//                     // Hiển thị dữ liệu quỹ trong modal
-//                     $("#modal-body").append(`
-//                         <form class="forms-sample">
-//                             <div class="form-group">
-//                                 <label for="modal-fund-name-input">Tên quỹ</label>
-//                                 <input type="text" class="form-control" id="modal-fund-name-input" value="${fundPermission.fund.fundName}" readonly>
-//                             </div>
-
-//                             <div class="form-group">
-//                                 <label for="modal-fullname-input">Người giao dịch</label>
-//                                 <input type="text" class="form-control" id="modal-fullname-input" value="${fundPermission.user.fullname}" readonly>
-//                             </div>
-
-//                             <div class="form-group">
-//                                 <label for="modal-email-input">Email</label>
-//                                 <input type="email" class="form-control" id="modal-email-input" value="${fundPermission.user.email}" readonly>
-//                             </div>
-
-//                             <div class="form-group">
-//                                 <label for="modal-deparment-input">Phòng ban</label>
-//                                 <input type="text" class="form-control" id="modal-deparment-input" value="${fundPermission.user.department.name}" readonly>
-//                             </div>
-
-//                             <div class="form-group row">
-//                                 <div class="col-sm-6">
-//                                     <div class="form-check form-check-flat form-check-primary">
-//                                         <input id="status-contribute" type="checkbox" class="form-check-input ml-0" ${fundPermission.canContribute === true ? 'checked' : ''}>
-//                                         <label class="form-check-label">Quyền đóng góp quỹ</label>
-//                                     </div>
-//                                 </div>
-//                                 <div class="col-sm-6">
-//                                     <div class="form-check form-check-flat form-check-primary">
-//                                         <input id="status-withdraw" type="checkbox" class="form-check-input ml-0" ${fundPermission.canWithdraw === true ? 'checked' : ''}>
-//                                         <label class="form-check-label">Quyền rút quỹ</label>
-//                                     </div>
-//                                 </div>
-//                             </div>  
-//                         </form>
-//                     `);
-                    
-//                     $("#modal-footer").append(`
-//                         <button type="submit" class="btn btn-primary mr-2" id="modal-update-btn">
-//                             <i class="fa-regular fa-floppy-disk mr-2"></i>Cập nhật
-//                         </button>
-//                         <button class="btn btn-light" id="modal-cancel-btn">
-//                             <i class="fa-regular fa-circle-xmark mr-2"></i>Huỷ bỏ
-//                         </button>
-//                     `);
-                    
-//                     $("#modal-id").modal("show");
-
-//                     // Cập nhật quyền giao dịch
-//                     $("#modal-update-btn").click(function () {
-//                         let userId = fundPermission.user.id;
-//                         let fundId = fundPermission.fund.id;
-//                         let canContribute = $("#status-contribute").is(":checked") ? true : false;
-//                         let canWithdraw = $("#status-withdraw").is(":checked") ? true : false;
-                    
-//                         if (canContribute == false && canWithdraw == false) {
-//                             Swal.fire({
-//                                     title: 'Bạn có chắc chắn?',
-//                                     text: "Bạn sẽ thu hồi quyền giao dịch quỹ của người dùng!",
-//                                     icon: "warning",
-//                                     showDenyButton: false,
-//                                     showCancelButton: true,
-//                                     confirmButtonText: "Đồng ý",
-//                                     cancelButtonText: "Huỷ",
-//                             }).then((result) => { 
-//                                 if (result.isConfirmed){
-//                                     Swal.showLoading();
-//                                     // gọi api thu hồi quyền của người dùng 
-//                                     $.ajax({
-//                                         type: "DELETE",
-//                                         url: "/api/fund-permissions/" + fundPermission.id,
-//                                         headers: utils.defaultHeaders(),
-//                                         success: async function (res) {
-//                                             Swal.close();
-//                                             if (res.code == 1000) {
-//                                                 if ($('#fund-select').val() !== null || $('#filter-type-select').val() !== null){
-//                                                     await loadFundPermissionData();
-//                                                 }
-//                                                 Toast.fire({
-//                                                     icon: "success",
-//                                                     title: "Đã thu hồi quyền giao dịch",
-//                                                 });
-//                                             } else {
-//                                                 Toast.fire({
-//                                                     icon: "error",
-//                                                     title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
-//                                                 });
-//                                             }
-//                                         },
-//                                         error: function(xhr, status, error){
-//                                             Swal.close();
-//                                             var err = utils.handleAjaxError(xhr);
-//                                                 Toast.fire({
-//                                                     icon: "error",
-//                                                     title: err.message
-//                                                 });
-//                                         },
-//                                     });
-//                                     $("#modal-id").modal("hide");
-//                                 }
-//                             });
-//                         } else {
-//                             Swal.showLoading();
-//                             $.ajax({
-//                                 type: "PUT",
-//                                 url: "/api/fund-permissions?userId=" + userId + "&fundId=" + fundId + "&canContribute=" + canContribute + "&canWithdraw=" + canWithdraw,
-//                                 headers: utils.defaultHeaders(),
-//                                 success: async function (res) {
-//                                     Swal.close();
-//                                     if (res.code == 1000) {
-//                                         if ($('#fund-select').val() !== null || $('#filter-type-select').val() !== null){
-//                                             await loadFundPermissionData();
-//                                         }
-//                                         Toast.fire({
-//                                             icon: "success",
-//                                             title: "Đã cập nhật phân quyền giao dịch",
-//                                         });
-//                                     } else {
-//                                         Toast.fire({
-//                                             icon: "error",
-//                                             title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
-//                                         });
-//                                     }
-//                                 },
-//                                 error: function(xhr, status, error){
-//                                     Swal.close();
-//                                     var err = utils.handleAjaxError(xhr);
-//                                         Toast.fire({
-//                                             icon: "error",
-//                                             title: err.message
-//                                         });
-//                                 },
-//                             });
-//                             $("#modal-id").modal("hide");
-//                         }
-//                     });
-
-//                     // Khi nhấn nút "Huỷ bỏ"
-//                     $("#modal-cancel-btn").click(function () {
-//                         $('#modal-id').modal('hide');
-//                     });
-//                 } else {
-//                     Toast.fire({
-//                         icon: "error",
-//                         title: "Không thể lấy thông tin phân quyền giao dịch của người dùng<br>" + res.message,
-//                     });  
-//                 }
-//             },
-//             error: function (xhr, status, error) {
-//                 Swal.close();
-//                 var err = utils.handleAjaxError(xhr);
-//                     Toast.fire({
-//                         icon: "error",
-//                         title: err.message
-//                     });
-//             }
-//         });
-//     }
-//     else {
-//         Toast.fire({
-//             icon: "error",
-//             title: "Vui lòng chọn người dùng để cập nhật!",
-//         });
-//     }
-// });
 
 
 // Nhấn nút "Thu hồi" để thu hồi quyền giao dịch quỹ của người dùng

@@ -272,7 +272,11 @@ export function getHashParam(key) {
 export function formatDate(dateString) {
     if (!dateString) return ''; // Kiểm tra giá trị null hoặc rỗng
     var date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
+    return date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
 }
 
 // Hàm định dạng giờ phút giây ngày tháng năm
@@ -286,7 +290,11 @@ export function formatDateTime(dateString) {
     var seconds = date.getSeconds().toString().padStart(2, '0');
     
     // Định dạng ngày tháng năm
-    var datePart = date.toLocaleDateString('vi-VN');
+    var datePart = date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
     
     // Kết hợp ngày tháng năm và giờ phút giây
     return `${hours}:${minutes}:${seconds} ${datePart}`;

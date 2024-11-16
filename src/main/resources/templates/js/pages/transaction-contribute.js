@@ -14,11 +14,14 @@ let selectedData; // Biến lưu dữ liệu đã chọn
 var fundOption = [];
 var transTypeOption = [];
 
+var userRole;
+
 var startDate;
 var endDate;
 
 
-$(document).ready(function () {
+$(document).ready(async function () {
+    await setData();
     // Select 
     $('.select-2').select2({
         allowClear: true,
@@ -75,10 +78,14 @@ $(document).ready(function () {
         $(this).val('');
     });
 
+    var urlFund = "/api/fund-permissions/contribute";
+    if (userRole === 'ADMIN'){
+        urlFund = "/api/funds/active";
+    } 
     // Gọi api để lấy tên quỹ và Nạp dữ liệu lên mảng fundOption
     $.ajax({
         type: "GET",
-        url: "/api/fund-permissions/contribute",
+        url: urlFund,
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
@@ -188,7 +195,7 @@ $(document).ready(function () {
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center" },
             { data: "fund", 
                 render: function (data, type, row) {
                     let html = ""; 
@@ -212,7 +219,7 @@ $(document).ready(function () {
                         </details>`;
                 }
             },
-            { data: "transactionType", className: "text-center" },
+            { data: "transactionType" },
             { data: "amount", 
                 className: "text-right",
                 render: function (data, type, row) {
@@ -236,6 +243,7 @@ $(document).ready(function () {
                 data: "status",
                 orderable: true, // Cho phép sắp xếp dựa trên cột này
                 searchable: true, // Cho phép tìm kiếm dựa trên cột này
+                className: "text-center",
                 render: function (data, type, row) {
                     var statusClass = '';
                     var statusText = '';
@@ -280,6 +288,25 @@ $(document).ready(function () {
 
     });
 });
+
+// Hiển thị dữ liệu theo role của người dùng
+async function setData() {
+    const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
+    if (!userInfo) {
+        throw new Error("Không thể lấy thông tin người dùng");
+    }
+    
+    const roles = userInfo.roles.map(role => role.id); // Lấy danh sách các role của user
+
+    // Đối với Nhân viên
+    if (roles.includes('USER')) {
+        userRole = "USER";
+    } 
+    // Đối với Quản trị viên
+    if (roles.includes('ADMIN')) {
+        userRole = "ADMIN";
+    } 
+}
 
 
 // Gọi api lấy dữ liệu danh sách các giao dịch đóng góp quỹ của người dùng
@@ -565,10 +592,10 @@ $("#btn-add-contribute").on("click", function () {
         let amount = utils.getRawValue("#modal-transaction-amount-input");
         let description = $("#modal-transaction-description-input").val();
     
-        if(amount == null){
+        if(!amount || isNaN(amount) || parseFloat(amount) <= 0){
             Toast.fire({
                 icon: "error",
-                title: "Vui lòng nhập số tiền giao dịch!"
+                title: "Số tiền giao dịch không hợp lệ!"
             });
             return;
         } else if (description == null || description.trim() == ""){
@@ -613,7 +640,7 @@ $("#btn-add-contribute").on("click", function () {
                         }
                         Toast.fire({
                             icon: "success",
-                            title: "Đã thêm giao dịch",
+                            title: "Đã thêm giao dịch!",
                             timer: 3000,
                         });                    
                     }

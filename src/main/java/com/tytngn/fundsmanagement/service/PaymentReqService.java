@@ -229,6 +229,14 @@ public class PaymentReqService {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
         }
 
+        // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
+        if (paymentReq.getStatus() == 0) {
+            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            if (updateCount > 3) {
+                throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
+            }
+        }
+
         // cập nhật đề nghị thanh toán
         paymentReqMapper.updatePaymentReq(paymentReq, request);
         paymentReq.setStatus(1);

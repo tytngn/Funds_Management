@@ -14,8 +14,12 @@ var dataTable;
 var startDate;
 var endDate;
 
+var name;
 
-$(document).ready(function () {
+$(document).ready(async function () {
+    const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
+    name = userInfo.fullname;
+
     // Select 
     $('.select2').select2({
         allowClear: true,
@@ -128,46 +132,155 @@ $(document).ready(function () {
             infoFiltered: "(lọc từ _MAX_ mục)",
             emptyTable: "Không có dữ liệu",
         },
-        searching: true,
+        searching: false,
         ordering: true,
         info: true,
         lengthChange: true,
         responsive: true,
         scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
-        dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
+        dom: 'frtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
+
+        buttons: [
+            {
+                extend: 'pdfHtml5',
+                title: 'BÁO CÁO TỔNG QUAN',
+                orientation: 'landscape',
+                pageSize: 'A4',
+                exportOptions: {
+                    columns: ':visible'  // Chọn tất cả các cột sẽ xuất
+                },
+                customize: function (doc) {
+                    // Thiết lập chiều rộng cho các cột trong PDF
+                    // doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*'); // Cập nhật chiều rộng cột tự động
+                    doc.content[1].table.widths = ['3%', '*', '10%', '10%', '10%', '10%', '10%', '12%'];
+
+                    // Tạo lại cấu trúc bảng với border
+                    const body = [];
+                    body.push(doc.content[1].table.body[0]); // Hàng đầu tiên là tiêu đề
+
+                    // Duyệt qua từng hàng và cột để cấu trúc lại
+                    for (let i = 1; i < doc.content[1].table.body.length; i++) {
+                        const row = doc.content[1].table.body[i];
+                        const newRow = row.map((cell, index) => ({
+                            text: cell.text || '', // Giữ lại nội dung
+                            alignment: index === 1 || index === 7 ? 'left' : (index === 2 || index === 3 || index === 4 || index === 5 ? 'right' : 'center'), // Căn lề
+                            border: [true, true, true, true] // Thiết lập border cho từng ô
+                        }));
+                        body.push(newRow);
+                    }
+
+                    // Gán lại body cho bảng
+                    doc.content[1].table.body = body;
+
+                    // Thêm ngày xuất file dưới tiêu đề
+                    const date = new Date().toLocaleDateString('vi-VN', {
+                        year: 'numeric', 
+                        month: '2-digit', 
+                        day: '2-digit'
+                    });
+
+                    const filterType = $('#filter-type-select').val();
+                    let reportTime = '';
+                    if (filterType === 'year') {
+                        reportTime = 'Năm ' + $('#year-select').val();
+                    } else if (filterType === 'month') {
+                        reportTime = 'Tháng ' + $('#month-select').val() + ' Năm ' + $('#year-select').val();
+                    } else if (filterType === 'time') {
+                        reportTime = 'Từ ' + utils.formatDate(startDate) + ' đến ' + utils.formatDate(endDate);
+                    }
+
+                    doc.content.splice(1, 0, { text: '' + reportTime, fontSize: 12, alignment: 'center', margin: [0, 5, 0, 5] });
+                    doc.content.splice(2, 0, { text: 'Ngày: ' + date, alignment: 'right', margin: [0, 5, 0, 5] });
+
+                    // Thêm dữ liệu tổng vào cuối bảng
+                    const totalBeginningBalance = document.getElementById("total-beginning-balance").innerText;
+                    const totalIncome = document.getElementById("total-income").innerText;
+                    const totalExpenditure = document.getElementById("total-expenditure").innerText;
+                    const totalRemainingBalance = document.getElementById("total-remaining-balance").innerText;
+
+                    doc.content.push(
+                        { text: 'Tổng số dư đầu kỳ: ' + totalBeginningBalance, alignment: 'left', margin: [0, 30, 0, 3], bold: true },
+                        { text: 'Tổng thu: ' + totalIncome, alignment: 'left', margin: [0, 5, 0, 3], bold: true },
+                        { text: 'Tổng chi: ' + totalExpenditure, alignment: 'left', margin: [0, 5, 0, 3], bold: true },
+                        { text: 'Tổng chi: ' + totalRemainingBalance, alignment: 'left', margin: [0, 5, 0, 0], bold: true }
+                    );
+
+                    doc.content.push(
+                        {
+                            text: 'Người lập báo cáo', 
+                            alignment: 'right',
+                            margin: [0, 30, 0, 20],
+                        }
+                    );
+                    doc.content.push(
+                        {
+                            text: '' + name, 
+                            alignment: 'right',
+                            margin: [0, 20, 6, 0],
+                        }
+                    );
+                }
+            }
+        ],
 
         columnDefs: [
             {
-                targets: '_all', // Áp dụng cho tất cả các cột
-                className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
+                targets: [0, 6], 
+                className: 'text-center align-middle' 
+            },
+            {
+                targets: [2, 3, 4, 5], 
+                className: 'text-right align-middle' 
             }
         ],
 
         columns: [
             { data: "number" },
             { data: "fundName" },
-            { data: "totalBalance", 
+            { data: "beginningBalance", 
                 render: function (data, type, row) {
-                    return utils.formatCurrency(data);
+                    if (type === "display" || type === "filter") {
+                        return utils.formatCurrency(data);
+                    }
+                    // Trả về giá trị nguyên gốc cho sorting và searching
+                    return new Date(data);
                 }
             },
-            { data: "user" },
+            { data: "income", 
+                render: function (data, type, row) {
+                    if (type === "display" || type === "filter") {
+                        return utils.formatCurrency(data);
+                    }
+                    // Trả về giá trị nguyên gốc cho sorting và searching
+                    return new Date(data);
+                }
+            },
+            { data: "expense", 
+                render: function (data, type, row) {
+                    if (type === "display" || type === "filter") {
+                        return utils.formatCurrency(data);
+                    }
+                    // Trả về giá trị nguyên gốc cho sorting và searching
+                    return new Date(data);
+                }
+            },
+            { data: "remainingBalance", 
+                render: function (data, type, row) {
+                    if (type === "display" || type === "filter") {
+                        return utils.formatCurrency(data);
+                    }
+                    // Trả về giá trị nguyên gốc cho sorting và searching
+                    return new Date(data);
+                }
+            },
             { data: "contributorsCount" },
-            { data: "withdrawersCount" },
             { 
                 data: "status",
                 orderable: true, // Cho phép sắp xếp dựa trên cột này
                 searchable: true, // Cho phép tìm kiếm dựa trên cột này
                 render: function (data, type, row) {
-                    var statusClass = data === 1 ? 'btn-inverse-success' : 'btn-inverse-danger';
-                    var statusText = data === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
-
-                    return `
-                        <div class="d-flex justify-content-center align-items-center">
-                            <button type="button" class="btn ${statusClass} btn-sm">${statusText}</button>
-                        </div>
-                    `;
+                    return data === 1 ? 'Hoạt động' : 'Ngừng hoạt động';
                 }
             },
         ],
@@ -199,7 +312,14 @@ async function loadFundReport() {
     var year = '';
     var month = '';
 
-    if (filter === 'time') {
+    if (!filter){
+        Toast.fire({
+            icon: "warning",
+            title: "Vui lòng chọn bộ lọc!",
+        });
+        return;
+    }
+    else if (filter === 'time') {
         if (startDate === '' && endDate === ''){
             Toast.fire({
                 icon: "warning",
@@ -245,17 +365,30 @@ async function loadFundReport() {
         success: function(res) {
             Swal.close();
             if (res.code == 1000) {  
+                // Cập nhật giá trị totalAmount vào thẻ h3
+                $('#total-amount-div').prop("hidden", false);
+                document.getElementById("total-beginning-balance").innerText = utils.formatCurrency(res.result.totalBeginningBalance);
+                document.getElementById("total-income").innerText = utils.formatCurrency(res.result.totalIncome);
+                document.getElementById("total-expenditure").innerText = utils.formatCurrency(res.result.totalExpenditure);
+                document.getElementById("total-remaining-balance").innerText = utils.formatCurrency(res.result.totalRemainingBalance);
+
                 var data = [];
                 var counter = 1;
-                res.result.fundReports.forEach(function (fund) {
+                res.result.report.forEach(function (rp) {
                     data.push({
                         number: counter++, // Số thứ tự tự động tăng
-                        totalBalance: fund.totalBalance,
-                        fundName: fund.fundName,
-                        user: fund.user,
-                        contributorsCount: fund.contributorsCount,
-                        withdrawersCount: fund.withdrawersCount,
-                        status: fund.status
+                        totalBeginningBalance: res.result.totalBeginningBalance,
+                        totalIncome: res.result.totalIncome,
+                        totalExpenditure: res.result.totalExpenditure,
+                        totalRemainingBalance: res.result.totalRemainingBalance,
+
+                        fundName: rp.fundName,
+                        beginningBalance: rp.beginningBalance,
+                        income: rp.income,
+                        expense: rp.expense,
+                        remainingBalance: rp.remainingBalance,
+                        contributorsCount: rp.contributorsCount,
+                        status: rp.status
                     });
                 });
                 dataTable.clear().rows.add(data).draw();
@@ -281,3 +414,89 @@ async function loadFundReport() {
         },
     });
 }
+
+
+// Xuất Excel
+function exportTableToExcel() {
+    const workbook = XLSX.utils.book_new();
+
+    const date = new Date().toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    
+    const filterType = $('#filter-type-select').val();
+    let reportTime = '';
+    if (filterType === 'year') {
+        reportTime = 'Năm ' + $('#year-select').val();
+    } else if (filterType === 'month') {
+        reportTime = 'Tháng ' + $('#month-select').val() + ' Năm ' + $('#year-select').val();
+    } else if (filterType === 'time') {
+        reportTime = 'Từ ' + utils.formatDate(startDate) + ' đến ' + utils.formatDate(endDate);
+    }
+
+    // Dữ liệu cho các dòng tiêu đề
+    const titleData = [
+        ["BÁO CÁO TỔNG QUAN"],
+        [`Thời gian báo cáo: ${reportTime}`],
+        [`Người xuất báo cáo: ${name}`],
+        [`Ngày xuất báo cáo: ${date}`],
+        []
+    ];
+
+    // Tạo worksheet từ tiêu đề
+    const worksheet = XLSX.utils.aoa_to_sheet(titleData);
+    
+    // Hợp nhất các ô từ A1 đến D4
+    worksheet['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // A1:H1
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // A2:H2
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // A3:H3
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } }, // A4:H4
+    ];
+
+    // Trích xuất dữ liệu từ bảng HTML
+    const table = document.getElementById("fund-report-table");
+    const tableData = [];
+    for (let row of table.rows) {
+        const rowData = [];
+        for (let cell of row.cells) {
+            rowData.push(cell.innerText);
+        }
+        tableData.push(rowData);
+    }
+
+    XLSX.utils.sheet_add_aoa(worksheet, tableData, { origin: "A5" });
+
+    // Thêm dòng dữ liệu tổng sau bảng
+    const totalBeginningBalance = document.getElementById("total-beginning-balance").innerText;
+    const totalIncome = document.getElementById("total-income").innerText;
+    const totalExpenditure = document.getElementById("total-expenditure").innerText;
+    const totalRemainingBalance = document.getElementById("total-remaining-balance").innerText;
+    
+
+    const summaryData = [
+        [], // Dòng trống
+        ["Tổng cộng", "", "", "", "", "", "", "", ""],
+        ["Tổng số dư đầu kỳ", totalBeginningBalance],
+        ["Tổng thu", totalIncome],
+        ["Tổng chi", totalExpenditure],
+        ["Tổng tồn", totalRemainingBalance]
+    ];
+
+    XLSX.utils.sheet_add_aoa(worksheet, summaryData, { origin: `A${tableData.length + 6}` });
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo tổng quan");
+    XLSX.writeFile(workbook, "Bao_cao_tong_quan.xlsx");
+}
+
+
+$("#btn-export-excel").on("click", function () {
+    exportTableToExcel();
+});
+
+
+$("#btn-export-pdf").on("click", function () {
+    dataTable.button('.buttons-pdf').trigger();
+});

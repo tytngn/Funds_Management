@@ -188,7 +188,7 @@ $(document).ready(function () {
         dom: 'lrtip',  // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
         columns: [
-            { data: "number" },
+            { data: "number", className: "text-center" },
             { data: "fund", 
                 render: function (data, type, row) {
                     let html = ""; 
@@ -213,7 +213,7 @@ $(document).ready(function () {
                         </details>`;
                 }
             },
-            { data: "transactionType", className: "text-center" },
+            { data: "transactionType" },
             { data: "amount", 
                 className: "text-right",
                 render: function (data, type, row) {
@@ -237,6 +237,7 @@ $(document).ready(function () {
                 data: "status",
                 orderable: true, // Cho phép sắp xếp dựa trên cột này
                 searchable: true, // Cho phép tìm kiếm dựa trên cột này
+                className: "text-center",
                 render: function (data, type, row) {
                     var statusClass = '';
                     var statusText = '';
@@ -566,10 +567,10 @@ $("#btn-add-withdraw").on("click", function () {
         let amount = utils.getRawValue("#modal-transaction-amount-input");
         let description = $("#modal-transaction-description-input").val();
     
-        if(amount == null){
+        if(!amount || isNaN(amount) || parseFloat(amount) <= 0){
             Toast.fire({
                 icon: "error",
-                title: "Vui lòng nhập số tiền giao dịch!"
+                title: "Số tiền giao dịch không hợp lệ!"
             });
             return;
         } else if (description == null || description.trim() == ""){

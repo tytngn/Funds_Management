@@ -2,7 +2,6 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.*;
-import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.dto.response.UserResponse;
 import com.tytngn.fundsmanagement.entity.BankAccount;
 import com.tytngn.fundsmanagement.entity.Role;

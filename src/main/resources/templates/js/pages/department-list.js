@@ -47,6 +47,13 @@ $(document).ready(function () {
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
 
+        columnDefs: [
+            {
+                targets: [0, 2], // Áp dụng cho tất cả các cột
+                className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
+            }
+        ],
+
         columns: [
             { data: "number" },
             { data: "name" },

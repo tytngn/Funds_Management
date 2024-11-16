@@ -2,7 +2,6 @@ package com.tytngn.fundsmanagement.controller;
 
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
-import com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.service.FundTransactionService;
 import jakarta.validation.Valid;
@@ -136,17 +135,18 @@ public class FundTransactionController {
 
 
     // Lấy báo cáo quỹ của một người dùng theo bộ lọc
-    @GetMapping("/user-fund-report")
-    ApiResponse<List<FundTransactionReportResponse>> getUserFundReport(
+    @GetMapping("/personal-contribution-report")
+    ApiResponse<Map<String, Object>> getPersonalContributionReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String transTypeId,
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
 
-        List<FundTransactionReportResponse> result = fundTransactionService.getUserFundReport(start, end, year, month);
-        return ApiResponse.<List<FundTransactionReportResponse>>builder()
+        return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
-                .result(result)
+                .result(fundTransactionService.getPersonalContributionReport(fundId, transTypeId, start, end, year, month))
                 .build();
     }
 

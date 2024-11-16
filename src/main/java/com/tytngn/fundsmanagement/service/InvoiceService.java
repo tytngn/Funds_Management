@@ -46,6 +46,14 @@ public class InvoiceService {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
         }
 
+        // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
+        if (paymentReq.getStatus() == 0) {
+            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            if (updateCount > 3) {
+                throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
+            }
+        }
+
         // tạo hoá đơn
         Invoice invoice = invoiceMapper.toInvoice(request);
         invoice.setCreateDate(LocalDateTime.now());
@@ -119,6 +127,14 @@ public class InvoiceService {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
         }
 
+        // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
+        if (paymentReq.getStatus() == 0) {
+            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            if (updateCount > 3) {
+                throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
+            }
+        }
+
         Invoice invoice = invoiceRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.INVOICE_NOT_EXISTS));
 
@@ -164,6 +180,14 @@ public class InvoiceService {
         // Kiểm tra trạng thái của đề nghị thanh toán (chỉ cho phép nếu trạng thái là 0 hoặc 1)
         if (paymentReq.getStatus() != 0 && paymentReq.getStatus() != 1) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EDITABLE);
+        }
+
+        // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
+        if (paymentReq.getStatus() == 0) {
+            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            if (updateCount > 3) {
+                throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
+            }
         }
 
         // cập nhật lại tổng số tiền ở PaymentReq và tiến hành xoá

@@ -11,7 +11,7 @@ var Toast = Swal.mixin({
 
 var dob;
 
-$(document).ready(function () {
+$(document).ready(async function () {
     // Select 
     $('.select2').select2({
         allowClear: true,
@@ -52,7 +52,7 @@ $(document).ready(function () {
     populateBankSelect();
 
     // Hiển thị đữ liệu
-    loadData();
+    await loadData();
 
 });
 
@@ -61,13 +61,17 @@ async function loadData(){
     utils.setLocalStorageObject("userInfo", null);
     const userInfo = await utils.getUserInfo();
     if (userInfo !== null) {
+        console.log(userInfo);
+        console.log("Department Name: ", userInfo.department.name);
+
+        
         // Gán giá trị vào các ô input
         $("#username").val(userInfo.username);
         $("#email").val(userInfo.email);
         $("#fullname").val(userInfo.fullname);
         $("#phone").val(userInfo.phone);
         $("#gender").val(userInfo.gender).trigger('change');
-        $("#department").val(userInfo.department ? userInfo.department.name : '');
+        $("#department-info").val(userInfo.department.name);
         $("#bank-select").val(userInfo.account ? userInfo.account.bankName : '').trigger('change');
         $("#account-number").val(userInfo.account ? userInfo.account.accountNumber : '');
         

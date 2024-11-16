@@ -183,212 +183,81 @@ import * as utils from "/js/pages/services/utils.js";
         options: areaOptions
       });
     }
-
-    // if ($("#sales-chart").length) {
-    //   var SalesChartCanvas = $("#sales-chart").get(0).getContext("2d");
-    //   var SalesChart = new Chart(SalesChartCanvas, {
-    //     type: 'bar',
-    //     data: {
-    //       labels: ["Jan", "Feb", "Mar", "Apr", "May"],
-    //       datasets: [{
-    //           label: 'Offline Sales',
-    //           data: [480, 230, 470, 210, 330],
-    //           backgroundColor: '#98BDFF'
-    //         },
-    //         {
-    //           label: 'Online Sales',
-    //           data: [400, 340, 550, 480, 170],
-    //           backgroundColor: '#4B49AC'
-    //         }
-    //       ]
-    //     },
-    //     options: {
-    //       cornerRadius: 5,
-    //       responsive: true,
-    //       maintainAspectRatio: true,
-    //       layout: {
-    //         padding: {
-    //           left: 0,
-    //           right: 0,
-    //           top: 20,
-    //           bottom: 0
-    //         }
-    //       },
-    //       scales: {
-    //         yAxes: [{
-    //           display: true,
-    //           gridLines: {
-    //             display: true,
-    //             drawBorder: false,
-    //             color: "#F2F2F2"
-    //           },
-    //           ticks: {
-    //             display: true,
-    //             min: 0,
-    //             max: 560,
-    //             callback: function(value, index, values) {
-    //               return  value + ' đ' ;
-    //             },
-    //             autoSkip: true,
-    //             maxTicksLimit: 10,
-    //             fontColor:"#6C7383"
-    //           }
-    //         }],
-    //         xAxes: [{
-    //           stacked: false,
-    //           ticks: {
-    //             beginAtZero: true,
-    //             fontColor: "#6C7383"
-    //           },
-    //           gridLines: {
-    //             color: "rgba(0, 0, 0, 0)",
-    //             display: false
-    //           },
-    //           barPercentage: 1
-    //         }]
-    //       },
-    //       legend: {
-    //         display: false
-    //       },
-    //       elements: {
-    //         point: {
-    //           radius: 0
-    //         }
-    //       }
-    //     },
-    //   });
-    //   document.getElementById('sales-legend').innerHTML = SalesChart.generateLegend();
-    // }
     if ($("#sales-chart").length) {
       var SalesChartCanvas = $("#sales-chart").get(0).getContext("2d");
-  
-      // Helper function for currency formatting
-      function formatCurrency(value) {
-          return value.toLocaleString('vi-VN') + ' ₫';
-      }
-  
-      // Fetch data from API
-      $.ajax({
-          url: `/api/fund-transactions/user-fund-report?year=2024`,
-          type: "GET",
-          headers: utils.defaultHeaders(),
-          success: function (res) {
-              if (res.code == 1000) {
-                  var labels = [];
-                  var dataTotal = [];
-                  
-                  if (res.result.length === 0) {
-                      $("#sales-chart").hide();
-                      $("#sales-legend").text("Không có dữ liệu để hiển thị");
-                      return;
-                  }
-  
-                  res.result.forEach(function (report) {
-                      labels.push(`${report.month}/${report.year}`);
-                      dataTotal.push(report.totalAmount || 0);
-                  });
-  
-                  var maxDataValue = Math.max(...dataTotal) * 1.1; // Scale max value slightly above highest total
-  
-                  // Create Chart
-                  var SalesChart = new Chart(SalesChartCanvas, {
-                      type: 'bar',
-                      data: {
-                          labels: labels,
-                          datasets: [
-                              {
-                                  label: 'Tổng đóng góp',
-                                  data: dataTotal,
-                                  backgroundColor: '#4B49AC'
-                              }
-                          ]
-                      },
-                      options: {
-                          cornerRadius: 5,
-                          responsive: true,
-                          maintainAspectRatio: true,
-                          layout: {
-                              padding: {
-                                  left: 0,
-                                  right: 0,
-                                  top: 20,
-                                  bottom: 0
-                              }
-                          },
-                          scales: {
-                              yAxes: [{
-                                  display: true,
-                                  gridLines: {
-                                      display: true,
-                                      drawBorder: false,
-                                      color: "#F2F2F2"
-                                  },
-                                  ticks: {
-                                      display: true,
-                                      min: 0,
-                                      max: maxDataValue,
-                                      maxTicksLimit: 10,
-                                      callback: formatCurrency,
-                                      fontColor: "#6C7383"
-                                  }
-                              }],
-                              xAxes: [{
-                                  stacked: false,
-                                  ticks: {
-                                      beginAtZero: true,
-                                      fontColor: "#6C7383"
-                                  },
-                                  gridLines: {
-                                      color: "rgba(0, 0, 0, 0)",
-                                      display: false
-                                  },
-                                  barPercentage: 1
-                              }]
-                          },
-                          legend: {
-                              display: true,
-                              position: 'top',
-                              labels: {
-                                  fontColor: "#6C7383"
-                              }
-                          },
-                          elements: {
-                              point: {
-                                  radius: 0
-                              }
-                          }
-                      },
-                  });
-  
-                  document.getElementById('sales-legend').innerHTML = SalesChart.generateLegend();
-              } else {
-                  Toast.fire({
-                      icon: "error",
-                      title: res.message || "Lỗi khi lấy dữ liệu"
-                  });
-              }
+      var SalesChart = new Chart(SalesChartCanvas, {
+        type: 'bar',
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+          datasets: [{
+              label: 'Offline Sales',
+              data: [480, 230, 470, 210, 330],
+              backgroundColor: '#98BDFF'
+            },
+            {
+              label: 'Online Sales',
+              data: [400, 340, 550, 480, 170],
+              backgroundColor: '#4B49AC'
+            }
+          ]
+        },
+        options: {
+          cornerRadius: 5,
+          responsive: true,
+          maintainAspectRatio: true,
+          layout: {
+            padding: {
+              left: 0,
+              right: 0,
+              top: 20,
+              bottom: 0
+            }
           },
-          error: function (xhr) {
-              console.error("Error fetching data:", xhr);
-              if (xhr.status == 401 || xhr.status == 403) {
-                  Toast.fire({
-                      icon: "error",
-                      title: "Bạn không có quyền truy cập!",
-                      timer: 1500,
-                      didClose: function () {
-                          window.location.href = "/";
-                      }
-                  });
-              } else {
-                  Toast.fire({
-                      icon: "error",
-                      title: "Lỗi khi kết nối máy chủ"
-                  });
+          scales: {
+            yAxes: [{
+              display: true,
+              gridLines: {
+                display: true,
+                drawBorder: false,
+                color: "#F2F2F2"
+              },
+              ticks: {
+                display: true,
+                min: 0,
+                max: 560,
+                callback: function(value, index, values) {
+                  return  value + '$' ;
+                },
+                autoSkip: true,
+                maxTicksLimit: 10,
+                fontColor:"#6C7383"
               }
+            }],
+            xAxes: [{
+              stacked: false,
+              ticks: {
+                beginAtZero: true,
+                fontColor: "#6C7383"
+              },
+              gridLines: {
+                color: "rgba(0, 0, 0, 0)",
+                display: false
+              },
+              barPercentage: 1
+            }]
+          },
+          legend: {
+            display: false
+          },
+          elements: {
+            point: {
+              radius: 0
+            }
           }
+        },
       });
-  }
-  
+      document.getElementById('sales-legend').innerHTML = SalesChart.generateLegend();
+    }
     if ($("#sales-chart-dark").length) {
       var SalesChartCanvas = $("#sales-chart-dark").get(0).getContext("2d");
       var SalesChart = new Chart(SalesChartCanvas, {

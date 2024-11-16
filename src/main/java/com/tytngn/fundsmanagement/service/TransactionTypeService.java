@@ -1,8 +1,6 @@
 package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.dto.request.TransactionTypeRequest;
-import com.tytngn.fundsmanagement.dto.response.DepartmentResponse;
-import com.tytngn.fundsmanagement.dto.response.PaymentCategoryResponse;
 import com.tytngn.fundsmanagement.dto.response.TransactionTypeResponse;
 import com.tytngn.fundsmanagement.entity.TransactionType;
 import com.tytngn.fundsmanagement.exception.AppException;
