@@ -2,7 +2,7 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
-import com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse;
+import com.tytngn.fundsmanagement.dto.response.TransactionReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import com.tytngn.fundsmanagement.entity.Image;
@@ -266,88 +266,6 @@ public class FundTransactionService {
     }
 
 
-    // Lấy báo cáo quỹ của một người dùng theo bộ lọc
-//    public List<FundTransactionReportResponse> getUserFundReport(String startDate, String endDate) {
-//        // Lấy userId người dùng đang đăng nhập
-//        String userId = securityExpression.getUserId();
-//
-//        LocalDateTime start = null;
-//        LocalDateTime end = null;
-//
-//        try {
-//            if (startDate != null && !startDate.isEmpty()) {
-//                start = LocalDateTime.parse(startDate + "T00:00:00");
-//            }
-//            if (endDate != null && !endDate.isEmpty()) {
-//                end = LocalDateTime.parse(endDate + "T23:59:59");
-//            }
-//        } catch (DateTimeParseException e) {
-//            throw new AppException(ErrorCode.DATA_INVALID);
-//        }
-//
-//        List<FundTransactionReportResponse> reportData = fundTransactionRepository.getUserFundReport(userId, start, end);
-//
-//        return reportData;
-//    }
-    public Map<String, Object> getPersonalContributionReport(String fundId, String transTypeId, String startDate, String endDate, Integer year, Integer month) {
-        // Lấy userId người dùng đang đăng nhập
-        String userId = securityExpression.getUserId();
-
-        LocalDateTime start = null;
-        LocalDateTime end = null;
-
-        if (year == null && month == null) {
-            try {
-                if (startDate != null && !startDate.isEmpty()) {
-                    start = LocalDateTime.parse(startDate + "T00:00:00");
-                }
-                if (endDate != null && !endDate.isEmpty()) {
-                    end = LocalDateTime.parse(endDate + "T23:59:59");
-                }
-            } catch (DateTimeParseException e) {
-                throw new AppException(ErrorCode.DATA_INVALID);
-            }
-        }
-
-        if (fundId == null || fundId.isEmpty()) {
-            fundId = null;
-        }
-        if (transTypeId == null || transTypeId.isEmpty()) {
-            transTypeId = null;
-        }
-
-        // Lấy dữ liệu từ repository
-        List<FundTransactionReportResponse> reportData = fundTransactionRepository.getUserFundReport(userId, fundId, transTypeId, 1, year, month, start, end);
-
-        // Tính tổng số tiền giao dịch
-        double totalAmount = reportData.stream()
-                .mapToDouble(FundTransactionReportResponse::getAmount) // Lấy tổng số tiền từ báo cáo
-                .sum();
-
-        // Tính tổng số giao dịch
-        long totalTransactions = reportData.stream()
-                .mapToLong(FundTransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
-                .sum();
-
-        // Sắp xếp
-        List<FundTransactionReportResponse> sortedResponses = reportData.stream()
-                .sorted(Comparator.comparing((FundTransactionReportResponse::getFundName), vietnameseCollator).thenComparing(
-                        Comparator.comparing(FundTransactionReportResponse::getTransType, vietnameseCollator)
-                                .thenComparingLong(FundTransactionReportResponse::getQuantity)
-                                .thenComparingDouble(FundTransactionReportResponse::getAmount)))
-                .toList();
-
-
-        // Tạo Map để trả về kết quả
-        Map<String, Object> result = new HashMap<>();
-        result.put("reportData", sortedResponses);  // Dữ liệu báo cáo chi tiết đã được sắp xếp
-        result.put("totalAmount", totalAmount); // Tổng số tiền giao dịch
-        result.put("totalTransactions", totalTransactions); // Tổng số giao dịch
-
-        return result;
-    }
-
-
     // Lấy danh sách giao dịch rút quỹ theo bộ lọc (theo quỹ, loại giao dịch, thời gian, phòng ban, cá nhân, trạng thái)
     public Map<String, Object> getWithdrawByFilter(String fundId, String transTypeId,
                                                    String startDate, String endDate,
@@ -433,6 +351,229 @@ public class FundTransactionService {
         Map<String, Object> result = new HashMap<>();
         result.put("transactions", responses);
         result.put("totalAmount", totalAmount);
+
+        return result;
+    }
+
+
+    // Lấy báo cáo đóng góp cá nhân theo bộ lọc
+    public Map<String, Object> getIndividualContributionReport(String fundId, String transTypeId, String startDate, String endDate, Integer year, Integer month) {
+        // Lấy userId người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        if (fundId == null || fundId.isEmpty()) {
+            fundId = null;
+        }
+        if (transTypeId == null || transTypeId.isEmpty()) {
+            transTypeId = null;
+        }
+
+        // Lấy dữ liệu từ repository
+        List<TransactionReportResponse> reportData = fundTransactionRepository.getIndividualTransactionReport(userId, fundId, transTypeId, 1, year, month, start, end);
+
+        // Tính tổng số tiền giao dịch
+        double totalAmount = reportData.stream()
+                .mapToDouble(TransactionReportResponse::getAmount) // Lấy tổng số tiền từ báo cáo
+                .sum();
+
+        // Tính tổng số giao dịch
+        long totalTransactions = reportData.stream()
+                .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                .sum();
+
+        // Sắp xếp
+        List<TransactionReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing((TransactionReportResponse::getFundName), vietnameseCollator).thenComparing(
+                        Comparator.comparing(TransactionReportResponse::getTransType, vietnameseCollator)
+                                .thenComparingLong(TransactionReportResponse::getQuantity)
+                                .thenComparingDouble(TransactionReportResponse::getAmount)))
+                .toList();
+
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);  // Dữ liệu báo cáo chi tiết đã được sắp xếp
+        result.put("totalAmount", totalAmount); // Tổng số tiền giao dịch
+        result.put("totalTransactions", totalTransactions); // Tổng số giao dịch
+
+        return result;
+    }
+
+
+    // Lấy báo cáo giao dịch đóng góp theo thủ quỹ
+    public Map<String, Object> getTreasurerContributionReport(String fundId, String transTypeId, String startDate, String endDate, Integer year, Integer month) {
+        // Lấy userId người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        // Lấy dữ liệu từ repository
+        List<TransactionReportResponse> reportData = fundTransactionRepository.getContributionTransactionReport(userId, fundId, transTypeId, year, month, start, end);
+
+        // Tính tổng số tiền giao dịch
+        double totalAmount = reportData.stream()
+                .mapToDouble(TransactionReportResponse::getAmount) // Lấy tổng số tiền từ báo cáo
+                .sum();
+
+        // Tính tổng số giao dịch
+        long totalTransactions = reportData.stream()
+                .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                .sum();
+
+        // Sắp xếp
+        List<TransactionReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing((TransactionReportResponse::getFundName), vietnameseCollator).thenComparing(
+                        Comparator.comparing(TransactionReportResponse::getTransType, vietnameseCollator)
+                                .thenComparingLong(TransactionReportResponse::getQuantity)
+                                .thenComparingDouble(TransactionReportResponse::getAmount)))
+                .toList();
+
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);  // Dữ liệu báo cáo chi tiết đã được sắp xếp
+        result.put("totalAmount", totalAmount); // Tổng số tiền giao dịch
+        result.put("totalTransactions", totalTransactions); // Tổng số giao dịch
+
+        return result;
+    }
+
+
+    // Lấy báo cáo rút quỹ của thủ quỹ theo bộ lọc
+    public Map<String, Object> getTreasurerWithdrawalReport(String fundId, String transTypeId, String startDate, String endDate, Integer year, Integer month) {
+        // Lấy userId người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        if (fundId == null || fundId.isEmpty()) {
+            fundId = null;
+        }
+        if (transTypeId == null || transTypeId.isEmpty()) {
+            transTypeId = null;
+        }
+
+        // Lấy dữ liệu từ repository
+        List<TransactionReportResponse> reportData = fundTransactionRepository.getIndividualTransactionReport(userId, fundId, transTypeId, 0, year, month, start, end);
+
+        // Tính tổng số tiền giao dịch
+        double totalAmount = reportData.stream()
+                .mapToDouble(TransactionReportResponse::getAmount) // Lấy tổng số tiền từ báo cáo
+                .sum();
+
+        // Tính tổng số giao dịch
+        long totalTransactions = reportData.stream()
+                .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                .sum();
+
+        // Sắp xếp
+        List<TransactionReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing((TransactionReportResponse::getFundName), vietnameseCollator).thenComparing(
+                        Comparator.comparing(TransactionReportResponse::getTransType, vietnameseCollator)
+                                .thenComparingLong(TransactionReportResponse::getQuantity)
+                                .thenComparingDouble(TransactionReportResponse::getAmount)))
+                .toList();
+
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);  // Dữ liệu báo cáo chi tiết đã được sắp xếp
+        result.put("totalAmount", totalAmount); // Tổng số tiền giao dịch
+        result.put("totalTransactions", totalTransactions); // Tổng số giao dịch
+
+        return result;
+    }
+
+
+    // Lấy báo cáo giao dịch theo bộ lọc
+    public Map<String, Object> getTransactionReport(String fundId, String transTypeId, Integer status, String startDate, String endDate, Integer year, Integer month) {
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        // Lấy dữ liệu từ repository
+        List<TransactionReportResponse> reportData = fundTransactionRepository.getTransactionReport(fundId, transTypeId, status, year, month, start, end);
+
+        // Tính tổng số tiền giao dịch
+        double totalAmount = reportData.stream()
+                .mapToDouble(TransactionReportResponse::getAmount) // Lấy tổng số tiền từ báo cáo
+                .sum();
+
+        // Tính tổng số giao dịch
+        long totalTransactions = reportData.stream()
+                .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                .sum();
+
+        // Sắp xếp
+        List<TransactionReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing((TransactionReportResponse::getFundName), vietnameseCollator).thenComparing(
+                        Comparator.comparing(TransactionReportResponse::getTransType, vietnameseCollator)
+                                .thenComparingLong(TransactionReportResponse::getQuantity)
+                                .thenComparingDouble(TransactionReportResponse::getAmount)))
+                .toList();
+
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);  // Dữ liệu báo cáo chi tiết đã được sắp xếp
+        result.put("totalAmount", totalAmount); // Tổng số tiền giao dịch
+        result.put("totalTransactions", totalTransactions); // Tổng số giao dịch
 
         return result;
     }

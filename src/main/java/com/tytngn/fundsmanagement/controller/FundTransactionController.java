@@ -134,23 +134,6 @@ public class FundTransactionController {
     }
 
 
-    // Lấy báo cáo quỹ của một người dùng theo bộ lọc
-    @GetMapping("/personal-contribution-report")
-    ApiResponse<Map<String, Object>> getPersonalContributionReport(
-            @RequestParam(required = false) String fundId,
-            @RequestParam(required = false) String transTypeId,
-            @RequestParam(required = false) String start,
-            @RequestParam(required = false) String end,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month) {
-
-        return ApiResponse.<Map<String, Object>>builder()
-                .code(1000)
-                .result(fundTransactionService.getPersonalContributionReport(fundId, transTypeId, start, end, year, month))
-                .build();
-    }
-
-
     // Lấy danh sách giao dịch rút quỹ theo bộ lọc (theo thời gian, theo phòng ban, theo cá nhân)
     @GetMapping("/withdraw/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_WITHDRAW_BY_FILTER'})")
@@ -198,6 +181,79 @@ public class FundTransactionController {
         return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
                 .result(result)
+                .build();
+    }
+
+
+    // Lấy báo cáo đóng góp của cá nhân theo bộ lọc
+    @GetMapping("/individual-contribution-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_INDIVIDUAL_CONTRIBUTION_REPORT'})")
+    ApiResponse<Map<String, Object>> getIndividualContributionReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String transTypeId,
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.getIndividualContributionReport(fundId, transTypeId, start, end, year, month))
+                .build();
+    }
+
+
+    // Lấy báo cáo đóng góp của thủ quỹ theo bộ lọc
+    @GetMapping("/treasurer-contribution-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TREASURER_CONTRIBUTION_REPORT'})")
+    ApiResponse<Map<String, Object>> getTreasurerContributionReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String transTypeId,
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.getTreasurerContributionReport(fundId, transTypeId, start, end, year, month))
+                .build();
+    }
+
+
+    // Lấy báo cáo rút quỹ của thủ quỹ theo bộ lọc
+    @GetMapping("/treasurer-withdrawal-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TREASURER_WITHDRAWAL_REPORT'})")
+    ApiResponse<Map<String, Object>> getTreasurerWithdrawalReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String transTypeId,
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.getTreasurerWithdrawalReport(fundId, transTypeId, start, end, year, month))
+                .build();
+    }
+
+
+    // Lấy báo cáo giao dịch theo bộ lọc
+    @GetMapping("/transaction-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TRANSACTION_REPORT'})")
+    ApiResponse<Map<String, Object>> getTransactionReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String transTypeId,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.getTransactionReport(fundId, transTypeId, status, start, end, year, month))
                 .build();
     }
 

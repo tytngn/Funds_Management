@@ -71,7 +71,7 @@ public class PaymentReqController {
     // Lấy danh sách đề nghị thanh toán của một người dùng theo bộ lọc
     @GetMapping("/user/filter")
     @PreAuthorize("@securityExpression.hasPermission({'GET_USER_PAYMENT_REQUESTS_BY_FILTER'})")
-    public ApiResponse<Map<String, Object>> getUserPaymentRequestsByFilter(
+     ApiResponse<Map<String, Object>> getUserPaymentRequestsByFilter(
             @RequestParam(required = false) String fundId,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
@@ -93,7 +93,7 @@ public class PaymentReqController {
     // Lấy danh sách đề nghị thanh toán theo bộ lọc và phải thuộc quỹ của người dùng tạo ra
     @GetMapping("/treasurer/filter")
     @PreAuthorize("@securityExpression.hasPermission({'FILTER_PAYMENT_REQUESTS_BY_TREASURER'})")
-    public ApiResponse<Map<String, Object>> filterPaymentRequestsByTreasurer(
+     ApiResponse<Map<String, Object>> filterPaymentRequestsByTreasurer(
             @RequestParam(required = false) String fundId,
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end,
@@ -122,6 +122,57 @@ public class PaymentReqController {
         return ApiResponse.<PaymentReqResponse>builder()
                 .code(1000)
                 .result(paymentReqService.getById(id))
+                .build();
+    }
+
+
+    // Báo cáo thanh toán cá nhân theo bộ lọc
+    @GetMapping("/individual-payment-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_INDIVIDUAL_PAYMENT_REPORT'})")
+    ApiResponse<Map<String, Object>> getIndividualPaymentReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(paymentReqService.getIndividualPaymentReport(fundId, start, end, year, month))
+                .build();
+    }
+
+
+    // Báo cáo thanh toán theo thủ quỹ
+    @GetMapping("/treasurer-payment-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TREASURER_PAYMENT_REPORT'})")
+    ApiResponse<Map<String, Object>> getTreasurerPaymentReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(paymentReqService.getTreasurerPaymentReport(fundId, start, end, year, month))
+                .build();
+    }
+
+
+    // Báo cáo thanh toán theo thủ quỹ
+    @GetMapping("/payment-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_PAYMENT_REPORT'})")
+    ApiResponse<Map<String, Object>> getPaymentReport(
+            @RequestParam(required = false) String fundId,
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(paymentReqService.getPaymentReport(fundId, start, end, year, month))
                 .build();
     }
 

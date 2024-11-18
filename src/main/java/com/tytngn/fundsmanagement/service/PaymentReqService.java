@@ -2,6 +2,7 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.PaymentReqRequest;
+import com.tytngn.fundsmanagement.dto.response.PaymentReportResponse;
 import com.tytngn.fundsmanagement.dto.response.PaymentReqResponse;
 import com.tytngn.fundsmanagement.entity.Image;
 import com.tytngn.fundsmanagement.entity.PaymentReq;
@@ -16,6 +17,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.Collator;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -34,6 +36,7 @@ public class PaymentReqService {
     FundRepository fundRepository;
     ImageRepository imageRepository;
     SecurityExpression securityExpression;
+    Collator vietnameseCollator;
 
     // Tạo đề nghị thanh toán
     @Transactional
@@ -214,6 +217,145 @@ public class PaymentReqService {
     public PaymentReqResponse getById(String id) {
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.findById(id).orElseThrow(() ->
                 new AppException(ErrorCode.PAYMENT_REQUEST_NOT_EXISTS)));
+    }
+
+
+    // Báo cáo thanh toán cá nhân theo bộ lọc
+    public Map<String, Object> getIndividualPaymentReport(String fundId, String startDate, String endDate, Integer year, Integer month) {
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        // Lấy dữ liệu từ repository
+        List<PaymentReportResponse> reportData = paymentReqRepository.getIndividualPaymentReport(userId, fundId, year, month, start, end);
+
+        // Tổng hợp dữ liệu
+        double totalApprovedAmount = reportData.stream().mapToDouble(PaymentReportResponse::getApprovedAmount).sum();
+        double totalReceivedAmount = reportData.stream().mapToDouble(PaymentReportResponse::getReceivedAmount).sum();
+        long totalApprovedQuantity = reportData.stream().mapToLong(PaymentReportResponse::getApprovedQuantity).sum();
+        long totalReceivedQuantity = reportData.stream().mapToLong(PaymentReportResponse::getReceivedQuantity).sum();
+
+        // Sắp xếp theo tên quỹ
+        List<PaymentReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing(PaymentReportResponse::getFundName, vietnameseCollator))
+                .toList();
+
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);
+        result.put("totalApprovedAmount", totalApprovedAmount);
+        result.put("totalReceivedAmount", totalReceivedAmount);
+        result.put("totalApprovedQuantity", totalApprovedQuantity);
+        result.put("totalReceivedQuantity", totalReceivedQuantity);
+
+        return result;
+    }
+
+
+    // Báo cáo thanh toán theo thủ quỹ
+    public Map<String, Object> getTreasurerPaymentReport(String fundId, String startDate, String endDate, Integer year, Integer month) {
+        String userId = securityExpression.getUserId();
+
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        // Lấy dữ liệu từ repository
+        List<PaymentReportResponse> reportData = paymentReqRepository.getTreasurerPaymentReport(userId, fundId, year, month, start, end);
+
+        // Tổng hợp dữ liệu
+        double totalApprovedAmount = reportData.stream().mapToDouble(PaymentReportResponse::getApprovedAmount).sum();
+        double totalReceivedAmount = reportData.stream().mapToDouble(PaymentReportResponse::getReceivedAmount).sum();
+        long totalApprovedQuantity = reportData.stream().mapToLong(PaymentReportResponse::getApprovedQuantity).sum();
+        long totalReceivedQuantity = reportData.stream().mapToLong(PaymentReportResponse::getReceivedQuantity).sum();
+
+        // Sắp xếp theo tên quỹ
+        List<PaymentReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing(PaymentReportResponse::getFundName, vietnameseCollator))
+                .toList();
+
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);
+        result.put("totalApprovedAmount", totalApprovedAmount);
+        result.put("totalReceivedAmount", totalReceivedAmount);
+        result.put("totalApprovedQuantity", totalApprovedQuantity);
+        result.put("totalReceivedQuantity", totalReceivedQuantity);
+
+        return result;
+    }
+
+
+    // Báo cáo thanh toán
+    public Map<String, Object> getPaymentReport(String fundId, String startDate, String endDate, Integer year, Integer month) {
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+
+        if (year == null && month == null) {
+            try {
+                if (startDate != null && !startDate.isEmpty()) {
+                    start = LocalDateTime.parse(startDate + "T00:00:00");
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    end = LocalDateTime.parse(endDate + "T23:59:59");
+                }
+            } catch (DateTimeParseException e) {
+                throw new AppException(ErrorCode.DATA_INVALID);
+            }
+        }
+
+        // Lấy dữ liệu từ repository
+        List<PaymentReportResponse> reportData = paymentReqRepository.getPaymentReport(fundId, year, month, start, end);
+
+        // Tổng hợp dữ liệu
+        double totalApprovedAmount = reportData.stream().mapToDouble(PaymentReportResponse::getApprovedAmount).sum();
+        double totalReceivedAmount = reportData.stream().mapToDouble(PaymentReportResponse::getReceivedAmount).sum();
+        long totalApprovedQuantity = reportData.stream().mapToLong(PaymentReportResponse::getApprovedQuantity).sum();
+        long totalReceivedQuantity = reportData.stream().mapToLong(PaymentReportResponse::getReceivedQuantity).sum();
+
+        // Sắp xếp theo tên quỹ
+        List<PaymentReportResponse> sortedResponses = reportData.stream()
+                .sorted(Comparator.comparing(PaymentReportResponse::getFundName, vietnameseCollator))
+                .toList();
+
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("reportData", sortedResponses);
+        result.put("totalApprovedAmount", totalApprovedAmount);
+        result.put("totalReceivedAmount", totalReceivedAmount);
+        result.put("totalApprovedQuantity", totalApprovedQuantity);
+        result.put("totalReceivedQuantity", totalReceivedQuantity);
+
+        return result;
     }
 
 

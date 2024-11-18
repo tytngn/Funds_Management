@@ -1,6 +1,6 @@
 package com.tytngn.fundsmanagement.repository;
 
-import com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse;
+import com.tytngn.fundsmanagement.dto.response.TransactionReportResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -53,25 +53,8 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
     );
 
 
-    // Lấy báo cáo giao dịch đóng góp của một người dùng theo bộ lọc
-//    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse(" +
-//            "t.fund.fundName, t.transactionType.name, " +
-//            "SUM(t.amount), " +
-//            "YEAR(t.transDate), MONTH(t.transDate)) " +
-//            "FROM FundTransaction t " +
-//            "WHERE t.user.id = :userId " +
-//            "AND t.status = 2 " + // Lấy các giao dịch đã được duyệt
-//            "AND (:year IS NULL OR YEAR(t.transDate) = :year) " +
-//            "AND (:month IS NULL OR MONTH(t.transDate) = :month) " +
-//            "AND (COALESCE(:start, null) IS NULL OR t.transDate >= :start) " +
-//            "AND (COALESCE(:end, null) IS NULL OR t.transDate <= :end) " +
-//            "GROUP BY t.fund.fundName, t.transactionType.name, YEAR(t.transDate), MONTH(t.transDate)")
-//    List<FundTransactionReportResponse> getUserFundReport(@Param("userId") String userId,
-//                                                          @Param("year") Integer year,
-//                                                          @Param("month") Integer month,
-//                                                          @Param("start") LocalDateTime start,
-//                                                          @Param("end") LocalDateTime end);
-    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.FundTransactionReportResponse(" +
+    // Báo cáo giao dịch cá nhân theo bộ lọc
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.TransactionReportResponse(" +
             "t.fund.fundName, t.transactionType.name, " +
             "SUM(t.amount), " +
             "COUNT(t.id)) " +
@@ -86,16 +69,63 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
             "AND (COALESCE(:start, null) IS NULL OR t.transDate >= :start) " + // Lọc theo ngày bắt đầu
             "AND (COALESCE(:end, null) IS NULL OR t.transDate <= :end) " + // Lọc theo ngày kết thúc
             "GROUP BY t.fund.fundName, t.transactionType.name")
-    List<FundTransactionReportResponse> getUserFundReport(@Param("userId") String userId,
-                                                          @Param("fundId") String fundId,
-                                                          @Param("transTypeId") String transTypeId,
-                                                          @Param("transTypeStatus") Integer transTypeStatus,
-                                                          @Param("year") Integer year,
-                                                          @Param("month") Integer month,
-                                                          @Param("start") LocalDateTime start,
-                                                          @Param("end") LocalDateTime end);
+    List<TransactionReportResponse> getIndividualTransactionReport(@Param("userId") String userId,
+                                                                   @Param("fundId") String fundId,
+                                                                   @Param("transTypeId") String transTypeId,
+                                                                   @Param("transTypeStatus") Integer transTypeStatus,
+                                                                   @Param("year") Integer year,
+                                                                   @Param("month") Integer month,
+                                                                   @Param("start") LocalDateTime start,
+                                                                   @Param("end") LocalDateTime end);
 
 
+    // Báo cáo giao dịch đóng góp theo thủ quỹ
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.TransactionReportResponse(" +
+            "t.fund.fundName, t.transactionType.name, " +
+            "SUM(t.amount), " +
+            "COUNT(t.id)) " +
+            "FROM FundTransaction t " +
+            "WHERE t.fund.user.id = :userId " +
+            "AND t.status = 2 " + // Lấy các giao dịch đã được duyệt
+            "AND (COALESCE(:fundId, '') = '' OR t.fund.id = :fundId) " + // Lọc theo quỹ
+            "AND (COALESCE(:transTypeId, '') = '' OR t.transactionType.id = :transTypeId)  " + // Lọc theo loại giao dịch
+            "AND t.transactionType.status = 1 " + // Lọc theo trạng thái giao dịch đóng góp
+            "AND (:year IS NULL OR YEAR(t.transDate) = :year) " + // Lọc theo năm
+            "AND (:month IS NULL OR MONTH(t.transDate) = :month) " + // Lọc theo tháng
+            "AND (COALESCE(:start, null) IS NULL OR t.transDate >= :start) " + // Lọc theo ngày bắt đầu
+            "AND (COALESCE(:end, null) IS NULL OR t.transDate <= :end) " + // Lọc theo ngày kết thúc
+            "GROUP BY t.fund.fundName, t.transactionType.name")
+    List<TransactionReportResponse> getContributionTransactionReport(@Param("userId") String userId,
+                                                                   @Param("fundId") String fundId,
+                                                                   @Param("transTypeId") String transTypeId,
+                                                                   @Param("year") Integer year,
+                                                                   @Param("month") Integer month,
+                                                                   @Param("start") LocalDateTime start,
+                                                                   @Param("end") LocalDateTime end);
+
+
+    // Báo cáo giao dịch dựa trên các bộ lọc
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.TransactionReportResponse(" +
+            "t.fund.fundName, t.transactionType.name, " +
+            "SUM(t.amount), " +
+            "COUNT(t.id)) " +
+            "FROM FundTransaction t " +
+            "WHERE t.status = 2 " + // Lấy các giao dịch đã được duyệt
+            "AND (COALESCE(:fundId, '') = '' OR t.fund.id = :fundId) " + // Lọc theo quỹ
+            "AND (COALESCE(:transTypeId, '') = '' OR t.transactionType.id = :transTypeId)  " + // Lọc theo loại giao dịch
+            "AND (:transTypeStatus IS NULL OR t.transactionType.status = :transTypeStatus) " + // Lọc theo trạng thái giao dịch (0 hoặc 1)
+            "AND (:year IS NULL OR YEAR(t.transDate) = :year) " + // Lọc theo năm
+            "AND (:month IS NULL OR MONTH(t.transDate) = :month) " + // Lọc theo tháng
+            "AND (COALESCE(:start, null) IS NULL OR t.transDate >= :start) " + // Lọc theo ngày bắt đầu
+            "AND (COALESCE(:end, null) IS NULL OR t.transDate <= :end) " + // Lọc theo ngày kết thúc
+            "GROUP BY t.fund.fundName, t.transactionType.name")
+    List<TransactionReportResponse> getTransactionReport(@Param("fundId") String fundId,
+                                                         @Param("transTypeId") String transTypeId,
+                                                         @Param("transTypeStatus") Integer transTypeStatus,
+                                                         @Param("year") Integer year,
+                                                         @Param("month") Integer month,
+                                                         @Param("start") LocalDateTime start,
+                                                         @Param("end") LocalDateTime end);
 
 
     // Báo cáo chi tiết quỹ: Tính tổng thu của quỹ

@@ -1,5 +1,6 @@
 package com.tytngn.fundsmanagement.repository;
 
+import com.tytngn.fundsmanagement.dto.response.PaymentReportResponse;
 import com.tytngn.fundsmanagement.entity.PaymentReq;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -50,6 +51,76 @@ public interface PaymentReqRepository extends JpaRepository<PaymentReq, String> 
                                            @Param("departmentId") String departmentId,
                                            @Param("userId") String userId,
                                            @Param("treasurerId") String treasurerId);
+
+
+    //  Báo cáo thanh toán cá nhân theo bộ lọc
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.PaymentReportResponse(" +
+            "p.fund.fundName, " +
+            "SUM(CASE WHEN p.status = 3 THEN p.amount ELSE 0 END), " + // Tổng tiền ĐÃ DUYỆT
+            "SUM(CASE WHEN p.status = 5 THEN p.amount ELSE 0 END), " + // Tổng tiền ĐÃ NHẬN
+            "COUNT(CASE WHEN p.status = 3 THEN p.id ELSE null END), " + // Số lượng ĐÃ DUYỆT
+            "COUNT(CASE WHEN p.status = 5 THEN p.id ELSE null END)) " + // Số lượng ĐÃ NHẬN
+            "FROM PaymentReq p " +
+            "WHERE p.user.id = :userId " +
+            "AND (p.status = 3 OR p.status = 5) " + // Lọc theo trạng thái thanh toán
+            "AND (COALESCE(:fundId, '') = '' OR p.fund.id = :fundId) " +
+            "AND (:year IS NULL OR YEAR(p.createDate) = :year) " +
+            "AND (:month IS NULL OR MONTH(p.createDate) = :month) " +
+            "AND (COALESCE(:start, null) IS NULL OR p.createDate >= :start) " +
+            "AND (COALESCE(:end, null) IS NULL OR p.createDate <= :end) " +
+            "GROUP BY p.fund.fundName")
+    List<PaymentReportResponse> getIndividualPaymentReport(@Param("userId") String userId,
+                                                           @Param("fundId") String fundId,
+                                                           @Param("year") Integer year,
+                                                           @Param("month") Integer month,
+                                                           @Param("start") LocalDateTime start,
+                                                           @Param("end") LocalDateTime end);
+
+
+    // Báo cáo thanh toán theo thủ quỹ
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.PaymentReportResponse(" +
+            "p.fund.fundName, " +
+            "SUM(CASE WHEN p.status = 3 THEN p.amount ELSE 0 END), " + // Tổng tiền ĐÃ DUYỆT
+            "SUM(CASE WHEN p.status = 4 THEN p.amount ELSE 0 END), " + // Tổng tiền ĐÃ THANH TOÁN
+            "COUNT(CASE WHEN p.status = 3 THEN p.id ELSE null END), " + // Số lượng ĐÃ DUYỆT
+            "COUNT(CASE WHEN p.status = 4 THEN p.id ELSE null END)) " + // Số lượng ĐÃ THANH TOÁN
+            "FROM PaymentReq p " +
+            "WHERE p.fund.user.id = :userId " +
+            "AND (p.status = 3 OR p.status = 4) " + // Lọc theo trạng thái thanh toán
+            "AND (COALESCE(:fundId, '') = '' OR p.fund.id = :fundId) " +
+            "AND (:year IS NULL OR YEAR(p.createDate) = :year) " +
+            "AND (:month IS NULL OR MONTH(p.createDate) = :month) " +
+            "AND (COALESCE(:start, null) IS NULL OR p.createDate >= :start) " +
+            "AND (COALESCE(:end, null) IS NULL OR p.createDate <= :end) " +
+            "GROUP BY p.fund.fundName")
+    List<PaymentReportResponse> getTreasurerPaymentReport(@Param("userId") String userId,
+                                                          @Param("fundId") String fundId,
+                                                          @Param("year") Integer year,
+                                                          @Param("month") Integer month,
+                                                          @Param("start") LocalDateTime start,
+                                                          @Param("end") LocalDateTime end);
+
+
+    // Báo cáo thanh toán
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.PaymentReportResponse(" +
+            "p.fund.fundName, " +
+            "SUM(CASE WHEN p.status = 3 THEN p.amount ELSE 0 END), " + // Tổng tiền ĐÃ DUYỆT
+            "SUM(CASE WHEN p.status = 4 THEN p.amount ELSE 0 END), " + // Tổng tiền ĐÃ THANH TOÁN
+            "COUNT(CASE WHEN p.status = 3 THEN p.id ELSE null END), " + // Số lượng ĐÃ DUYỆT
+            "COUNT(CASE WHEN p.status = 4 THEN p.id ELSE null END)) " + // Số lượng ĐÃ THANH TOÁN
+            "FROM PaymentReq p " +
+            "WHERE (p.status = 3 OR p.status = 4) " + // Lọc theo trạng thái thanh toán
+            "AND (COALESCE(:fundId, '') = '' OR p.fund.id = :fundId) " +
+            "AND (:year IS NULL OR YEAR(p.createDate) = :year) " +
+            "AND (:month IS NULL OR MONTH(p.createDate) = :month) " +
+            "AND (COALESCE(:start, null) IS NULL OR p.createDate >= :start) " +
+            "AND (COALESCE(:end, null) IS NULL OR p.createDate <= :end) " +
+            "GROUP BY p.fund.fundName")
+    List<PaymentReportResponse> getPaymentReport( @Param("fundId") String fundId,
+                                                  @Param("year") Integer year,
+                                                  @Param("month") Integer month,
+                                                  @Param("start") LocalDateTime start,
+                                                  @Param("end") LocalDateTime end);
 
 
     // Báo cáo chi tiết quỹ: Tính tổng thanh toán của quỹ

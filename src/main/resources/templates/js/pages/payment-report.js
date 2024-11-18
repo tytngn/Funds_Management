@@ -107,7 +107,6 @@ $(document).ready(async function () {
         $(this).val('');
     });
 
-
     var urlFund = "/api/funds/by-treasurer";
     if (userRole === 'ADMIN' || userRole === 'ACCOUNTANT'){
         urlFund = "/api/funds/active";
@@ -146,15 +145,14 @@ $(document).ready(async function () {
         }
     });
 
-
-    // Nhấn nút "Xem"
+    // Nhấn nút "Tìm kiếm"
     $("#btn-search").on("click", async function () {    
-        await loadFundReport();
+        await loadPaymentReport();
     });
 
 
-    // Bảng báo cáo tổng quan quỹ
-    dataTable = $("#fund-report-table").DataTable({
+    // Bảng báo cáo thanh toán của cá nhân
+    dataTable = $("#payment-report-table").DataTable({
         fixedHeader: true,
         autoWidth: false,
         processing: true,
@@ -179,45 +177,50 @@ $(document).ready(async function () {
         scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
         dom: 'lfrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
-
+    
         buttons: [
             {
                 extend: 'pdfHtml5',
-                title: 'BÁO CÁO TỔNG QUAN',
+                title: 'BÁO CÁO THANH TOÁN',
                 orientation: 'landscape',
                 pageSize: 'A4',
                 exportOptions: {
-                    columns: ':visible'  // Chọn tất cả các cột sẽ xuất
+                    columns: ':visible' // Chọn tất cả các cột sẽ xuất
                 },
                 customize: function (doc) {
                     // Thiết lập chiều rộng cho các cột trong PDF
-                    doc.content[1].table.widths = ['3%', '*', '10%', '10%', '10%', '10%', '10%', '12%'];
-
+                    doc.content[1].table.widths = ['5%', '*', '15%', '10%', '15%', '10%'];
+        
                     // Tạo lại cấu trúc bảng với border
                     const body = [];
                     body.push(doc.content[1].table.body[0]); // Hàng đầu tiên là tiêu đề
-
-                    // Duyệt qua từng hàng và cột để cấu trúc lại
+        
                     for (let i = 1; i < doc.content[1].table.body.length; i++) {
                         const row = doc.content[1].table.body[i];
                         const newRow = row.map((cell, index) => ({
                             text: cell.text || '', // Giữ lại nội dung
-                            alignment: index === 1 || index === 7 ? 'left' : (index === 2 || index === 3 || index === 4 || index === 5 ? 'right' : 'center'), // Căn lề
+                            alignment: index === 1 ? 'left' : (index === 3 || index === 5 ? 'right' : 'center'), // Căn lề
                             border: [true, true, true, true] // Thiết lập border cho từng ô
                         }));
                         body.push(newRow);
                     }
 
-                    // Gán lại body cho bảng
+                    // Thêm hàng "TỔNG CỘNG" vào cuối bảng
+                    let totalApprovedAmount = document.getElementById('total-approved-amount').innerText; 
+                    let totalApprovedQuantity = document.getElementById('total-approved-payment-request').innerText; 
+                    let totalReceivedAmount = document.getElementById('total-received-amount').innerText; 
+                    let totalReceivedQuantity = document.getElementById('total-received-payment-request').innerText; 
+                    body.push([
+                        { text: '', border: [true, true, true, true] },
+                        { text: 'TỔNG CỘNG:', bold: true, alignment: 'right', border: [true, true, true, true] },
+                        { text: totalApprovedQuantity, bold: true, alignment: 'center', border: [true, true, true, true] },
+                        { text: totalApprovedAmount, bold: true, alignment: 'right', border: [true, true, true, true] },
+                        { text: totalReceivedQuantity, bold: true, alignment: 'center', border: [true, true, true, true] },
+                        { text: totalReceivedAmount, bold: true, alignment: 'right', border: [true, true, true, true] }
+                    ]);
+        
                     doc.content[1].table.body = body;
-
-                    // Thêm ngày xuất file dưới tiêu đề
-                    const date = new Date().toLocaleDateString('vi-VN', {
-                        year: 'numeric', 
-                        month: '2-digit', 
-                        day: '2-digit'
-                    });
-
+        
                     const filterType = $('#filter-type-select').val();
                     let reportTime = '';
                     if (filterType === 'year') {
@@ -227,56 +230,107 @@ $(document).ready(async function () {
                     } else if (filterType === 'time') {
                         reportTime = 'Từ ' + utils.formatDate(startDate) + ' đến ' + utils.formatDate(endDate);
                     }
+                        
+                    // Xóa tiêu đề mặc định nếu có
+                    if (doc.content[0].text && doc.content[0].text === 'BÁO CÁO THANH TOÁN') {
+                        doc.content.shift(); // Xóa phần tử đầu tiên
+                    }
 
-                    doc.content.splice(1, 0, { text: '' + reportTime, fontSize: 12, alignment: 'center', margin: [0, 5, 0, 5] });
-                    doc.content.splice(2, 0, { text: 'Ngày: ' + date, alignment: 'right', margin: [0, 5, 0, 5] });
+                    // Thêm ngày xuất file và các thông tin khác
+                    const date = new Date();
 
-                    // Thêm dữ liệu tổng vào cuối bảng
-                    const totalBeginningBalance = document.getElementById("total-beginning-balance").innerText;
-                    const totalIncome = document.getElementById("total-income").innerText;
-                    const totalExpenditure = document.getElementById("total-expenditure").innerText;
-                    const totalRemainingBalance = document.getElementById("total-remaining-balance").innerText;
-
-                    doc.content.push(
-                        { text: 'Tổng số dư đầu kỳ: ' + totalBeginningBalance, alignment: 'left', margin: [0, 30, 0, 3], bold: true },
-                        { text: 'Tổng thu: ' + totalIncome, alignment: 'left', margin: [0, 5, 0, 3], bold: true },
-                        { text: 'Tổng chi: ' + totalExpenditure, alignment: 'left', margin: [0, 5, 0, 3], bold: true },
-                        { text: 'Tổng chi: ' + totalRemainingBalance, alignment: 'left', margin: [0, 5, 0, 0], bold: true }
-                    );
-
-                    doc.content.push(
-                        {
-                            text: 'Người lập báo cáo', 
-                            alignment: 'right',
-                            margin: [0, 30, 0, 20],
-                        }
-                    );
-                    doc.content.push(
-                        {
-                            text: '' + name, 
-                            alignment: 'right',
-                            margin: [0, 20, 6, 0],
-                        }
-                    );
+                    // Thêm tên công ty và địa chỉ bên trái, ngày tháng năm bên phải
+                    doc.content.unshift({
+                        columns: [
+                            { 
+                                stack: [
+                                    { text: "TẬP ĐOÀN BƯU CHÍNH VIỄN THÔNG VIỆT NAM", margin: [35, 0, 0, 5] },
+                                    { text: "VIỄN THÔNG HẬU GIANG", margin: [80, 0, 0, 5] },
+                                    { text: "TRUNG TÂM CÔNG NGHỆ THÔNG TIN", bold: true, margin: [50, 0, 0, 5] },
+                                    { text: "Số 61, đường Võ Văn Kiệt, phường V, thành phố Vị Thanh, tỉnh Hậu Giang", margin: [0, 0, 0, 0] }
+                                ],
+                                alignment: 'left', 
+                                margin: [0, 0, 0, 10] 
+                            },
+                            { 
+                                text: `Hậu Giang, ngày ${date.getDate()} tháng ${date.getMonth() + 1} năm ${date.getFullYear()}`,
+                                alignment: 'right',
+                                italics: true,
+                                margin: [0, 45, 0, 0] 
+                            }
+                        ]
+                    });                    
+                    
+        
+                    // Thêm tiêu đề chính
+                    doc.content.splice(1, 0, { 
+                        text: 'BÁO CÁO THANH TOÁN', 
+                        fontSize: 16, 
+                        bold: true, 
+                        alignment: 'center', 
+                        margin: [10, 20, 0, 10] 
+                    });
+        
+                    // Thêm thông tin báo cáo
+                    doc.content.splice(2, 0, { text: '' + reportTime, fontSize: 12, alignment: 'center', margin: [0, 5, 0, 20] });
+                    
+                    // Thêm chữ ký người lập báo cáo bên trái, kế toán bên phải
+                    doc.content.push({
+                        columns: [
+                            {
+                                text: 'Người lập báo cáo', 
+                                alignment: 'left',
+                                margin: [10, 60, 0, 0]
+                            },
+                            {
+                                text: 'Kế toán', 
+                                alignment: 'right',
+                                margin: [0, 60, 25, 0]
+                            }
+                        ]
+                    });
+                    doc.content.push({
+                        columns: [
+                            {
+                                text: '(Ký và ghi rõ họ tên)', 
+                                alignment: 'left',
+                                margin: [10, 5, 0, 40],
+                                italics: true
+                            },
+                            {
+                                text: '(Ký và ghi rõ họ tên)', 
+                                alignment: 'right',
+                                margin: [0, 5, 0, 40],
+                                italics: true
+                            }
+                        ]
+                    });
+                    doc.content.push({
+                        columns: [
+                            {
+                                text: '' + name, 
+                                alignment: 'left',
+                                margin: [10, 20, 0, 0]
+                            }
+                        ]
+                    });
                 }
             }
         ],
 
         columnDefs: [
             {
-                targets: [0, 6], 
-                className: 'text-center align-middle' 
-            },
-            {
-                targets: [2, 3, 4, 5], 
-                className: 'text-right align-middle' 
+                targets: [0, 2, 4], 
+                className: 'text-center align-middle' // Căn giữa nội dung của tất cả các cột
             }
         ],
-
+    
         columns: [
             { data: "number" },
             { data: "fundName" },
-            { data: "beginningBalance", 
+            { data: "approvedQuantity" },
+            { data: "approvedAmount", 
+                className: "text-right",
                 render: function (data, type, row) {
                     if (type === "display" || type === "filter") {
                         return utils.formatCurrency(data);
@@ -285,46 +339,21 @@ $(document).ready(async function () {
                     return new Date(data);
                 }
             },
-            { data: "income", 
+            { data: "receivedQuantity" },
+            { data: "receivedAmount", 
+                className: "text-right",
                 render: function (data, type, row) {
                     if (type === "display" || type === "filter") {
                         return utils.formatCurrency(data);
                     }
                     // Trả về giá trị nguyên gốc cho sorting và searching
                     return new Date(data);
-                }
-            },
-            { data: "expense", 
-                render: function (data, type, row) {
-                    if (type === "display" || type === "filter") {
-                        return utils.formatCurrency(data);
-                    }
-                    // Trả về giá trị nguyên gốc cho sorting và searching
-                    return new Date(data);
-                }
-            },
-            { data: "remainingBalance", 
-                render: function (data, type, row) {
-                    if (type === "display" || type === "filter") {
-                        return utils.formatCurrency(data);
-                    }
-                    // Trả về giá trị nguyên gốc cho sorting và searching
-                    return new Date(data);
-                }
-            },
-            { data: "contributorsCount" },
-            { 
-                data: "status",
-                orderable: true, // Cho phép sắp xếp dựa trên cột này
-                searchable: true, // Cho phép tìm kiếm dựa trên cột này
-                render: function (data, type, row) {
-                    return data === 1 ? '' : 'Ngừng hoạt động';
                 }
             },
         ],
         
         drawCallback: function (settings) {
-            // Số thứ tự không thay đổi khi sort hoặc paginations
+            // Số thứ tự không thay đổi khi sort hoặc pagination
             var api = this.api();
             var start = api.page.info().start;
             api.column(0, { page: "current" })
@@ -337,6 +366,7 @@ $(document).ready(async function () {
             $('.dataTables_paginate').addClass('custom-paginate'); // phân trang của table
         },
     });
+    
 });
 
 
@@ -366,10 +396,12 @@ async function setData() {
 
 
 // Gọi api lấy dữ liệu báo cáo tổng quan
-async function loadFundReport() {
+async function loadPaymentReport() {
     // Nếu không có giá trị thì gán ''
     startDate = startDate || ''; 
     endDate = endDate || ''; 
+
+    var fundId = $('#fund-select').val() || ''; // Lấy giá trị của select quỹ
 
     var filter = $('#filter-type-select').val();
     var year = '';
@@ -418,42 +450,41 @@ async function loadFundReport() {
             });
             return;
         }
-    } 
+    }     
+
+    var urlReport = "/api/payment-requests/treasurer-payment-report?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month;
+    if (userRole === 'ADMIN' || userRole === 'ACCOUNTANT'){
+        urlReport = "/api/payment-requests/payment-report?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month;
+    }
+
     Swal.showLoading();
     // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
     await $.ajax({
-        url: "/api/funds/report?start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month, 
+        url: urlReport,
         type: "GET",
         headers: utils.defaultHeaders(),
         success: function(res) {
             Swal.close();
             if (res.code == 1000) {  
-                // Cập nhật giá trị totalAmount vào thẻ h3
+                // Cập nhật giá trị vào thẻ h3
                 $('#total-amount-div').prop("hidden", false);
-                document.getElementById("total-beginning-balance").innerText = utils.formatCurrency(res.result.totalBeginningBalance);
-                document.getElementById("total-income").innerText = utils.formatCurrency(res.result.totalIncome);
-                document.getElementById("total-expenditure").innerText = utils.formatCurrency(res.result.totalExpenditure);
-                document.getElementById("total-remaining-balance").innerText = utils.formatCurrency(res.result.totalRemainingBalance);
+                document.getElementById("total-approved-amount").innerText = utils.formatCurrency(res.result.totalApprovedAmount);
+                document.getElementById("total-approved-payment-request").innerText = res.result.totalApprovedQuantity;
+                document.getElementById("total-received-amount").innerText = utils.formatCurrency(res.result.totalReceivedAmount);
+                document.getElementById("total-received-payment-request").innerText = res.result.totalReceivedQuantity;
 
                 var data = [];
                 var counter = 1;
-                res.result.report.forEach(function (rp) {
+                res.result.reportData.forEach(function (report) {
                     data.push({
                         number: counter++, // Số thứ tự tự động tăng
-                        totalBeginningBalance: res.result.totalBeginningBalance,
-                        totalIncome: res.result.totalIncome,
-                        totalExpenditure: res.result.totalExpenditure,
-                        totalRemainingBalance: res.result.totalRemainingBalance,
-
-                        fundName: rp.fundName,
-                        beginningBalance: rp.beginningBalance,
-                        income: rp.income,
-                        expense: rp.expense,
-                        remainingBalance: rp.remainingBalance,
-                        contributorsCount: rp.contributorsCount,
-                        status: rp.status
+                        fundName: report.fundName,
+                        approvedAmount: report.approvedAmount,
+                        receivedAmount: report.receivedAmount,
+                        approvedQuantity: report.approvedQuantity,
+                        receivedQuantity: report.receivedQuantity
                     });
-                });
+                });   
                 dataTable.clear().rows.add(data).draw();
             } else {
                 Toast.fire({
@@ -501,7 +532,7 @@ function exportTableToExcel() {
 
     // Dữ liệu cho các dòng tiêu đề
     const titleData = [
-        ["BÁO CÁO TỔNG QUAN"],
+        ["BÁO CÁO THANH TOÁN"],
         [`Thời gian báo cáo: ${reportTime}`],
         [`Người xuất báo cáo: ${name}`],
         [`Ngày xuất báo cáo: ${date}`],
@@ -513,14 +544,14 @@ function exportTableToExcel() {
     
     // Hợp nhất các ô từ A1 đến D4
     worksheet['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // A1:H1
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }, // A2:H2
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // A3:H3
-        { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } }, // A4:H4
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // A1:F1
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }, // A2:F2
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }, // A3:F3
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } }, // A4:F4
     ];
 
     // Trích xuất dữ liệu từ bảng HTML
-    const table = document.getElementById("fund-report-table");
+    const table = document.getElementById("payment-report-table");
     const tableData = [];
     for (let row of table.rows) {
         const rowData = [];
@@ -532,26 +563,37 @@ function exportTableToExcel() {
 
     XLSX.utils.sheet_add_aoa(worksheet, tableData, { origin: "A5" });
 
-    // Thêm dòng dữ liệu tổng sau bảng
-    const totalBeginningBalance = document.getElementById("total-beginning-balance").innerText;
-    const totalIncome = document.getElementById("total-income").innerText;
-    const totalExpenditure = document.getElementById("total-expenditure").innerText;
-    const totalRemainingBalance = document.getElementById("total-remaining-balance").innerText;
-    
+    // Tính toán vị trí bắt đầu của dòng tổng cộng
+    const totalRowIndex = 5 + tableData.length;
 
-    const summaryData = [
-        [], // Dòng trống
-        ["Tổng cộng", "", "", "", "", "", "", "", ""],
-        ["Tổng số dư đầu kỳ", totalBeginningBalance],
-        ["Tổng thu", totalIncome],
-        ["Tổng chi", totalExpenditure],
-        ["Tổng tồn", totalRemainingBalance]
+    // Lấy dữ liệu Tổng cộng
+    const totalApprovedAmount = document.getElementById('total-approved-amount').innerText; 
+    const totalApprovedQuantity = document.getElementById('total-approved-payment-request').innerText; 
+    const totalReceivedAmount = document.getElementById('total-received-amount').innerText; 
+    const totalReceivedQuantity = document.getElementById('total-received-payment-request').innerText; 
+    // Thêm dòng Tổng cộng
+    XLSX.utils.sheet_add_aoa(worksheet, [
+        ["TỔNG CỘNG:", "", totalApprovedQuantity, totalApprovedAmount, totalReceivedQuantity, totalReceivedAmount]
+    ], { origin: `A${totalRowIndex}` });
+
+    // Hợp nhất các ô 
+    worksheet['!merges'].push({
+        s: { r: totalRowIndex - 1, c: 0 }, // Ô A*
+        e: { r: totalRowIndex - 1, c: 1 }  // Ô B*
+    });
+
+    // Định dạng lại chiều rộng cột (nếu cần)
+    worksheet['!cols'] = [
+        { wch: 5 },  // Cột A
+        { wch: 50 }, // Cột B
+        { wch: 30 }, // Cột C
+        { wch: 20 }, // Cột D
+        { wch: 30 }, // Cột C
+        { wch: 20 } // Cột D
     ];
 
-    XLSX.utils.sheet_add_aoa(worksheet, summaryData, { origin: `A${tableData.length + 6}` });
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo tổng quan");
-    XLSX.writeFile(workbook, "Bao_cao_tong_quan.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo thanh toán");
+    XLSX.writeFile(workbook, "Bao_cao_thanh_toan.xlsx");
 }
 
 

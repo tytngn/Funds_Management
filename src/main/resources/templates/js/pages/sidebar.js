@@ -84,7 +84,32 @@ function updateSidebarVisibility(roles) {
 
     if (permissions.includes("GET_FUND_REPORT_FILTER")) {
         $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
-        $('#fund-report').prop("hidden", false); // Hiện phần Báo cáo quỹ
+        $('#fund-report').prop("hidden", false); // Hiện phần Báo cáo tổng quan
+    }
+
+    if (permissions.includes("GET_TREASURER_CONTRIBUTION_REPORT") || permissions.includes("GET_TRANSACTION_REPORT")) {
+        $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
+        $('#contribution-transaction-report').prop("hidden", false); // Hiện phần Báo cáo giao dịch đóng góp
+    }
+
+    if (permissions.includes("GET_TREASURER_WITHDRAWAL_REPORT") || permissions.includes("GET_TRANSACTION_REPORT")) {
+        $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
+        $('#withdrawal-transaction-report').prop("hidden", false); // Hiện phần Báo cáo giao dịch rút quỹ
+    }
+
+    if (permissions.includes("GET_TREASURER_PAYMENT_REPORT") || permissions.includes("GET_PAYMENT_REPORT")) {
+        $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
+        $('#payment-report').prop("hidden", false); // Hiện phần Báo cáo thanh toán 
+    }
+
+    if (permissions.includes("GET_INDIVIDUAL_CONTRIBUTION_REPORT")) {
+        $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
+        $('#individual-contribution-report').prop("hidden", false); // Hiện phần Báo cáo đóng góp cá nhân
+    }
+
+    if (permissions.includes("GET_INDIVIDUAL_PAYMENT_REPORT")) {
+        $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
+        $('#individual-payment-report').prop("hidden", false); // Hiện phần Báo cáo thanh toán cá nhân
     }
     
     if (permissions.includes("CREATE_DEPARTMENT")) {

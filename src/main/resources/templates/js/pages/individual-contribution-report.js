@@ -217,7 +217,7 @@ $(document).ready(async function () {
         responsive: true,
         scrollX: true,        // Đảm bảo bảng có thể cuộn ngang
         scrollCollapse: true, // Khi bảng có ít dữ liệu, không cần thêm khoảng trống
-        dom: 'frtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
+        dom: 'lfrtip', // Ẩn thanh tìm kiếm mặc định (l: length, r: processing, t: table, i: information, p: pagination)
     
         buttons: [
             {
@@ -252,7 +252,7 @@ $(document).ready(async function () {
                     body.push([
                         { text: '', border: [true, true, true, true] },
                         { text: '', border: [true, true, true, true] },
-                        { text: 'TỔNG CỘNG:', bold: true, alignment: 'center', border: [true, true, true, true] },
+                        { text: 'TỔNG CỘNG:', bold: true, alignment: 'right', border: [true, true, true, true] },
                         { text: trans, bold: true, alignment: 'center', border: [true, true, true, true] },
                         { text: total, bold: true, alignment: 'right', border: [true, true, true, true] }
                     ]);
@@ -358,7 +358,7 @@ $(document).ready(async function () {
                             {
                                 text: '' + name, 
                                 alignment: 'left',
-                                margin: [20, 20, 0, 0]
+                                margin: [10, 20, 0, 0]
                             }
                         ]
                     });
@@ -491,7 +491,7 @@ async function loadIndividualContribution() {
     Swal.showLoading();
     // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
     await $.ajax({
-        url: "/api/fund-transactions/personal-contribution-report?fundId=" + fundId + "&transTypeId=" + transTypeId + "&start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month,
+        url: "/api/fund-transactions/individual-contribution-report?fundId=" + fundId + "&transTypeId=" + transTypeId + "&start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month,
         type: "GET",
         headers: utils.defaultHeaders(),
         success: function(res) {
@@ -601,8 +601,14 @@ function exportTableToExcel() {
 
     // Thêm dòng Tổng cộng
     XLSX.utils.sheet_add_aoa(worksheet, [
-        ["", "", "TỔNG CỘNG:", trans, total]
+        ["TỔNG CỘNG:", "", "", trans, total]
     ], { origin: `A${totalRowIndex}` });
+
+    // Hợp nhất các ô 
+    worksheet['!merges'].push({
+        s: { r: totalRowIndex - 1, c: 0 }, // Bắt đầu từ ô A*
+        e: { r: totalRowIndex - 1, c: 2 }  // Kết thúc ở ô C*
+    });
 
     // Định dạng lại chiều rộng cột (nếu cần)
     worksheet['!cols'] = [

@@ -28,6 +28,11 @@ $(document).ready(function(){
         '/account-management': { parent: 'Quản lý tài khoản', parentUrl: '/account-management', title: 'Quản lý tài khoản' },
 
         '/fund-report': { parent: 'Thống kê báo cáo', parentUrl: '/fund-report', title: 'Báo cáo tổng quan' },
+        '/contribution-transaction-report': { parent: 'Thống kê báo cáo', parentUrl: '/contribution-transaction-report', title: 'Báo cáo đóng góp' },
+        '/withdrawal-transaction-report': { parent: 'Thống kê báo cáo', parentUrl: '/withdrawal-transaction-report', title: 'Báo cáo rút quỹ' },
+        '/payment-report': { parent: 'Thống kê báo cáo', parentUrl: '/payment-report', title: 'Báo cáo thanh toán' },
+        '/individual-contribution-report': { parent: 'Thống kê báo cáo', parentUrl: '/individual-contribution-report', title: 'Đóng góp cá nhân' },
+        '/individual-payment-report': { parent: 'Thống kê báo cáo', parentUrl: '/individual-payment-report', title: 'Thanh toán cá nhân' },
 
         '/department-list': { parent: 'Quản lý danh mục', parentUrl: '/department-list', title: 'Danh mục phòng ban' },
         '/transaction-type': { parent: 'Quản lý danh mục', parentUrl: '/transaction-type', title: 'Loại giao dịch' },
@@ -39,7 +44,7 @@ $(document).ready(function(){
         'Quản lý thanh toán': ['/payment-management', '/payment-request'],
         'Quản lý giao dịch': ['/contribution-management', '/transaction-contribute', '/withdrawal-management', '/transaction-withdraw'],
         'Quản lý tài khoản': ['/account-management'], 
-        'Thống kê báo cáo': ['/fund-report'],
+        'Thống kê báo cáo': ['/fund-report', '/contribution-transaction-report', '/withdrawal-transaction-report', '/payment-report', '/individual-contribution-report', '/individual-payment-report'],
         'Quản lý danh mục': ['/department-list', '/transaction-type'],
     };
 

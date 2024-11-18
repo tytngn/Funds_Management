@@ -8,9 +8,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FundTransactionReportResponse {
+public class PaymentReportResponse {
     String fundName;
-    String transType;
-    double amount;
-    long quantity;
+    double approvedAmount;
+    double receivedAmount;
+    long approvedQuantity;
+    long receivedQuantity;
 }
