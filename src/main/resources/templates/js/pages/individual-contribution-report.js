@@ -328,12 +328,12 @@ $(document).ready(async function () {
                             {
                                 text: 'Người lập báo cáo', 
                                 alignment: 'left',
-                                margin: [10, 60, 0, 0]
+                                margin: [10, 30, 0, 0]
                             },
                             {
                                 text: 'Kế toán', 
                                 alignment: 'right',
-                                margin: [0, 60, 25, 0]
+                                margin: [0, 30, 25, 0]
                             }
                         ]
                     });
@@ -342,13 +342,13 @@ $(document).ready(async function () {
                             {
                                 text: '(Ký và ghi rõ họ tên)', 
                                 alignment: 'left',
-                                margin: [10, 5, 0, 40],
+                                margin: [10, 5, 0, 35],
                                 italics: true
                             },
                             {
                                 text: '(Ký và ghi rõ họ tên)', 
                                 alignment: 'right',
-                                margin: [0, 5, 0, 40],
+                                margin: [0, 5, 0, 35],
                                 italics: true
                             }
                         ]
@@ -358,7 +358,7 @@ $(document).ready(async function () {
                             {
                                 text: '' + name, 
                                 alignment: 'left',
-                                margin: [10, 20, 0, 0]
+                                margin: [10, 0, 0, 0]
                             }
                         ]
                     });
@@ -580,15 +580,25 @@ function exportTableToExcel() {
     ];
 
     // Trích xuất dữ liệu từ bảng HTML
-    const table = document.getElementById("individual-contribution-report-table");
+    const table = $("#individual-contribution-report-table").DataTable();
     const tableData = [];
-    for (let row of table.rows) {
+
+    // Lấy dòng header
+    const headerData = [];
+    $('#individual-contribution-report-table thead th').each(function () {
+        headerData.push($(this).text().trim());
+    });
+    tableData.push(headerData); // Thêm dòng header vào đầu mảng dữ liệu
+
+    // Lấy tất cả các dòng trong DataTable (bao gồm cả các dòng không hiển thị)
+    table.rows({ search: 'none' }).every(function () {
         const rowData = [];
-        for (let cell of row.cells) {
-            rowData.push(cell.innerText);
-        }
+        const row = this.node(); // Lấy dòng hiện tại
+        $(row).find('td').each(function () {
+            rowData.push($(this).text());
+        });
         tableData.push(rowData);
-    }
+    });
 
     XLSX.utils.sheet_add_aoa(worksheet, tableData, { origin: "A5" });
 

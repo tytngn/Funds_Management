@@ -13,7 +13,6 @@ $(document).ready(function () {
                 success: function (res) {
                     if(res.code == 1000){
                         utils.setLocalStorageObject('userInfo', res.result)
-
                         updateSidebarVisibility(res.result.roles);
                     }
                 },
@@ -40,7 +39,7 @@ function updateSidebarVisibility(roles) {
     // Kiểm tra và ẩn/hiện từng mục trong sidebar dựa trên các permission
     if (permissions.includes("GET_FUNDS_BY_FILTER") || permissions.includes("FILTER_FUNDS_BY_TREASURER")) {
         $('#fund').prop("hidden", false);// Hiện phần Quản lý quỹ
-        $('#fund-management').prop("hidden", false); // Quản lý quỹ
+        $('#fund-management').prop("hidden", false); // Thông tin quỹ
     }
 
     if (permissions.includes("FILTER_FUND_PERMISSIONS_BY_TREASURER")) {
@@ -70,7 +69,7 @@ function updateSidebarVisibility(roles) {
 
     if (permissions.includes("FILTER_PAYMENT_REQUEST") || permissions.includes("FILTER_PAYMENT_REQUESTS_BY_TREASURER")) {
         $('#payment').prop("hidden", false); // Hiện phần Quản lý thanh toán
-        $('#payment-management').prop("hidden", false); // Hiện phần Quản lý thanh toán  
+        $('#payment-management').prop("hidden", false); // Hiện phần Quản lý đề nghị  
     }
 
     if (permissions.includes("GET_USER_PAYMENT_REQUESTS_BY_FILTER")) {
@@ -82,7 +81,7 @@ function updateSidebarVisibility(roles) {
         $('#account-management').prop("hidden", false); // Hiện phần Quản lý tài khoản
     }
 
-    if (permissions.includes("GET_FUND_REPORT_FILTER")) {
+    if (permissions.includes("GET_FUND_REPORT_FILTER") || permissions.includes("GET_FUND_REPORT_BY_TREASURER")) {
         $('#reports').prop("hidden", false); // Hiện phần Thống kê báo cáo
         $('#fund-report').prop("hidden", false); // Hiện phần Báo cáo tổng quan
     }

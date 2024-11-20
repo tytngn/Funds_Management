@@ -135,13 +135,29 @@ public class FundController {
     // Báo cáo chi tiết quỹ
     @GetMapping("/report")
     @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_REPORT_FILTER'})")
-    ApiResponse<Map<String, Object>> getFundReportByFilter(@RequestParam(required = false) Integer year,
+    ApiResponse<Map<String, Object>> getFundReportByFilter( @RequestParam(required = false) String fundId,
+                                                            @RequestParam(required = false) Integer year,
+                                                            @RequestParam(required = false) Integer month,
+                                                            @RequestParam(required = false) LocalDate start,
+                                                            @RequestParam(required = false) LocalDate end) {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundService.generateFundReport(fundId, start, end, year, month))
+                .build();
+    }
+
+
+    // Báo cáo chi tiết quỹ theo thủ quỹ
+    @GetMapping("/report-by-treasurer")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_REPORT_BY_TREASURER'})")
+    ApiResponse<Map<String, Object>> getFundReportByTreasurer ( @RequestParam(required = false) String fundId,
+                                                                @RequestParam(required = false) Integer year,
                                                                 @RequestParam(required = false) Integer month,
                                                                 @RequestParam(required = false) LocalDate start,
                                                                 @RequestParam(required = false) LocalDate end) {
         return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
-                .result(fundService.generateFundReport(start, end, year, month))
+                .result(fundService.getTreasurerFundReport(fundId, start, end, year, month))
                 .build();
     }
 

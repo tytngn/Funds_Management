@@ -146,8 +146,7 @@ $(document).ready(async function () {
         }
     });
 
-
-    // Nhấn nút "Xem"
+    // Nhấn nút "Tìm kiếm"
     $("#btn-search").on("click", async function () {    
         await loadFundReport();
     });
@@ -208,15 +207,24 @@ $(document).ready(async function () {
                         body.push(newRow);
                     }
 
+                    // Thêm hàng "TỔNG CỘNG" vào cuối bảng
+                    const totalBeginningBalance = document.getElementById("total-beginning-balance").innerText;
+                    const totalIncome = document.getElementById("total-income").innerText;
+                    const totalExpenditure = document.getElementById("total-expenditure").innerText;
+                    const totalRemainingBalance = document.getElementById("total-remaining-balance").innerText;
+                    body.push([
+                        { text: '', border: [true, true, true, true] },
+                        { text: 'TỔNG CỘNG:', bold: true, alignment: 'right', border: [true, true, true, true] },
+                        { text: totalBeginningBalance, bold: true, alignment: 'right', border: [true, true, true, true] },
+                        { text: totalIncome, bold: true, alignment: 'right', border: [true, true, true, true] },
+                        { text: totalExpenditure, bold: true, alignment: 'right', border: [true, true, true, true] },
+                        { text: totalRemainingBalance, bold: true, alignment: 'right', border: [true, true, true, true] },
+                        { text: '', border: [true, true, true, true] },
+                        { text: '', border: [true, true, true, true] }
+                    ]);
+
                     // Gán lại body cho bảng
                     doc.content[1].table.body = body;
-
-                    // Thêm ngày xuất file dưới tiêu đề
-                    const date = new Date().toLocaleDateString('vi-VN', {
-                        year: 'numeric', 
-                        month: '2-digit', 
-                        day: '2-digit'
-                    });
 
                     const filterType = $('#filter-type-select').val();
                     let reportTime = '';
@@ -228,36 +236,88 @@ $(document).ready(async function () {
                         reportTime = 'Từ ' + utils.formatDate(startDate) + ' đến ' + utils.formatDate(endDate);
                     }
 
-                    doc.content.splice(1, 0, { text: '' + reportTime, fontSize: 12, alignment: 'center', margin: [0, 5, 0, 5] });
-                    doc.content.splice(2, 0, { text: 'Ngày: ' + date, alignment: 'right', margin: [0, 5, 0, 5] });
+                    // Xóa tiêu đề mặc định nếu có
+                    if (doc.content[0].text && doc.content[0].text === 'BÁO CÁO TỔNG QUAN') {
+                        doc.content.shift(); // Xóa phần tử đầu tiên
+                    }
 
-                    // Thêm dữ liệu tổng vào cuối bảng
-                    const totalBeginningBalance = document.getElementById("total-beginning-balance").innerText;
-                    const totalIncome = document.getElementById("total-income").innerText;
-                    const totalExpenditure = document.getElementById("total-expenditure").innerText;
-                    const totalRemainingBalance = document.getElementById("total-remaining-balance").innerText;
+                    // Thêm ngày xuất file và các thông tin khác
+                    const date = new Date();
 
-                    doc.content.push(
-                        { text: 'Tổng số dư đầu kỳ: ' + totalBeginningBalance, alignment: 'left', margin: [0, 30, 0, 3], bold: true },
-                        { text: 'Tổng thu: ' + totalIncome, alignment: 'left', margin: [0, 5, 0, 3], bold: true },
-                        { text: 'Tổng chi: ' + totalExpenditure, alignment: 'left', margin: [0, 5, 0, 3], bold: true },
-                        { text: 'Tổng chi: ' + totalRemainingBalance, alignment: 'left', margin: [0, 5, 0, 0], bold: true }
-                    );
+                    // Thêm tên công ty và địa chỉ bên trái, ngày tháng năm bên phải
+                    doc.content.unshift({
+                        columns: [
+                            { 
+                                stack: [
+                                    { text: "TẬP ĐOÀN BƯU CHÍNH VIỄN THÔNG VIỆT NAM", margin: [35, 0, 0, 5] },
+                                    { text: "VIỄN THÔNG HẬU GIANG", margin: [80, 0, 0, 5] },
+                                    { text: "TRUNG TÂM CÔNG NGHỆ THÔNG TIN", bold: true, margin: [50, 0, 0, 5] },
+                                    { text: "Số 61, đường Võ Văn Kiệt, phường V, thành phố Vị Thanh, tỉnh Hậu Giang", margin: [0, 0, 0, 0] }
+                                ],
+                                alignment: 'left', 
+                                margin: [0, 0, 0, 10] 
+                            },
+                            { 
+                                text: `Hậu Giang, ngày ${date.getDate()} tháng ${date.getMonth() + 1} năm ${date.getFullYear()}`,
+                                alignment: 'right',
+                                italics: true,
+                                margin: [0, 45, 0, 0] 
+                            }
+                        ]
+                    });  
 
-                    doc.content.push(
-                        {
-                            text: 'Người lập báo cáo', 
-                            alignment: 'right',
-                            margin: [0, 30, 0, 20],
-                        }
-                    );
-                    doc.content.push(
-                        {
-                            text: '' + name, 
-                            alignment: 'right',
-                            margin: [0, 20, 6, 0],
-                        }
-                    );
+                    // Thêm tiêu đề chính
+                    doc.content.splice(1, 0, { 
+                        text: 'BÁO CÁO TỔNG QUAN', 
+                        fontSize: 16, 
+                        bold: true, 
+                        alignment: 'center', 
+                        margin: [10, 20, 0, 10] 
+                    });
+
+                    // Thêm thông tin báo cáo
+                    doc.content.splice(2, 0, { text: '' + reportTime, fontSize: 12, alignment: 'center', margin: [0, 5, 0, 20] });
+
+                    // Thêm chữ ký người lập báo cáo bên trái, kế toán bên phải
+                    doc.content.push({
+                        columns: [
+                            {
+                                text: 'Người lập báo cáo', 
+                                alignment: 'left',
+                                margin: [10, 30, 0, 0]
+                            },
+                            {
+                                text: 'Kế toán', 
+                                alignment: 'right',
+                                margin: [0, 30, 25, 0]
+                            }
+                        ]
+                    });
+                    doc.content.push({
+                        columns: [
+                            {
+                                text: '(Ký và ghi rõ họ tên)', 
+                                alignment: 'left',
+                                margin: [10, 5, 0, 35],
+                                italics: true
+                            },
+                            {
+                                text: '(Ký và ghi rõ họ tên)', 
+                                alignment: 'right',
+                                margin: [0, 5, 0, 35],
+                                italics: true
+                            }
+                        ]
+                    });
+                    doc.content.push({
+                        columns: [
+                            {
+                                text: '' + name, 
+                                alignment: 'left',
+                                margin: [10, 0, 0, 0]
+                            }
+                        ]
+                    });
                 }
             }
         ],
@@ -371,6 +431,8 @@ async function loadFundReport() {
     startDate = startDate || ''; 
     endDate = endDate || ''; 
 
+    var fundId = $('#fund-select').val() || ''; // Lấy giá trị của select quỹ
+
     var filter = $('#filter-type-select').val();
     var year = '';
     var month = '';
@@ -419,10 +481,16 @@ async function loadFundReport() {
             return;
         }
     } 
+
+    var urlReport = "/api/funds/report-by-treasurer?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month;
+    if (userRole === 'ADMIN' || userRole === 'ACCOUNTANT'){
+        urlReport = "/api/funds/report?fundId=" + fundId + "&start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month;
+    }
+
     Swal.showLoading();
     // Gọi API với AJAX để lấy dữ liệu theo bộ lọc
     await $.ajax({
-        url: "/api/funds/report?start=" + startDate + "&end=" + endDate + "&year=" + year + "&month=" + month, 
+        url: urlReport,
         type: "GET",
         headers: utils.defaultHeaders(),
         success: function(res) {
@@ -520,17 +588,30 @@ function exportTableToExcel() {
     ];
 
     // Trích xuất dữ liệu từ bảng HTML
-    const table = document.getElementById("fund-report-table");
+    const table = $("#fund-report-table").DataTable();
     const tableData = [];
-    for (let row of table.rows) {
+
+    // Lấy dòng header
+    const headerData = [];
+    $('#fund-report-table thead th').each(function () {
+        headerData.push($(this).text().trim());
+    });
+    tableData.push(headerData); // Thêm dòng header vào đầu mảng dữ liệu
+
+    // Lấy tất cả các dòng trong DataTable (bao gồm cả các dòng không hiển thị)
+    table.rows({ search: 'none' }).every(function () {
         const rowData = [];
-        for (let cell of row.cells) {
-            rowData.push(cell.innerText);
-        }
+        const row = this.node(); // Lấy dòng hiện tại
+        $(row).find('td').each(function () {
+            rowData.push($(this).text());
+        });
         tableData.push(rowData);
-    }
+    });
 
     XLSX.utils.sheet_add_aoa(worksheet, tableData, { origin: "A5" });
+
+    // Tính toán vị trí bắt đầu của dòng tổng cộng
+    const totalRowIndex = 5 + tableData.length;
 
     // Thêm dòng dữ liệu tổng sau bảng
     const totalBeginningBalance = document.getElementById("total-beginning-balance").innerText;
@@ -538,21 +619,33 @@ function exportTableToExcel() {
     const totalExpenditure = document.getElementById("total-expenditure").innerText;
     const totalRemainingBalance = document.getElementById("total-remaining-balance").innerText;
     
+    // Thêm dòng Tổng cộng
+    XLSX.utils.sheet_add_aoa(worksheet, [
+        ["TỔNG CỘNG:", "", totalBeginningBalance, totalIncome, totalExpenditure, totalRemainingBalance, "", ""]
+    ], { origin: `A${totalRowIndex}` });
 
-    const summaryData = [
-        [], // Dòng trống
-        ["Tổng cộng", "", "", "", "", "", "", "", ""],
-        ["Tổng số dư đầu kỳ", totalBeginningBalance],
-        ["Tổng thu", totalIncome],
-        ["Tổng chi", totalExpenditure],
-        ["Tổng tồn", totalRemainingBalance]
+    // Hợp nhất các ô 
+    worksheet['!merges'].push({
+        s: { r: totalRowIndex - 1, c: 0 }, // Ô A*
+        e: { r: totalRowIndex - 1, c: 1 }  // Ô B*
+    });
+
+    // Định dạng lại chiều rộng cột (nếu cần)
+    worksheet['!cols'] = [
+        { wch: 5 },  // Cột A
+        { wch: 50 }, // Cột B
+        { wch: 20 }, // Cột C
+        { wch: 20 }, // Cột D
+        { wch: 20 }, // Cột E
+        { wch: 20 }, // Cột F
+        { wch: 20 }, // Cột G
+        { wch: 20 } // Cột H
     ];
-
-    XLSX.utils.sheet_add_aoa(worksheet, summaryData, { origin: `A${tableData.length + 6}` });
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo tổng quan");
     XLSX.writeFile(workbook, "Bao_cao_tong_quan.xlsx");
 }
+
 
 
 $("#btn-export-excel").on("click", function () {

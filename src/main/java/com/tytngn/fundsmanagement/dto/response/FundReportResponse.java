@@ -10,7 +10,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class FundReportResponse {
     String fundName;
-    double balance;
     double income;
     double expense;
     int contributorsCount;

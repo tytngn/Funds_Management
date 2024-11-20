@@ -183,42 +183,47 @@ public class FundService {
 
 
     // Báo cáo chi tiết quỹ
-    public Map<String, Object> generateFundReport(LocalDate startDate, LocalDate endDate, Integer year, Integer month) {
+    public Map<String, Object> generateFundReport(String fundId, LocalDate startDate, LocalDate endDate, Integer year, Integer month) {
         // Xác định khoảng thời gian
         LocalDateTime start = startDate != null ? startDate.atTime(00,00,00) : null;
         LocalDateTime end = endDate != null ? endDate.atTime(23, 59, 59) : null;
-        LocalDateTime yearStart = year != null ? LocalDateTime.of(year, 1, 1, 00, 00, 00) : null;
-        LocalDateTime monthStart = month != null ? LocalDateTime.of(year, month, 1, 00, 00, 00) : null;
 
-//        log.info(monthStart.toString());
-        // Lấy danh sách các quỹ có các điều kiện về giao dịch, đề nghị thanh toán hoặc phân quyền
-        List<Fund> funds = fundRepository.findFundsByFilters(start, end, year, month);
+        // Lấy danh sách quỹ
+        List<Fund> funds;
+        if (fundId != null && !fundId.trim().isEmpty()) {
+            // Nếu có fundId, chỉ lấy quỹ tương ứng
+            Optional<Fund> fundOptional = fundRepository.findById(fundId);
+            Fund fund = fundOptional.orElseThrow(() -> new AppException(ErrorCode.FUND_NOT_EXISTS));
+            funds = fund != null ? List.of(fund) : Collections.emptyList();
+        } else {
+            // Nếu không có fundId, lấy danh sách quỹ dựa trên các điều kiện về giao dịch, đề nghị thanh toán hoặc phân quyền
+            funds = fundRepository.findFundsByFilters(start, end, year, month);
+        }
+
         List<FundReportResponse> report = new ArrayList<>();
 
-        double totalIncome = 0.0;
-        double totalExpenditure = 0.0;
-        double totalBalance = 0.0;
-        double totalBeginningBalance = 0.0;
-        double totalRemainingBalance = 0.0;
+        double totalIncome = 0.0; // tổng thu
+        double totalExpenditure = 0.0; // tổng chi
+        double totalBeginningBalance = 0.0; // tổng số dư đầu kỳ
+        double totalRemainingBalance = 0.0; // tổng tồn
 
         for (Fund fund : funds) {
             FundReportResponse dto = new FundReportResponse();
             dto.setFundName(fund.getFundName());
-            dto.setBalance(fund.getBalance());
             dto.setStatus(fund.getStatus());
 
-            // Số dư đầu kỳ (trước thời gian được chọn)
+            // Số dư đầu kỳ (trước thời gian được chọn) = thu - chi - thanh toán
             double beginningBalance = 0.0;
-            if (year != null) {
-                beginningBalance = fundTransactionRepository.calculateBeginningBalance(fund.getId(), null, null, yearStart);
-            } else if (month != null) {
-                beginningBalance = fundTransactionRepository.calculateBeginningBalance(fund.getId(),null, null, monthStart);
-            }
-            else {
-                beginningBalance = fundTransactionRepository.calculateBeginningBalance(fund.getId(), null, null, start);
-            }
+            double incomeBefore = 0.0;
+            double expenditureBefore = 0.0;
+            incomeBefore = fundTransactionRepository.sumContributionsBefore(fund.getId(), start, year, month);
+            expenditureBefore = fundTransactionRepository.sumWithdrawalsBefore(fund.getId(), start, year, month)
+                    + paymentReqRepository.sumPaymentsBefore(fund.getId(), start, year, month);
+
+            beginningBalance = incomeBefore - expenditureBefore;
             dto.setBeginningBalance(beginningBalance);
             totalBeginningBalance += beginningBalance;
+
 
             // Tổng thu (đóng góp quỹ đã duyệt)
             double fundIncome = fundTransactionRepository.sumContributions(fund.getId(), start, end, year, month);
@@ -236,8 +241,91 @@ public class FundService {
             dto.setRemainingBalance(remainingBalance);
             totalRemainingBalance += remainingBalance;
 
-            // Cộng dồn số dư
-            totalBalance += fund.getBalance();
+            // Số nhân viên có quyền đóng góp
+            int contributorsCount = fundPermissionRepository.countContributors(fund.getId(), startDate, endDate, year, month);
+            dto.setContributorsCount(contributorsCount);
+
+            report.add(dto);
+        }
+
+        // Sắp xếp theo tên
+        List<FundReportResponse> sortedResponses = report.stream()
+                .sorted(Comparator.comparing(FundReportResponse::getFundName, vietnameseCollator))
+                .toList();
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("report", sortedResponses);
+        result.put("totalIncome", totalIncome);
+        result.put("totalExpenditure", totalExpenditure);
+        result.put("totalBeginningBalance", totalBeginningBalance);
+        result.put("totalRemainingBalance", totalRemainingBalance);
+
+        return result;
+    }
+
+
+    // Báo cáo chi tiết quỹ theo thủ quỹ
+    public Map<String, Object> getTreasurerFundReport(String fundId, LocalDate startDate, LocalDate endDate, Integer year, Integer month) {
+        // Xác định khoảng thời gian
+        LocalDateTime start = startDate != null ? startDate.atTime(00,00,00) : null;
+        LocalDateTime end = endDate != null ? endDate.atTime(23, 59, 59) : null;
+
+        // Lấy thông tin người dùng đang đăng nhập
+        String userId = securityExpression.getUserId();
+
+        // Lấy danh sách quỹ
+        List<Fund> funds;
+        if (fundId != null && !fundId.trim().isEmpty()) {
+            // Nếu có fundId, chỉ lấy quỹ tương ứng
+            Optional<Fund> fundOptional = fundRepository.findById(fundId);
+            Fund fund = fundOptional.orElseThrow(() -> new AppException(ErrorCode.FUND_NOT_EXISTS));
+            funds = fund != null ? List.of(fund) : Collections.emptyList();
+        } else {
+            // Nếu không có fundId, lấy danh sách quỹ dựa trên các điều kiện về giao dịch, đề nghị thanh toán hoặc phân quyền
+            funds = fundRepository.findFundsByTreasurer(userId, start, end, year, month);
+        }
+
+        List<FundReportResponse> report = new ArrayList<>();
+
+        double totalIncome = 0.0; // tổng thu
+        double totalExpenditure = 0.0; // tổng chi
+        double totalBeginningBalance = 0.0; // tổng số dư đầu kỳ
+        double totalRemainingBalance = 0.0; // tổng tồn
+
+        for (Fund fund : funds) {
+            FundReportResponse dto = new FundReportResponse();
+            dto.setFundName(fund.getFundName());
+            dto.setStatus(fund.getStatus());
+
+            // Số dư đầu kỳ (trước thời gian được chọn) = thu - chi - thanh toán
+            double beginningBalance = 0.0;
+            double incomeBefore = 0.0;
+            double expenditureBefore = 0.0;
+            incomeBefore = fundTransactionRepository.sumContributionsBefore(fund.getId(), start, year, month);
+            expenditureBefore = fundTransactionRepository.sumWithdrawalsBefore(fund.getId(), start, year, month)
+                    + paymentReqRepository.sumPaymentsBefore(fund.getId(), start, year, month);
+
+            beginningBalance = incomeBefore - expenditureBefore;
+            dto.setBeginningBalance(beginningBalance);
+            totalBeginningBalance += beginningBalance;
+
+
+            // Tổng thu (đóng góp quỹ đã duyệt)
+            double fundIncome = fundTransactionRepository.sumContributions(fund.getId(), start, end, year, month);
+            dto.setIncome(fundIncome);
+            totalIncome += fundIncome;
+
+            // Tổng chi (rút quỹ đã duyệt và thanh toán có status = 4 hoặc status = 5)
+            double fundExpenditure = fundTransactionRepository.sumWithdrawals(fund.getId(), start, end, year, month)
+                    + paymentReqRepository.sumPayments(fund.getId(), start, end, year, month);
+            dto.setExpense(fundExpenditure);
+            totalExpenditure += fundExpenditure;
+
+            // Tồn = (Số dư đầu kỳ + Thu) - Chi
+            double remainingBalance = (beginningBalance + fundIncome) - fundExpenditure;
+            dto.setRemainingBalance(remainingBalance);
+            totalRemainingBalance += remainingBalance;
 
             // Số nhân viên có quyền đóng góp
             int contributorsCount = fundPermissionRepository.countContributors(fund.getId(), startDate, endDate, year, month);
@@ -246,10 +334,9 @@ public class FundService {
             report.add(dto);
         }
 
-        // Sắp xếp theo tên và số dư
+        // Sắp xếp theo tên
         List<FundReportResponse> sortedResponses = report.stream()
-                .sorted(Comparator.comparing(FundReportResponse::getFundName, vietnameseCollator)
-                        .thenComparing(FundReportResponse::getBalance))
+                .sorted(Comparator.comparing(FundReportResponse::getFundName, vietnameseCollator))
                 .toList();
 
         // Tạo Map để trả về kết quả
@@ -257,7 +344,6 @@ public class FundService {
         result.put("report", sortedResponses);
         result.put("totalIncome", totalIncome);
         result.put("totalExpenditure", totalExpenditure);
-        result.put("totalBalance", totalBalance);
         result.put("totalBeginningBalance", totalBeginningBalance);
         result.put("totalRemainingBalance", totalRemainingBalance);
 
