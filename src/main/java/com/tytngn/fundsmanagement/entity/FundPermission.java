@@ -16,6 +16,7 @@ import java.time.LocalDate;
 public class FundPermission {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (length = 38)
     String id;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -26,7 +27,12 @@ public class FundPermission {
     @JoinColumn(name = "fund_id", referencedColumnName = "id", nullable = false)
     Fund fund;
 
+    @Column(nullable = false)
     boolean canContribute = false; // quyền đóng góp
+
+    @Column(nullable = false)
     boolean canWithdraw = false; // quyền rút quỹ
+
+    @Column(nullable = false)
     LocalDate grantedDate; // ngày thêm quyền giao dịch
 }

@@ -13,4 +13,5 @@ import java.util.Set;
 public class DepartmentSimpleResponse {
     String id;
     String name;
+    int employeeCount;
 }

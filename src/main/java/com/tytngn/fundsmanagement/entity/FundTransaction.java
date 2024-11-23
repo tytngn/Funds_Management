@@ -17,6 +17,7 @@ import java.util.List;
 public class FundTransaction {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (length = 38)
     String id;
 
     @Column(nullable = false)
@@ -25,7 +26,7 @@ public class FundTransaction {
     @Column(nullable = false)
     int status; // 0: từ chối, 1: chờ duyệt, 2: đã duyệt
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     String description;
 
     @Column(nullable = false)

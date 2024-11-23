@@ -19,6 +19,7 @@ import java.util.Set;
 public class PaymentReq {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (length = 38)
     String id;
 
     @Column(nullable = false)
@@ -27,9 +28,13 @@ public class PaymentReq {
     @Column(nullable = false)
     int status = 1; // 0: từ chối, 1: chưa xử lý, 2: chờ duyệt, 3: đã duyệt, 4: đã thanh toán, 5: đã nhận
 
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false)
+    int requestCount = 0;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
     String description;
 
+    @Column(nullable = false)
     LocalDateTime createDate;
     LocalDateTime updateDate;
 
@@ -49,10 +54,6 @@ public class PaymentReq {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id")
     List<Image> images;
-
-    //    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
-//    PaymentCategory category;
 
     //    @OneToMany(mappedBy = "paymentReq")
 //    Set<BudgetActivity> budgetActivities = new HashSet<>();

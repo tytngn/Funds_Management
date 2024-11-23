@@ -21,7 +21,7 @@ var startDate;
 var endDate;
 var issuedTime; // thời gian phát hành hoá đơn
 
-$(document).ready(function () {
+$(document).ready(function () {    
     // Select 
     $('.select-2').select2({
         allowClear: true,
@@ -357,6 +357,7 @@ async function loadPaymentRequestData() {
                         totalAmount: res.result.totalAmount,
                         amount: paymentReq.amount, 
                         status: paymentReq.status,
+                        requestCount: paymentReq.requestCount,
                         description: paymentReq.description,                       
                         createdDate: paymentReq.createDate,
                         updatedDate: paymentReq.updateDate,
@@ -396,7 +397,7 @@ async function confirmReceivedPayment(data){
     var paymentReqId = data.id;
 
     const result = await Swal.fire({
-        title: 'Xác nhận nhận tiền',
+        title: 'Xác nhận đã nhận tiền',
         text: "Bạn có chắc chắn đã nhận được số tiền thanh toán này?",
         icon: "question",
         showCancelButton: true,
@@ -464,6 +465,7 @@ $(document).on('click', '#payment-request-table tbody tr', async function () {
         $(this).addClass('selected'); // Đánh dấu dòng đã chọn
         selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
         console.log(selectedData.id);
+        console.log(selectedData.requestCount);
     }
 });
 
@@ -575,7 +577,6 @@ $("#btn-add-payment-request").on("click", function () {
                 success: async function (res) {
                     Swal.close();
                     if(res.code==1000){
-                        console.log("success");
                         await loadPaymentRequestData();
                         Toast.fire({
                             icon: "success",
@@ -635,6 +636,14 @@ $("#btn-update-payment-request").on("click", function () {
             icon: "error",
             title: "Không thể cập nhật!",
             text: "Đề nghị thanh toán đã được xử lý",
+        });
+        return;
+    }
+    else if (selectedData.requestCount > 3){
+        Toast.fire({
+            icon: "error",
+            title: "Không thể cập nhật!",
+            text: "Đề nghị thanh toán đã bị từ chối hơn 3 lần",
         });
         return;
     }
@@ -874,7 +883,14 @@ $("#btn-send-payment-request").on("click", async function () {
         });
         return;
     }
-
+    else if (selectedData.requestCount > 3){
+        Toast.fire({
+            icon: "error",
+            title: "Không thể gửi!",
+            text: "Đề nghị thanh toán đã bị từ chối hơn 3 lần",
+        });
+        return;
+    }
     var paymentReqId = selectedData.id; // Lấy ID của đề nghị thanh toán
 
     // Hiển thị thông báo xác nhận từ người dùng
@@ -944,7 +960,7 @@ $(document).on('click', '#btn-view-image', function () {
 
 
 // Hàm hiển thị dataTable Invoice: lấy tất cả hoá đơn của một đề nghị thanh toán
-function showDataTable(paymentReq) {
+async function showDataTable(paymentReq) {
 
     // Kiểm tra nếu bảng đã được khởi tạo trước đó, hãy hủy nó
     if ($.fn.DataTable.isDataTable('#invoices-table')) {
@@ -988,7 +1004,7 @@ function showDataTable(paymentReq) {
                 Swal.showLoading();
             },
             dataSrc: function (res) {
-                Swal.close();
+                Swal.isLoading() && Swal.close();
                 if (res.code == 1000) {
                     // console.table(res.result);
 
@@ -1181,7 +1197,7 @@ $("#invoices-search-input").on("keyup", function () {
 
 
 // Nhấn nút "Thêm mới" để thêm hoá đơn
-$("#btn-add-invoice").on("click", function () {
+$("#btn-add-invoice").on("click", async function () {
     // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái 
     if (selectedData.status == 3 || selectedData.status == 4 || selectedData.status == 5) {
         Toast.fire({
@@ -1196,6 +1212,14 @@ $("#btn-add-invoice").on("click", function () {
             icon: "error",
             title: "Không thể thêm hoá đơn!",
             text: "Đề nghị thanh toán đã được gửi",
+        });
+        return;
+    }
+    else if (selectedData.requestCount > 3){
+        Toast.fire({
+            icon: "error",
+            title: "Không thể thêm hoá đơn!",
+            text: "Đề nghị thanh toán đã bị từ chối hơn 3 lần",
         });
         return;
     }
@@ -1396,15 +1420,15 @@ $("#btn-add-invoice").on("click", function () {
                 headers: utils.defaultHeaders(),
                 data: JSON.stringify(invoiceData),
                 processData: false, // không xử lý dữ liệu
-                success: function (res) {
+                success: async function (res) {
                     Swal.close();
                     if(res.code==1000){
+                        await showDataTable(selectedData.id); // load lại bảng hoá đơn
                         Toast.fire({
                             icon: "success",
                             title: "Đã thêm hoá đơn!",
                             timer: 3000,
                         });
-                        showDataTable(selectedData.id); // load lại bảng hoá đơn
                     }
                     else {
                         Toast.fire({
@@ -1451,6 +1475,14 @@ $("#btn-update-invoice").on("click", function () {
             icon: "error",
             title: "Không thể cập nhật hoá đơn!",
             text: "Đề nghị thanh toán đã được gửi",
+        });
+        return;
+    }
+    else if (selectedData.requestCount > 3){
+        Toast.fire({
+            icon: "error",
+            title: "Không thể cập nhật hoá đơn!",
+            text: "Đề nghị thanh toán đã bị từ chối hơn 3 lần",
         });
         return;
     }
@@ -1786,6 +1818,14 @@ $("#btn-remove-invoice").on("click", async function () {
             icon: "error",
             title: "Không thể xoá hoá đơn!",
             text: "Đề nghị thanh toán đã được gửi",
+        });
+        return;
+    }
+    else if (selectedData.requestCount > 3){
+        Toast.fire({
+            icon: "error",
+            title: "Không thể xoá hoá đơn!",
+            text: "Đề nghị thanh toán đã bị từ chối hơn 3 lần",
         });
         return;
     }

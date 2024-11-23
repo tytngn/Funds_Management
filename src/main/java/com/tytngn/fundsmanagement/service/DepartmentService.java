@@ -52,13 +52,13 @@ public class DepartmentService {
                 .map(department -> {
                     DepartmentResponse response = departmentMapper.toDepartmentResponse(department);
                     int employeeCount = (int) department.getUsers().stream()
-                            .filter(user -> user.getStatus() == 1)
+                            .filter(user -> user.getStatus() == 1 || user.getStatus() == 9999)
                             .count(); // Lấy số nhân viên trong phòng ban
                     response.setEmployeeCount(employeeCount); // Gán số nhân viên vào response
 
                     // Lọc danh sách nhân viên đang hoạt động và chuyển đổi sang UserSimpleResponse
                     Set<UserSimpleResponse> activeUsers = department.getUsers().stream()
-                            .filter(user -> user.getStatus() == 1)
+                            .filter(user -> user.getStatus() == 1 || user.getStatus() == 9999)
                             .map(userMapper::toUserSimpleResponse)
                             .collect(Collectors.toSet());
                     response.setUsers(activeUsers);
@@ -71,6 +71,31 @@ public class DepartmentService {
         return departments;
     }
 
+    // lấy danh sách thủ quỹ trong từng phòng ban
+    public List<DepartmentResponse> getTreasurerInDepartment() {
+        var departments = departmentRepository.findAll()
+                .stream()
+                .map(department -> {
+                    DepartmentResponse response = departmentMapper.toDepartmentResponse(department);
+
+                    // Lọc danh sách nhân viên có role là USER_MANAGER
+                    Set<UserSimpleResponse> managers = department.getUsers().stream()
+                            .filter(user -> user.getRoles().stream()
+                                    .anyMatch(role -> "USER_MANAGER".equalsIgnoreCase(role.getId())))
+                            .map(userMapper::toUserSimpleResponse)
+                            .collect(Collectors.toSet());
+
+                    // Gán danh sách managers vào response
+                    response.setUsers(managers);
+                    response.setEmployeeCount(managers.size()); // Gán số lượng USER_MANAGER
+
+                    return response;
+                })
+                .sorted(Comparator.comparing(DepartmentResponse::getName, vietnameseCollator))
+                .toList();
+
+        return departments;
+    }
 
     // lấy thông tin phòng ban theo ID
     public DepartmentResponse getDepartmentById(String id) {

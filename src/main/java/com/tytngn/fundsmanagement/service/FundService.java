@@ -3,8 +3,7 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundRequest;
-import com.tytngn.fundsmanagement.dto.response.FundReportResponse;
-import com.tytngn.fundsmanagement.dto.response.FundResponse;
+import com.tytngn.fundsmanagement.dto.response.*;
 import com.tytngn.fundsmanagement.entity.Fund;
 import com.tytngn.fundsmanagement.entity.FundPermission;
 import com.tytngn.fundsmanagement.exception.AppException;
@@ -15,16 +14,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.text.Collator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.*;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -348,6 +344,182 @@ public class FundService {
         result.put("totalRemainingBalance", totalRemainingBalance);
 
         return result;
+    }
+
+
+    // Báo cáo quỹ trong tháng hiện tại
+    public Map<String, Object> getCurrentMonthSummary() {
+        // Lấy ngày đầu tiên và cuối cùng của tháng hiện tại
+        YearMonth currentMonth = YearMonth.now();
+        LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(23, 59, 59);
+
+        // Lấy danh sách quỹ
+        List<Fund> funds = fundRepository.findByStatus(1);
+
+        double totalIncome = 0.0; // tổng thu
+        double totalExpenditure = 0.0; // tổng chi
+        double totalPayment = 0.0; // tổng thanh toán
+        double totalRemainingBalance = 0.0; // tổng tồn
+        long totalContributions = 0;
+        long totalWithdrawals = 0;
+        long totalPaymentRequest = 0;
+
+        for (Fund fund : funds) {
+            // Tổng thu (đóng góp quỹ đã duyệt)
+            double fundIncome = fundTransactionRepository.sumContributions(fund.getId(), startOfMonth, endOfMonth, null, null);
+            totalIncome += fundIncome;
+            // Lấy dữ liệu từ repository
+            List<TransactionReportResponse> contribution = fundTransactionRepository.getTransactionReport(fund.getId(), null, 1, null, null, startOfMonth, endOfMonth);
+            // Tính tổng số giao dịch đóng góp
+            long transContribution = contribution.stream()
+                    .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                    .sum();
+            totalContributions += transContribution;
+
+            // Tổng chi (rút quỹ đã duyệt và thanh toán có status = 4 hoặc status = 5)
+            double fundExpenditure = fundTransactionRepository.sumWithdrawals(fund.getId(), startOfMonth, endOfMonth, null, null);
+            totalExpenditure += fundExpenditure;
+            // Lấy dữ liệu từ repository
+            List<TransactionReportResponse> withdrawal = fundTransactionRepository.getTransactionReport(fund.getId(), null, 0, null, null, startOfMonth, endOfMonth);
+            // Tính tổng số giao dịch đóng góp
+            long transWithdrawal = withdrawal.stream()
+                    .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                    .sum();
+            totalWithdrawals += transWithdrawal;
+
+            double fundPayment = paymentReqRepository.sumPayments(fund.getId(), startOfMonth, endOfMonth, null, null);
+            totalPayment += fundPayment;
+            long paymentRequest = paymentReqRepository.countPayments(fund.getId(), startOfMonth, endOfMonth);
+            totalPaymentRequest += paymentRequest;
+
+            // Tồn = Thu - Chi - thanh toán
+            double remainingBalance = fundIncome - (fundExpenditure + fundPayment);
+            totalRemainingBalance += remainingBalance;
+        }
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalIncome", totalIncome);
+        result.put("totalExpenditure", totalExpenditure);
+        result.put("totalPayment", totalPayment);
+        result.put("totalRemainingBalance", totalRemainingBalance);
+        result.put("totalContributions", totalContributions);
+        result.put("totalWithdrawals", totalWithdrawals);
+        result.put("totalPaymentRequest", totalPaymentRequest);
+
+        return result;
+    }
+
+
+    // Báo cáo quỹ trong tháng hiện tại của thủ quỹ
+    public Map<String, Object> getTreasurerMonthlyReports() {
+        // Lấy ngày đầu tiên và cuối cùng của tháng hiện tại
+        YearMonth currentMonth = YearMonth.now();
+        LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(23, 59, 59);
+
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
+
+        // Lấy danh sách quỹ
+        List<Fund> funds = fundRepository.findByUserIdAndStatus(id, 1);
+
+        double totalIncome = 0.0; // tổng thu
+        double totalExpenditure = 0.0; // tổng chi
+        double totalPayment = 0.0; // tổng thanh toán
+        double totalRemainingBalance = 0.0; // tổng tồn
+        long totalContributions = 0;
+        long totalWithdrawals = 0;
+        long totalPaymentRequest = 0;
+
+        for (Fund fund : funds) {
+            // Tổng thu (đóng góp quỹ đã duyệt)
+            double fundIncome = fundTransactionRepository.sumContributions(fund.getId(), startOfMonth, endOfMonth, null, null);
+            totalIncome += fundIncome;
+            // Lấy dữ liệu từ repository
+            List<TransactionReportResponse> contribution = fundTransactionRepository.getTransactionReport(fund.getId(), null, 1, null, null, startOfMonth, endOfMonth);
+            // Tính tổng số giao dịch đóng góp
+            long transContribution = contribution.stream()
+                    .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                    .sum();
+            totalContributions += transContribution;
+
+            // Tổng chi (rút quỹ đã duyệt và thanh toán có status = 4 hoặc status = 5)
+            double fundExpenditure = fundTransactionRepository.sumWithdrawals(fund.getId(), startOfMonth, endOfMonth, null, null);
+            totalExpenditure += fundExpenditure;
+            // Lấy dữ liệu từ repository
+            List<TransactionReportResponse> withdrawal = fundTransactionRepository.getTransactionReport(fund.getId(), null, 0, null, null, startOfMonth, endOfMonth);
+            // Tính tổng số giao dịch đóng góp
+            long transWithdrawal = withdrawal.stream()
+                    .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                    .sum();
+            totalWithdrawals += transWithdrawal;
+
+            double fundPayment = paymentReqRepository.sumPayments(fund.getId(), startOfMonth, endOfMonth, null, null);
+            totalPayment += fundPayment;
+            long paymentRequest = paymentReqRepository.countPayments(fund.getId(), startOfMonth, endOfMonth);
+            totalPaymentRequest += paymentRequest;
+
+            // Tồn = Thu - Chi - thanh toán
+            double remainingBalance = fundIncome - (fundExpenditure + fundPayment);
+            totalRemainingBalance += remainingBalance;
+        }
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalIncome", totalIncome);
+        result.put("totalExpenditure", totalExpenditure);
+        result.put("totalPayment", totalPayment);
+        result.put("totalRemainingBalance", totalRemainingBalance);
+        result.put("totalContributions", totalContributions);
+        result.put("totalWithdrawals", totalWithdrawals);
+        result.put("totalPaymentRequest", totalPaymentRequest);
+
+        return result;
+    }
+
+
+    // Báo cáo chi tiết tất cả quỹ trong tháng hiện tại
+    public List<FundDetailsReportResponse> getFundDetailsMonthlyReports() {
+        int month = LocalDate.now().getMonthValue();
+        int year = LocalDate.now().getYear();
+
+        // Lấy danh sách quỹ
+        List<Fund> funds = fundRepository.findByStatus(1);
+
+        List<FundDetailsReportResponse> report = new ArrayList<>();
+
+        for (Fund fund : funds) {
+            FundDetailsReportResponse dto = new FundDetailsReportResponse();
+            dto.setFundName(fund.getFundName());
+            dto.setDescription(fund.getDescription());
+
+            double fundIncome = fundTransactionRepository.sumContributions(fund.getId(), null, null, year, month);
+            dto.setTotalContribution(fundIncome);
+
+            double fundExpenditure = fundTransactionRepository.sumWithdrawals(fund.getId(), null, null, year, month);
+            dto.setTotalWithdrawal(fundExpenditure);
+
+            double fundPayment = paymentReqRepository.sumPayments(fund.getId(), null, null, year, month);
+            dto.setTotalPayment(fundPayment);
+
+            dto.setTotalBalance(fundIncome - (fundExpenditure + fundPayment));
+
+            // Lấy danh sách phòng ban có nhân viên đóng góp
+            List<DepartmentDetailResponse> departmentDetails = fundPermissionRepository.findDepartmentDetailsByFundId(fund.getId());
+            // Sắp xếp theo tên phòng ban
+            departmentDetails.sort(Comparator.comparing(DepartmentDetailResponse::getName, vietnameseCollator));
+            dto.setDepartment(departmentDetails);
+
+            report.add(dto);
+        }
+        // Sắp xếp theo tên
+        List<FundDetailsReportResponse> sortedResponses = report.stream()
+                .sorted(Comparator.comparing(FundDetailsReportResponse::getFundName, vietnameseCollator))
+                .toList();
+
+        return sortedResponses;
     }
 
 

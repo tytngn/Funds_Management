@@ -46,6 +46,7 @@ public class PaymentReqService {
         PaymentReq paymentReq = paymentReqMapper.toPaymentReq(request);
         paymentReq.setAmount(0.0);
         paymentReq.setStatus(1);
+        paymentReq.setRequestCount(0);
         paymentReq.setCreateDate(LocalDateTime.now());
 
         // Lấy thông tin người dùng đang đăng nhập
@@ -373,7 +374,7 @@ public class PaymentReqService {
 
         // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
         if (paymentReq.getStatus() == 0) {
-            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            int updateCount = paymentReq.getRequestCount();
             if (updateCount > 3) {
                 throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
             }
@@ -417,13 +418,14 @@ public class PaymentReqService {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_AMOUNT_ZERO);
         }
 
-        int sendCount = paymentReqRepository.countByStatusAndId(2, paymentReq.getId());
+        int sendCount = paymentReq.getRequestCount();
         if (sendCount > 3) {
             throw new AppException(ErrorCode.PAYMENT_REQUEST_SEND_LIMIT_EXCEEDED);
         }
 
         // Đổi trạng thái thành 2 (đang chờ xác nhận)
         paymentReq.setStatus(2);
+        paymentReq.setRequestCount(sendCount + 1);
         paymentReq.setUpdateDate(LocalDateTime.now());
 
         return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));

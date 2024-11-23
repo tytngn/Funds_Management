@@ -14,11 +14,11 @@ public class PaymentReqSimpleResponse {
     String id;
     double amount;
     int status;
+    int requestCount;
     String description;
     LocalDateTime createDate;
     LocalDateTime updateDate;
 
     UserSimpleResponse user;
     FundSimpleResponse fund;
-//    PaymentCategoryResponse category;
 }

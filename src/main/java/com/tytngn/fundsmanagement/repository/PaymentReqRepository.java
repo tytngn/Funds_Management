@@ -9,12 +9,20 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface PaymentReqRepository extends JpaRepository<PaymentReq, String> {
 
-    // đếm số lần gửi đề nghị thanh toán
-    int countByStatusAndId(int status, String id);
+    // Đếm tổng số đề nghị có status == 4 hoặc status == 5
+    @Query("SELECT COUNT(pr) FROM PaymentReq pr WHERE pr.fund.id = :fundId " +
+            "AND (pr.status = 4 OR pr.status = 5) " + // Lọc trạng thái đã thanh toán hoặc đã nhận
+            "AND (COALESCE(:startDate, null) IS NULL OR pr.updateDate >= :startDate) " +
+            "AND (COALESCE(:endDate, null) IS NULL OR pr.updateDate <= :endDate)")
+    long countPayments(
+            @Param("fundId") String fundId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
     // Lấy danh sách đề nghị thanh toán theo bộ lọc
     @Query("SELECT p FROM PaymentReq p " +
@@ -150,5 +158,54 @@ public interface PaymentReqRepository extends JpaRepository<PaymentReq, String> 
             @Param("year") Integer year,
             @Param("month") Integer month);
 
+
+    // tính số tiền đề nghị thanh toán và số đề nghị thanh toán trong tháng THEO NHÂN VIÊN
+    @Query("""
+        SELECT new map(
+            MONTH(pr.updateDate) AS month,
+            SUM(pr.amount) AS totalPaymentAmount,
+            COUNT(pr.id) AS paymentCount
+        )
+        FROM PaymentReq pr
+        WHERE (pr.status = 4 OR pr.status = 5)
+        AND pr.user.id = :userId
+        AND (:year IS NULL OR YEAR(pr.updateDate) = :year)
+        GROUP BY MONTH(pr.updateDate)
+        ORDER BY MONTH(pr.updateDate)
+    """)
+    List<Map<String, Object>> findMonthlyPaymentsByUser(@Param("userId") String userId, @Param("year") Integer year);
+
+
+    // tính số tiền đề nghị thanh toán và số đề nghị thanh toán trong tháng THEO KẾ TOÁN
+    @Query("""
+        SELECT new map(
+            MONTH(pr.updateDate) AS month,
+            SUM(pr.amount) AS totalPaymentAmount,
+            COUNT(pr.id) AS paymentCount
+        )
+        FROM PaymentReq pr
+        WHERE (pr.status = 4 OR pr.status = 5)
+        AND (:year IS NULL OR YEAR(pr.updateDate) = :year)
+        GROUP BY MONTH(pr.updateDate)
+        ORDER BY MONTH(pr.updateDate)
+    """)
+    List<Map<String, Object>> findMonthlyPayments(@Param("year") Integer year);
+
+
+    // tính số tiền đề nghị thanh toán và số đề nghị thanh toán trong tháng THEO THỦ QUỸ
+    @Query("""
+        SELECT new map(
+            MONTH(pr.updateDate) AS month,
+            SUM(pr.amount) AS totalPaymentAmount,
+            COUNT(pr.id) AS paymentCount
+        )
+        FROM PaymentReq pr
+        WHERE (pr.status = 4 OR pr.status = 5)
+        AND pr.fund.user.id = :userId
+        AND (:year IS NULL OR YEAR(pr.updateDate) = :year)
+        GROUP BY MONTH(pr.updateDate)
+        ORDER BY MONTH(pr.updateDate)
+    """)
+    List<Map<String, Object>> findMonthlyPaymentsByTreasurer(@Param("userId") String userId, @Param("year") Integer year);
 }
 

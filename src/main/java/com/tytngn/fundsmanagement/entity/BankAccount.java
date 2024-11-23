@@ -16,14 +16,16 @@ import java.time.LocalDate;
 public class BankAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (length = 38)
     String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     String bankName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30)
     String accountNumber;
 
+    @Column(nullable = false)
     LocalDate createdDate;
 
     // Relationships

@@ -1,5 +1,8 @@
 package com.tytngn.fundsmanagement.repository;
 
+import com.tytngn.fundsmanagement.dto.response.DepartmentDetailResponse;
+import com.tytngn.fundsmanagement.dto.response.DepartmentSimpleResponse;
+import com.tytngn.fundsmanagement.dto.response.FundDetailsReportResponse;
 import com.tytngn.fundsmanagement.entity.Fund;
 import com.tytngn.fundsmanagement.entity.FundPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,8 +19,6 @@ public interface FundPermissionRepository extends JpaRepository<FundPermission, 
     List<FundPermission> findByFundId(String fundId);
 
     FundPermission findByUserIdAndFundId(String userId, String fundId);
-
-    List<FundPermission> findByFundIdAndCanContributeTrue(String fundId);
 
     FundPermission findByUserIdAndFundIdAndCanContribute(String userId, String fundId, boolean canContribute);
 
@@ -83,4 +84,13 @@ public interface FundPermissionRepository extends JpaRepository<FundPermission, 
             @Param("endDate") LocalDate endDate,
             @Param("year") Integer year,
             @Param("month") Integer month);
+
+
+    // Lấy danh sách phòng ban có nhân viên đóng góp
+    @Query("SELECT new com.tytngn.fundsmanagement.dto.response.DepartmentDetailResponse(d.id, d.name, COUNT(u), COUNT(fp)) " +
+            "FROM Department d " +
+            "JOIN d.users u " +
+            "LEFT JOIN FundPermission fp ON fp.user.id = u.id AND fp.fund.id = :fundId AND fp.canContribute = true " +
+            "GROUP BY d.id, d.name")
+    List<DepartmentDetailResponse> findDepartmentDetailsByFundId(@Param("fundId") String fundId);
 }

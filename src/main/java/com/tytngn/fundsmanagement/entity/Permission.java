@@ -18,7 +18,7 @@ public class Permission {
     @Id
     String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     String perm_name;
 
     //Relationships

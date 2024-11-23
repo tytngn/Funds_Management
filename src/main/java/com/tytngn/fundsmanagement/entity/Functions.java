@@ -18,9 +18,10 @@ import java.util.Set;
 public class Functions {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (length = 38)
     String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     String name;
 
     // Relationships

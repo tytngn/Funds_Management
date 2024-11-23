@@ -258,6 +258,44 @@ public class FundTransactionController {
     }
 
 
+    // Lấy báo cáo đóng góp và thanh toán của người dùng trong tháng
+    @GetMapping("/individual-month-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_INDIVIDUAL_MONTH_REPORT'})")
+    ApiResponse<Map<String, Object>> getIndividualMonthlyReport() {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.getIndividualMonthlyReport())
+                .build();
+    }
+
+
+    @GetMapping("/individual-monthly")
+    @PreAuthorize("@securityExpression.hasPermission({'GENERATE_INDIVIDUAL_MONTH_REPORT'})")
+    public ApiResponse<Map<String, Object>> generateIndividualMonthlyReport() {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.generateIndividualMonthlyReport())
+                .build();
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TRANSACTION_SUMMARY'})")
+    public ApiResponse<Map<String, Object>> getTransactionSummary() {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.getTransactionSummaryByMonth())
+                .build();
+    }
+
+    @GetMapping("/summary/by-treasurer")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TRANSACTION_SUMMARY_BY_TREASURER'})")
+    public ApiResponse<Map<String, Object>> getTransactionSummaryByTreasurer() {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundTransactionService.getTransactionSummaryByMonthAndTreasurer())
+                .build();
+    }
+
     // cập nhật giao dịch
     @PutMapping
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND_TRANSACTION'})")

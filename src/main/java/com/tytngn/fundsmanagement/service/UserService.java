@@ -150,8 +150,10 @@ public class UserService {
                 new AppException(ErrorCode.USER_NOT_EXISTS));
 
         // Kiểm tra email đã tồn tại chưa
-        if(userRepository.existsByEmail(request.getEmail()))
-            throw new AppException(ErrorCode.EMAIL_EXISTS);
+        if (!user.getEmail().equals(request.getEmail())) {
+            if(userRepository.existsByEmail(request.getEmail()))
+                throw new AppException(ErrorCode.EMAIL_EXISTS);
+        }
 
         userMapper.updateUser(user, request);
 //        user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -182,8 +184,10 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTS));
 
         // Kiểm tra email đã tồn tại chưa
-        if(userRepository.existsByEmail(request.getEmail()))
-            throw new AppException(ErrorCode.EMAIL_EXISTS);
+        if (!user.getEmail().equals(request.getEmail())) {
+            if(userRepository.existsByEmail(request.getEmail()))
+                throw new AppException(ErrorCode.EMAIL_EXISTS);
+        }
 
         // Không cho phép người dùng chỉnh sửa nếu trạng thái tài khoản là 9999
         if (user.getStatus() == 9999) {

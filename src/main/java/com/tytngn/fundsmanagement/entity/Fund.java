@@ -20,9 +20,10 @@ public class Fund {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (length = 38)
     String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     String fundName;
 
     @Column(nullable = false)
@@ -34,7 +35,9 @@ public class Fund {
     @Column(columnDefinition = "TEXT")
     String description;
 
+    @Column(nullable = false)
     LocalDate createDate;
+
     LocalDate updateDate;
 
     // Relationships

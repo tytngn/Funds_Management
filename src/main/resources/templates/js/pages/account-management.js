@@ -583,7 +583,7 @@ $("#btn-add-user").on("click", function () {
     $("#modal-id").modal("show");
 
 
-    // Lưu thông tin quỹ
+    // Lưu thông tin 
     $("#modal-submit-btn").click(function () {
         let username = $("#modal-username-input").val();
         let email = $("#modal-email-input").val();

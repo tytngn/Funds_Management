@@ -48,7 +48,7 @@ public class InvoiceService {
 
         // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
         if (paymentReq.getStatus() == 0) {
-            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            int updateCount = paymentReq.getRequestCount();
             if (updateCount > 3) {
                 throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
             }
@@ -129,7 +129,7 @@ public class InvoiceService {
 
         // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
         if (paymentReq.getStatus() == 0) {
-            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            int updateCount = paymentReq.getRequestCount();
             if (updateCount > 3) {
                 throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
             }
@@ -184,7 +184,7 @@ public class InvoiceService {
 
         // Nếu trạng thái là 0, kiểm tra số lần cập nhật trước đó
         if (paymentReq.getStatus() == 0) {
-            int updateCount = paymentReqRepository.countByStatusAndId(0, paymentReq.getId());
+            int updateCount = paymentReq.getRequestCount();
             if (updateCount > 3) {
                 throw new AppException(ErrorCode.PAYMENT_REQUEST_UPDATE_LIMIT_EXCEEDED);
             }

@@ -20,13 +20,15 @@ function refreshToken() {
         return;
     }
 
-    let expirationTime = localStorage.getItem("tokenExpirationTime");
+    let expirationTime = localStorage.getItem("tokenExpirationTime");    
     
     if (expirationTime) {
         const currentTime = Date.now();
         expirationTime = parseInt(expirationTime);
 
         if ((expirationTime - currentTime) > 60 * 60 * 1000) {
+            console.log("**Token already refreshed**");
+            
             return;
         }
     }
@@ -43,6 +45,8 @@ function refreshToken() {
         }),
         dataType: "json",
         success: function (res) {
+            console.log("ajax come");
+            
             if (res.code == 1000 && res.result.authenticated) {
                 console.log("**Token refreshed successfully.**");
 
@@ -66,4 +70,4 @@ refreshToken();
 
 setInterval(() => {
     refreshToken();
-}, 5*60*1000);
+}, 3600000);

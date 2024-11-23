@@ -16,9 +16,10 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role {
     @Id
+    @Column (length = 38)
     String id;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     String roleName;
 
     //Relationships

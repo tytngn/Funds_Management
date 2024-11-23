@@ -11,15 +11,17 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Image {
+public class CommonParameter {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column (length = 38)
     String id;
 
-    String fileName;
+    @Column(name = "param_key", unique = true, nullable = false)
+    String key;
 
-    @Lob
-    @Column(columnDefinition = "LONGBLOB")
-    byte[] image;
+    @Column(nullable = false)
+    String description;
+
+    @Column(nullable = false)
+    String value;
 }

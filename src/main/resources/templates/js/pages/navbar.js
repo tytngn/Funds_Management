@@ -410,9 +410,6 @@ function updateBreadcrumb(roles) {
             parentChildMap[parent].forEach(function (childPath) {
                 // Kiểm tra quyền của người dùng
                 const childPermissions = breadcrumbMap[childPath].permissions || [];
-                console.log('Checking childPath:', childPath); // Log đường dẫn
-                console.log('Required permissions:', childPermissions); // Log quyền yêu cầu
-                console.log('User permissions:', permissions); // Log quyền của người dùng
                 const hasPermission = childPermissions.every(permission => permissions.includes(permission));
 
                 if (hasPermission) {

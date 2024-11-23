@@ -42,6 +42,15 @@ public class DepartmentController {
                 .build();
     }
 
+    @GetMapping("/treasurer-in-department")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TREASURER_IN_DEPARTMENT'})")
+    ApiResponse<List<DepartmentResponse>> getTreasurerInDepartment() {
+        return ApiResponse.<List<DepartmentResponse>>builder()
+                .result(departmentService.getTreasurerInDepartment())
+                .code(1000)
+                .build();
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'GET_DEPARTMENT_BY_ID'})")
     ApiResponse<DepartmentResponse> getDepartmentById(@PathVariable String id) {

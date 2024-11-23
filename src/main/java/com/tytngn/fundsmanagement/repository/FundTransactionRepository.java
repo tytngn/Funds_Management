@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface FundTransactionRepository extends JpaRepository<FundTransaction, String> {
@@ -186,5 +187,91 @@ public interface FundTransactionRepository extends JpaRepository<FundTransaction
             @Param("startDate") LocalDateTime startDate,
             @Param("year") Integer year,
             @Param("month") Integer month);
+
+
+    // Tính số tiền giao dịch đóng góp và số giao dịch trong tháng CỦA NHÂN VIÊN
+    @Query("""
+        SELECT new map(
+            MONTH(ft.confirmDate) AS month,
+            SUM(ft.amount) AS totalAmount,
+            COUNT(ft.id) AS contributionCount
+        )
+        FROM FundTransaction ft
+        WHERE ft.status = 2
+        AND ft.transactionType.status = 1
+        AND ft.user.id = :userId
+        AND (:year IS NULL OR YEAR(ft.confirmDate) = :year)
+        GROUP BY MONTH(ft.confirmDate)
+        ORDER BY MONTH(ft.confirmDate)
+    """)
+    List<Map<String, Object>> findMonthlyContributionsByUser(@Param("userId") String userId, @Param("year") Integer year);
+
+
+    // Tính số tiền giao dịch đóng góp và số giao dịch trong tháng THEO KẾ TOÁN
+    @Query("""
+        SELECT new map(
+            MONTH(ft.confirmDate) AS month,
+            SUM(ft.amount) AS totalContributionAmount,
+            COUNT(ft.id) AS contributionCount
+        )
+        FROM FundTransaction ft
+        WHERE ft.status = 2
+        AND ft.transactionType.status = 1
+        AND (:year IS NULL OR YEAR(ft.confirmDate) = :year)
+        GROUP BY MONTH(ft.confirmDate)
+        ORDER BY MONTH(ft.confirmDate)
+    """)
+    List<Map<String, Object>> findMonthlyContributions(@Param("year") Integer year);
+
+    // Tính số tiền giao dịch rút quỹ và số giao dịch trong tháng THEO KẾ TOÁN
+    @Query("""
+        SELECT new map(
+            MONTH(ft.confirmDate) AS month,
+            SUM(ft.amount) AS totalWithdrawAmount,
+            COUNT(ft.id) AS withdrawCount
+        )
+        FROM FundTransaction ft
+        WHERE ft.status = 2
+        AND ft.transactionType.status = 0
+        AND (:year IS NULL OR YEAR(ft.confirmDate) = :year)
+        GROUP BY MONTH(ft.confirmDate)
+        ORDER BY MONTH(ft.confirmDate)
+    """)
+    List<Map<String, Object>> findMonthlyWithdrawals(@Param("year") Integer year);
+
+
+    // Tính số tiền giao dịch đóng góp và số giao dịch trong tháng THEO THỦ QUỸ
+    @Query("""
+        SELECT new map(
+            MONTH(ft.confirmDate) AS month,
+            SUM(ft.amount) AS totalContributionAmount,
+            COUNT(ft.id) AS contributionCount
+        )
+        FROM FundTransaction ft
+        WHERE ft.status = 2
+        AND ft.fund.user.id = :userId
+        AND ft.transactionType.status = 1
+        AND (:year IS NULL OR YEAR(ft.confirmDate) = :year)
+        GROUP BY MONTH(ft.confirmDate)
+        ORDER BY MONTH(ft.confirmDate)
+    """)
+    List<Map<String, Object>> findMonthlyContributionsByTreasurer(@Param("userId") String userId, @Param("year") Integer year);
+
+    // Tính số tiền giao dịch rút quỹ và số giao dịch trong tháng THEO THỦ QUỸ
+    @Query("""
+        SELECT new map(
+            MONTH(ft.confirmDate) AS month,
+            SUM(ft.amount) AS totalWithdrawAmount,
+            COUNT(ft.id) AS withdrawCount
+        )
+        FROM FundTransaction ft
+        WHERE ft.status = 2
+        AND ft.fund.user.id = :userId
+        AND ft.transactionType.status = 0
+        AND (:year IS NULL OR YEAR(ft.confirmDate) = :year)
+        GROUP BY MONTH(ft.confirmDate)
+        ORDER BY MONTH(ft.confirmDate)
+    """)
+    List<Map<String, Object>> findMonthlyWithdrawalsByTreasurer(@Param("userId") String userId, @Param("year") Integer year);
 }
 

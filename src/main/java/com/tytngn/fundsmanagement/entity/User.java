@@ -18,15 +18,16 @@ import java.util.Set;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column (length = 38)
     String id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = 30)
     String username;
 
     @Column(nullable = false)
     String password;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, unique = true)
     String email;
 
     @Column(nullable = false, length = 100)
@@ -41,10 +42,13 @@ public class User {
     @Column(nullable = false)
     int status = 1; // 0: vô hiệu hoá, 1: đang hoạt động
 
-    @Column(updatable = false)
-    LocalDate createdDate = LocalDate.now();
+    @Column(nullable = false)
+    LocalDate createdDate;
 
-    LocalDate updatedDate = LocalDate.now();
+    LocalDate updatedDate;
+
+    @Column(unique = true)
+    Long telegramId;
 
     //Relationships
     @ManyToMany

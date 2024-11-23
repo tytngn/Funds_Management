@@ -325,6 +325,8 @@ $(document).ready(async function () {
                             </summary> <br>
                             <p class="text-left" style="white-space: normal; !important">
                                 Phòng ban: ${row.department} <br>
+                                Email: ${row.email} <br>
+                                ${row.phone? "Số điện thoại: " + row.phone : ''}
                             </p>
                         </details>`;
                 }
@@ -524,7 +526,9 @@ async function loadContributionData() {
                         department: transaction.user.department.name,
                         fund: transaction.fund.fundName,
                         transactionType: transaction.transactionType.name,
-                        proofImages: proofImagesHtml,    
+                        proofImages: proofImagesHtml,  
+                        email: transaction.user.email,  
+                        phone: transaction.user.phone,  
                         id: transaction.id, // ID của transaction 
                     });
                 });

@@ -16,6 +16,7 @@ public class PaymentReqResponse {
     String id;
     double amount;
     int status;
+    int requestCount;
     String description;
     LocalDateTime createDate;
     LocalDateTime updateDate;
@@ -24,5 +25,4 @@ public class PaymentReqResponse {
     FundSimpleResponse fund;
     Set<InvoiceResponse> invoices;
     List<ImageResponse> images;
-//    PaymentCategoryResponse category;
 }

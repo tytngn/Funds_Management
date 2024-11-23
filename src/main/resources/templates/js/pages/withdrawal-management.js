@@ -315,10 +315,12 @@ $(document).ready(function () {
                     return `
                         <details>
                             <summary class="text-left">
-                                <b>${data}</b>
+                                <b>${data.fullname}</b>
                             </summary> <br>
                             <p class="text-left" style="white-space: normal; !important">
                                 Phòng ban: ${row.department} <br>
+                                Email: ${data.email} <br>
+                                ${data.phone? "Số điện thoại: " + data.phone : ''}
                             </p>
                         </details>`;
                 }
@@ -489,7 +491,7 @@ async function loadWithdrawalData() {
                         status: transaction.status,
                         transDate: transaction.transDate,
                         confirmDate: transaction.confirmDate,
-                        trader: transaction.user.fullname,
+                        trader: transaction.user,
                         department: transaction.user.department.name,
                         fund: transaction.fund.fundName,
                         transactionType: transaction.transactionType.name,

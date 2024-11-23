@@ -39,9 +39,11 @@ function login() {
         success: function (res) {
             if (res.code === 1000 && res.result.authenticated) {
                 const expirationTime = Date.now() + 24 * 60 * 60 * 1000; // 1 ngày
-                localStorage.setItem("tokenExpirationTime", expirationTime);
-                // Gửi yêu cầu với Bearer Token
-                window.location.href = '/';
+                setTimeout(() => {
+                    localStorage.setItem("tokenExpirationTime", expirationTime);
+                    // Gửi yêu cầu với Bearer Token
+                    window.location.href = '/';
+                }, 500);
             } else {
                 alert(res.code);
                 Toast.fire({

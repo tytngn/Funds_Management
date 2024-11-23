@@ -59,6 +59,7 @@ export function introspect(bool) {
                 }
             },
             error: function (xhr, status, error) {
+                alert("err ajax")
                 if (xhr.status === 401) {
                     // Xử lý lỗi 401 (Unauthorized)
                     deleteCookie("authToken");
@@ -308,6 +309,9 @@ export function formatNumber(value) {
 
 // Hàm định dạng tiền tệ theo chuẩn Việt Nam, thêm kí hiệu đ
 export function formatCurrency(value) {
+    if (value == null || value === undefined) {
+        value = 0; // Gán mặc định là 0 nếu giá trị không hợp lệ
+    }
     return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 }
 

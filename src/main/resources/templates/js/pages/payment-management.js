@@ -271,6 +271,12 @@ $(document).ready(async function () {
             },
             { data: "user",
                 render: function (data, type, row) {
+                    let html = "";
+                    if (row.account) {
+                        html = `Ngân hàng : ${row.account.bankName} <br>
+                                Số tài khoản: ${row.account.accountNumber} <br>
+                                `;
+                    }
                     return `
                         <details>
                             <summary class="text-left">
@@ -279,7 +285,8 @@ $(document).ready(async function () {
                             <p class="text-left" style="white-space: normal; !important">
                                 Phòng ban: ${row.user.department.name} <br>
                                 Email: ${row.user.email} <br>
-                                ${row.user.phone? "Số điện thoại: " + row.user.phone : ""}                                
+                                ${row.user.phone? "Số điện thoại: " + row.user.phone : ""} <br>
+                                ${html}                     
                             </p>
                         </details>`;
                 }
@@ -456,6 +463,8 @@ async function loadPaymentRequestData() {
                 $('#total-amount-div').prop("hidden", false);
                 document.getElementById("total-amount").innerText = utils.formatCurrency(res.result.totalAmount);
 
+                console.log(res);
+                
                 var data = [];
                 var counter = 1;
                 res.result.paymentRequests.forEach(function (paymentReq) {
@@ -485,6 +494,7 @@ async function loadPaymentRequestData() {
                         createdDate: paymentReq.createDate,
                         updatedDate: paymentReq.updateDate,
                         user: paymentReq.user,
+                        account: paymentReq.user.account,
                         fund: paymentReq.fund,
                         proofImages: proofImagesHtml,
                         id: paymentReq.id, // ID của payment request 

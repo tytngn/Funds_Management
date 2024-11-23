@@ -2,6 +2,7 @@ package com.tytngn.fundsmanagement.service;
 
 import com.tytngn.fundsmanagement.configuration.SecurityExpression;
 import com.tytngn.fundsmanagement.dto.request.FundTransactionRequest;
+import com.tytngn.fundsmanagement.dto.response.PaymentReportResponse;
 import com.tytngn.fundsmanagement.dto.response.TransactionReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
@@ -18,7 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.text.Collator;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
@@ -35,6 +38,7 @@ public class FundTransactionService {
     FundRepository fundRepository;
     TransactionTypeRepository transactionTypeRepository;
     FundPermissionRepository fundPermissionRepository;
+    PaymentReqRepository paymentReqRepository;
     ImageRepository imageRepository;
     SecurityExpression securityExpression;
     Collator vietnameseCollator;
@@ -254,6 +258,7 @@ public class FundTransactionService {
 
         // Map danh sách giao dịch sang DTO và thêm tổng số tiền vào response
         List<FundTransactionResponse> responses = fundTransactions.stream()
+                .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 1)
                 .map(fundTransactionMapper::toFundTransactionResponse)
                 .sorted(Comparator.comparing(FundTransactionResponse::getTransDate).reversed())
                 .toList();
@@ -339,11 +344,13 @@ public class FundTransactionService {
 
         // Tính tổng số tiền rút quỹ
         double totalAmount = fundTransactions.stream()
+                .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 0)
                 .mapToDouble(FundTransaction::getAmount)
                 .sum();
 
         // Map danh sách giao dịch sang DTO và thêm tổng số tiền vào response
         List<FundTransactionResponse> responses = fundTransactions.stream()
+                .filter(fundTrans -> fundTrans.getTransactionType().getStatus() == 0)
                 .map(fundTransactionMapper::toFundTransactionResponse)
                 .sorted(Comparator.comparing(FundTransactionResponse::getTransDate).reversed())
                 .toList();
@@ -576,6 +583,103 @@ public class FundTransactionService {
         result.put("totalTransactions", totalTransactions); // Tổng số giao dịch
 
         return result;
+    }
+
+
+    // Lấy báo cáo đóng góp và thanh toán của người dùng trong tháng
+    public Map<String, Object> getIndividualMonthlyReport() {
+        // Lấy ngày đầu tiên và cuối cùng của tháng hiện tại
+        YearMonth currentMonth = YearMonth.now();
+        LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(23, 59, 59);
+
+        // Lấy thông tin người dùng đang đăng nhập
+        String id = securityExpression.getUserId();
+
+        // Lấy dữ liệu từ repository
+        List<TransactionReportResponse> contribution = fundTransactionRepository.getIndividualTransactionReport(id, null, null, 1, null, null, startOfMonth, endOfMonth);
+
+        // Tính tổng số tiền giao dịch
+        double totalIncome = contribution.stream()
+                .mapToDouble(TransactionReportResponse::getAmount) // Lấy tổng số tiền từ báo cáo
+                .sum();
+
+        // Tính tổng số giao dịch
+        long totalContributions = contribution.stream()
+                .mapToLong(TransactionReportResponse::getQuantity) // Lấy tổng số lượng giao dịch
+                .sum();
+
+        // Lấy dữ liệu từ repository
+        List<PaymentReportResponse> payment = paymentReqRepository.getIndividualPaymentReport(id, null, null, null, startOfMonth, endOfMonth);
+        double totalPayment = payment.stream().mapToDouble(PaymentReportResponse::getReceivedAmount).sum();
+        long totalPaymentRequest = payment.stream().mapToLong(PaymentReportResponse::getReceivedQuantity).sum();
+
+        // Tạo Map để trả về kết quả
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalIncome", totalIncome); // Tổng số tiền giao dịch
+        result.put("totalContributions", totalContributions); // Tổng số giao dịch
+        result.put("totalPayment", totalPayment);
+        result.put("totalPaymentRequest", totalPaymentRequest);
+
+        return result;
+    }
+
+
+    // Lấy tổng số tiền đóng góp, tổng số giao dịch đóng góp, tổng số tiền đề nghị thanh toán, tổng số giao dịch thanh toán theo tháng
+    public Map<String, Object> generateIndividualMonthlyReport() {
+        String id = securityExpression.getUserId();
+        int year = LocalDate.now().getYear();
+
+        Map<String, Object> report = new HashMap<>();
+        report.put("monthlyContributions", fundTransactionRepository.findMonthlyContributionsByUser(id, year));
+        report.put("monthlyPayments", paymentReqRepository.findMonthlyPaymentsByUser(id, year));
+        return report;
+    }
+
+    // Lấy báo cáo quỹ theo các tháng của năm hiện tại ĐỐI VỚI KẾ TOÁN
+    public Map<String, Object> getTransactionSummaryByMonth() {
+        int year = LocalDate.now().getYear();
+
+        // Đóng góp quỹ
+        List<Map<String, Object>> contributions = fundTransactionRepository.findMonthlyContributions(year);
+
+        // Rút quỹ
+        List<Map<String, Object>> withdrawals = fundTransactionRepository.findMonthlyWithdrawals(year);
+
+        // Thanh toán
+        List<Map<String, Object>> payments = paymentReqRepository.findMonthlyPayments(year);
+
+        // Tổng hợp kết quả
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("contributions", contributions);
+        summary.put("withdrawals", withdrawals);
+        summary.put("payments", payments);
+
+        return summary;
+    }
+
+
+    // Lấy báo cáo quỹ theo các tháng của năm hiện tại ĐỐI VỚI THỦ QUỸ
+    public Map<String, Object> getTransactionSummaryByMonthAndTreasurer() {
+        int year = LocalDate.now().getYear();
+        String id = securityExpression.getUserId();
+
+        // Đóng góp quỹ
+        List<Map<String, Object>> contributions = fundTransactionRepository.findMonthlyContributionsByTreasurer(id, year);
+
+        // Rút quỹ
+        List<Map<String, Object>> withdrawals = fundTransactionRepository.findMonthlyWithdrawalsByTreasurer(id, year);
+
+        // Thanh toán
+        List<Map<String, Object>> payments = paymentReqRepository.findMonthlyPaymentsByTreasurer(id, year);
+
+        // Tổng hợp kết quả
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("contributions", contributions);
+        summary.put("withdrawals", withdrawals);
+        summary.put("payments", payments);
+
+        return summary;
     }
 
 

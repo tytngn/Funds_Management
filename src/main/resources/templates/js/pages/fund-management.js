@@ -105,7 +105,7 @@ $(document).ready(async function () {
     // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
     $.ajax({
         type: "GET",
-        url: "/api/departments",
+        url: "/api/departments/treasurer-in-department",
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {

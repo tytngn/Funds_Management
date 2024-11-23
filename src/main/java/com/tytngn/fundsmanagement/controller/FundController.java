@@ -2,6 +2,7 @@ package com.tytngn.fundsmanagement.controller;
 
 import com.tytngn.fundsmanagement.dto.request.FundRequest;
 import com.tytngn.fundsmanagement.dto.response.ApiResponse;
+import com.tytngn.fundsmanagement.dto.response.FundDetailsReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundResponse;
 import com.tytngn.fundsmanagement.service.FundService;
@@ -158,6 +159,39 @@ public class FundController {
         return ApiResponse.<Map<String, Object>>builder()
                 .code(1000)
                 .result(fundService.getTreasurerFundReport(fundId, start, end, year, month))
+                .build();
+    }
+
+
+    // Báo cáo quỹ trong tháng hiện tại
+    @GetMapping("/month-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_CURRENT_MONTH_REPORT'})")
+    ApiResponse<Map<String, Object>> getCurrentMonthSummary () {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundService.getCurrentMonthSummary())
+                .build();
+    }
+
+
+    // Lấy báo cáo quỹ của thủ quỹ quản lý trong tháng
+    @GetMapping("/treasurer-month-report")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_TREASURER_MONTH_REPORT'})")
+    ApiResponse<Map<String, Object>> getTreasurerMonthlyReports () {
+        return ApiResponse.<Map<String, Object>>builder()
+                .code(1000)
+                .result(fundService.getTreasurerMonthlyReports())
+                .build();
+    }
+
+
+    // Báo cáo chi tiết tất cả quỹ trong tháng hiện tại
+    @GetMapping("/details")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_DETAILS_MONTH_REPORT'})")
+    ApiResponse<List<FundDetailsReportResponse>> getFundDetailsMonthlyReports () {
+        return ApiResponse.<List<FundDetailsReportResponse>>builder()
+                .code(1000)
+                .result(fundService.getFundDetailsMonthlyReports())
                 .build();
     }
 
