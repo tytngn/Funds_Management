@@ -21,6 +21,19 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     boolean existsByIdAndRolesId(String id, String role);
 
+    Optional<User> findByRoles_Id(String role);
+
+    @Query("""
+           SELECT u
+            FROM User u 
+            LEFT JOIN FETCH u.department d 
+            LEFT JOIN FETCH u.roles r 
+            LEFT JOIN FETCH u.funds f
+            WHERE u.id = :id
+                   """)
+    Optional<User> findByIdFullInfo(@Param("id") String id);
+
+
     // Lấy danh sách người dùng theo các bộ lọc (theo thời gian, trạng thái, phòng ban, phân quyền, ngân hàng)
     @Query("SELECT u FROM User u " +
             "LEFT JOIN u.roles r " +

@@ -516,7 +516,50 @@ public class FundService {
         }
         // Sắp xếp theo tên
         List<FundDetailsReportResponse> sortedResponses = report.stream()
-                .sorted(Comparator.comparing(FundDetailsReportResponse::getFundName, vietnameseCollator))
+                .sorted(Comparator.comparing(FundDetailsReportResponse::getTotalBalance).reversed())
+                .toList();
+
+        return sortedResponses;
+    }
+
+    public List<FundDetailsReportResponse> getFundDetailsMonthlyReportsByTreasurer() {
+        int month = LocalDate.now().getMonthValue();
+        int year = LocalDate.now().getYear();
+
+        String id = securityExpression.getUserId();
+
+        // Lấy danh sách quỹ
+        List<Fund> funds = fundRepository.findByUserIdAndStatus(id, 1);
+
+        List<FundDetailsReportResponse> report = new ArrayList<>();
+
+        for (Fund fund : funds) {
+            FundDetailsReportResponse dto = new FundDetailsReportResponse();
+            dto.setFundName(fund.getFundName());
+            dto.setDescription(fund.getDescription());
+
+            double fundIncome = fundTransactionRepository.sumContributions(fund.getId(), null, null, year, month);
+            dto.setTotalContribution(fundIncome);
+
+            double fundExpenditure = fundTransactionRepository.sumWithdrawals(fund.getId(), null, null, year, month);
+            dto.setTotalWithdrawal(fundExpenditure);
+
+            double fundPayment = paymentReqRepository.sumPayments(fund.getId(), null, null, year, month);
+            dto.setTotalPayment(fundPayment);
+
+            dto.setTotalBalance(fundIncome - (fundExpenditure + fundPayment));
+
+            // Lấy danh sách phòng ban có nhân viên đóng góp
+            List<DepartmentDetailResponse> departmentDetails = fundPermissionRepository.findDepartmentDetailsByFundId(fund.getId());
+            // Sắp xếp theo tên phòng ban
+            departmentDetails.sort(Comparator.comparing(DepartmentDetailResponse::getName, vietnameseCollator));
+            dto.setDepartment(departmentDetails);
+
+            report.add(dto);
+        }
+        // Sắp xếp theo tên
+        List<FundDetailsReportResponse> sortedResponses = report.stream()
+                .sorted(Comparator.comparing(FundDetailsReportResponse::getTotalBalance).reversed())
                 .toList();
 
         return sortedResponses;

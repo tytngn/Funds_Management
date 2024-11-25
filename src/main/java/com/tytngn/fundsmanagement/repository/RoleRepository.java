@@ -29,4 +29,5 @@ public interface RoleRepository extends JpaRepository<Role, String> {
         """, nativeQuery = true)
     Boolean existsByRoleIdsAndPermissionIds (@Param("roleIds") List<String> roleIds,
                                              @Param("permissionIds") List<String> permissionIds);
+
 }

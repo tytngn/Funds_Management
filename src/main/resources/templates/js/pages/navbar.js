@@ -370,7 +370,7 @@ function updateBreadcrumb(roles) {
             parentUrl: '/transaction-type', 
             title: 'Loại giao dịch', 
             permissions: ['CREATE_TRANSACTION_TYPE'] 
-        },
+        }
     };
     
     // // Nhóm các trang con dưới cùng một trang cha

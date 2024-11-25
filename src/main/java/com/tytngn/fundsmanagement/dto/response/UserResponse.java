@@ -18,6 +18,7 @@ public class UserResponse {
     String email;
     String fullname;
     String phone;
+    Long telegramId;
     LocalDate dob;
     int gender;
     int status;

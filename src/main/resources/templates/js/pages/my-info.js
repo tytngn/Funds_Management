@@ -60,16 +60,13 @@ $(document).ready(async function () {
 async function loadData(){
     utils.setLocalStorageObject("userInfo", null);
     const userInfo = await utils.getUserInfo();
-    if (userInfo !== null) {
-        console.log(userInfo);
-        console.log("Department Name: ", userInfo.department.name);
-
-        
+    if (userInfo !== null) {        
         // Gán giá trị vào các ô input
         $("#username").val(userInfo.username);
         $("#email").val(userInfo.email);
         $("#fullname").val(userInfo.fullname);
         $("#phone").val(userInfo.phone);
+        $("#telegram").val(userInfo.telegramId);
         $("#gender").val(userInfo.gender).trigger('change');
         $("#department-info").val(userInfo.department.name);
         $("#bank-select").val(userInfo.account ? userInfo.account.bankName : '').trigger('change');
@@ -138,9 +135,12 @@ $("#submit-btn").on("click", function(e) {
         dob: dob,
         gender: $('#gender').val(),
         phone: $('#phone').val(),
+        telegramId: $('#telegram').val(),
         bankName: $('#bank-select').val(),
         accountNumber: $('#account-number').val()
     };    
+    console.log(request);
+    
 
     // Gọi API để cập nhật thông tin tài khoản
     $.ajax({

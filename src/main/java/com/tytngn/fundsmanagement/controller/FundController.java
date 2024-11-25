@@ -196,6 +196,17 @@ public class FundController {
     }
 
 
+    // Báo cáo chi tiết các quỹ do thủ quỹ quản lý trong tháng hiện tại
+    @GetMapping("/details/by-treasurer")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_FUND_DETAILS_MONTH_BY_TREASURER'})")
+    ApiResponse<List<FundDetailsReportResponse>> getFundDetailsMonthlyReportsByTreasurer () {
+        return ApiResponse.<List<FundDetailsReportResponse>>builder()
+                .code(1000)
+                .result(fundService.getFundDetailsMonthlyReportsByTreasurer())
+                .build();
+    }
+
+
     // cập nhật quỹ
     @PutMapping("/{id}")
     @PreAuthorize("@securityExpression.hasPermission({'UPDATE_FUND'})")

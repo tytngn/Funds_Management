@@ -1,11 +1,9 @@
 package com.tytngn.fundsmanagement.dto.request;
 
-import com.tytngn.fundsmanagement.validator.DobConstraint;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Data

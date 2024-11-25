@@ -35,6 +35,7 @@ public class PaymentReqService {
     UserRepository userRepository;
     FundRepository fundRepository;
     ImageRepository imageRepository;
+    TelegramService telegramService;
     SecurityExpression securityExpression;
     Collator vietnameseCollator;
 
@@ -427,8 +428,31 @@ public class PaymentReqService {
         paymentReq.setStatus(2);
         paymentReq.setRequestCount(sendCount + 1);
         paymentReq.setUpdateDate(LocalDateTime.now());
+        paymentReqRepository.save(paymentReq);
 
-        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+        // Gửi thông báo telegram
+        var accountant = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_EXISTS)); // người nhận: kế toán
+        // Định dạng nội dung thông báo
+        String notificationMessage = String.format(
+                """
+                [THÔNG BÁO ĐỀ NGHỊ THANH TOÁN]
+                    - Người đề nghị: %s
+                    - Số tiền: %, .2f VNĐ
+                    - Quỹ: %s
+                    - Thời gian: %s 
+                    - Trạng thái: Chờ duyệt
+                                    
+                    Vui lòng kiểm tra và xử lý!
+                """,
+                paymentReq.getUser().getFullname(),
+                paymentReq.getAmount(),
+                paymentReq.getFund().getFundName(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))
+        );
+        telegramService.sendNotificationToAnUser(accountant.getTelegramId(), notificationMessage);
+
+        return paymentReqMapper.toPaymentReqResponse(paymentReq);
     }
 
 
@@ -452,10 +476,38 @@ public class PaymentReqService {
         else {
             paymentReq.setStatus(0);
         }
-
         paymentReq.setUpdateDate(LocalDateTime.now());
+        paymentReqRepository.save(paymentReq);
 
-        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+        // Gửi thông báo telegram
+        if (paymentReq.getStatus() == 3) {
+            var treasurer = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                    new AppException(ErrorCode.USER_NOT_EXISTS)); // người nhận: thủ quỹ
+            var accountant = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                    new AppException(ErrorCode.USER_NOT_EXISTS));
+            // Định dạng nội dung thông báo
+            String notificationMessage = String.format(
+                    """
+                    [THÔNG BÁO ĐỀ NGHỊ THANH TOÁN ĐÃ ĐƯỢC DUYỆT]
+                        - Người xử lý: %s
+                        - Người đề nghị: %s
+                        - Số tiền: %, .2f VNĐ
+                        - Quỹ: %s
+                        - Thời gian: %s 
+                        - Trạng thái: Đã duyệt
+                                        
+                        Vui lòng kiểm tra và xử lý!
+                    """,
+                    accountant.getFullname(),
+                    paymentReq.getUser().getFullname(),
+                    paymentReq.getAmount(),
+                    paymentReq.getFund().getFundName(),
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))
+            );
+            telegramService.sendNotificationToAnUser(treasurer.getTelegramId(), notificationMessage);
+        }
+
+        return paymentReqMapper.toPaymentReqResponse(paymentReq);
     }
 
 
@@ -503,9 +555,38 @@ public class PaymentReqService {
         // Cập nhật trạng thái đề nghị thanh toán thành 4 - đã thanh toán
         paymentReq.setStatus(4);
         paymentReq.setUpdateDate(LocalDateTime.now());
+        paymentReqRepository.save(paymentReq);
+
+        // Gửi thông báo telegram
+        var user = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_EXISTS)); // người nhận: nhân viên
+        var accountant = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_EXISTS));
+        // Định dạng nội dung thông báo
+        String notificationMessage = String.format(
+                """
+                [THÔNG BÁO ĐỀ NGHỊ THANH TOÁN ĐÃ ĐƯỢC THANH TOÁN]
+                    - Người xử lý: %s
+                    - Người thanh toán: %s
+                    - Người đề nghị: %s
+                    - Số tiền: %, .2f VNĐ
+                    - Quỹ: %s
+                    - Thời gian: %s 
+                    - Trạng thái: Đã thanh toán
+                                    
+                    Vui lòng kiểm tra và xử lý!
+                """,
+                accountant.getFullname(),
+                paymentReq.getFund().getFundName(),
+                paymentReq.getUser().getFullname(),
+                paymentReq.getAmount(),
+                paymentReq.getFund().getFundName(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))
+        );
+        telegramService.sendNotificationToAnUser(user.getTelegramId(), notificationMessage);
 
         // Lưu thay đổi và trả về phản hồi
-        return paymentReqMapper.toPaymentReqResponse(paymentReqRepository.save(paymentReq));
+        return paymentReqMapper.toPaymentReqResponse(paymentReq);
     }
 
 

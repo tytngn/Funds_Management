@@ -7,6 +7,7 @@ import com.tytngn.fundsmanagement.dto.response.TransactionReportResponse;
 import com.tytngn.fundsmanagement.dto.response.FundTransactionResponse;
 import com.tytngn.fundsmanagement.entity.FundTransaction;
 import com.tytngn.fundsmanagement.entity.Image;
+import com.tytngn.fundsmanagement.entity.User;
 import com.tytngn.fundsmanagement.exception.AppException;
 import com.tytngn.fundsmanagement.exception.ErrorCode;
 import com.tytngn.fundsmanagement.mapper.FundTransactionMapper;
@@ -22,6 +23,7 @@ import java.text.Collator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
@@ -40,6 +42,7 @@ public class FundTransactionService {
     FundPermissionRepository fundPermissionRepository;
     PaymentReqRepository paymentReqRepository;
     ImageRepository imageRepository;
+    TelegramService telegramService;
     SecurityExpression securityExpression;
     Collator vietnameseCollator;
 
@@ -105,7 +108,60 @@ public class FundTransactionService {
             }
         }
 
+        // Lưu giao dịch
         fundTransaction = fundTransactionRepository.save(fundTransaction);
+
+        // Gửi thông báo telegram
+        if (transactionType.getStatus() == 1) {
+            var treasurer = userRepository.findById(fund.getUser().getId()).orElseThrow(() ->
+                    new AppException(ErrorCode.USER_NOT_EXISTS)); // người nhận
+            // Định dạng nội dung thông báo
+            String notificationMessage = String.format(
+                    """
+                    [THÔNG BÁO GIAO DỊCH ĐÓNG GÓP QUỸ]
+                        - Người thực hiện: %s
+                        - Số tiền giao dịch: %, .2f VNĐ
+                        - Quỹ: %s
+                        - Thời gian: %s 
+                        - Trạng thái: Chờ duyệt
+                                        
+                        Vui lòng kiểm tra và xử lý!
+                    """,
+                    user.getFullname(),
+                    request.getAmount(),
+                    fund.getFundName(),
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))
+            );
+            log.info(treasurer.getFullname());
+            log.info(treasurer.getTelegramId().toString());
+            telegramService.sendNotificationToAnUser(treasurer.getTelegramId(), notificationMessage);
+        }
+
+        if (transactionType.getStatus() == 0) {
+            var accountant = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                    new AppException(ErrorCode.USER_NOT_EXISTS)); // người nhận
+            // Định dạng nội dung thông báo
+            String notificationMessage = String.format(
+                    """
+                    [THÔNG BÁO GIAO DỊCH RÚT QUỸ]
+                        - Người thực hiện: %s
+                        - Số tiền giao dịch: %, .2f VNĐ
+                        - Quỹ: %s
+                        - Thời gian: %s 
+                        - Trạng thái: Chờ duyệt
+                                        
+                        Vui lòng kiểm tra và xử lý!
+                    """,
+                    user.getFullname(),
+                    request.getAmount(),
+                    fund.getFundName(),
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))
+            );
+            log.info(accountant.getFullname());
+            log.info(accountant.getTelegramId().toString());
+            telegramService.sendNotificationToAnUser(accountant.getTelegramId(), notificationMessage);
+        }
+
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
     }
 
@@ -777,6 +833,40 @@ public class FundTransactionService {
         fundTransaction.setStatus(2); // Đánh dấu đã duyệt
         fundTransaction.setConfirmDate(LocalDateTime.now());
         fundTransaction = fundTransactionRepository.save(fundTransaction);
+
+        // Gửi thông báo telegram
+        var user = userRepository.findById(fundTransaction.getUser().getId()).orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_EXISTS)); // người nhận
+        String approvedUser = ""; // người xử lý
+        // Đóng góp
+        if (transactionType.getStatus() == 1) {
+            approvedUser = fund.getUser().getFullname();
+        }
+        // Rút quỹ
+        if (transactionType.getStatus() == 0) {
+            var accountant = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                    new AppException(ErrorCode.USER_NOT_EXISTS));
+            approvedUser = accountant.getFullname();
+        }
+        // Định dạng nội dung thông báo
+        String notificationMessage = String.format(
+                """
+                [THÔNG BÁO GIAO DỊCH ĐÃ ĐƯỢC DUYỆT]
+                    - Người xử lý giao dịch: %s
+                    - Số tiền giao dịch: %, .2f VNĐ
+                    - Quỹ: %s
+                    - Thời gian: %s 
+                    - Trạng thái: Đã duyệt
+                                    
+                    Vui lòng kiểm tra!
+                """,
+                approvedUser,
+                fundTransaction.getAmount(),
+                fund.getFundName(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))
+        );
+        telegramService.sendNotificationToAnUser(user.getTelegramId(), notificationMessage);
+
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
     }
 
@@ -794,8 +884,41 @@ public class FundTransactionService {
         // Đặt trạng thái thành từ chối
         fundTransaction.setStatus(0); // Từ chối
         fundTransaction.setConfirmDate(LocalDateTime.now());
-
         fundTransaction = fundTransactionRepository.save(fundTransaction);
+
+        // Gửi thông báo telegram
+        var user = userRepository.findById(fundTransaction.getUser().getId()).orElseThrow(() ->
+                new AppException(ErrorCode.USER_NOT_EXISTS)); // Người nhận
+        String approvedUser = ""; // Người xử lý
+        // Đóng góp quỹ
+        if (fundTransaction.getTransactionType().getStatus() == 1) {
+            approvedUser = fundTransaction.getFund().getUser().getFullname();
+        }
+        // Rút quỹ
+        if (fundTransaction.getTransactionType().getStatus() == 0) {
+            var accountant = userRepository.findByRoles_Id("ACCOUNTANT").orElseThrow(() ->
+                    new AppException(ErrorCode.USER_NOT_EXISTS));
+            approvedUser = accountant.getFullname();
+        }
+        // Định dạng nội dung thông báo
+        String notificationMessage = String.format(
+                """
+                [THÔNG BÁO GIAO DỊCH ĐÃ BỊ TỪ CHỐI]
+                    - Người xử lý giao dịch: %s
+                    - Số tiền giao dịch: %, .2f VNĐ
+                    - Quỹ: %s
+                    - Thời gian: %s 
+                    - Trạng thái: Từ chối
+                                    
+                    Vui lòng kiểm tra!
+                """,
+                approvedUser,
+                fundTransaction.getAmount(),
+                fundTransaction.getFund().getFundName(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"))
+        );
+        telegramService.sendNotificationToAnUser(user.getTelegramId(), notificationMessage);
+
         return fundTransactionMapper.toFundTransactionResponse(fundTransaction);
     }
 

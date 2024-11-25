@@ -497,6 +497,7 @@ $('#user-table tbody').on('click', 'tr', function () {
         dataTable.$('tr.selected').removeClass('selected');
         $(this).addClass('selected'); // Đánh dấu dòng đã chọn
         selectedData = dataTable.row(this).data(); // Lưu dữ liệu dòng đã chọn
+        console.log(selectedData.id);
     }
 });
 

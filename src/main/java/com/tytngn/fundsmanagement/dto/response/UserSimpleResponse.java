@@ -9,12 +9,12 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserSimpleResponse {
-
     String id;
     String username;
     String email;
     String fullname;
     String phone;
+    Long telegramId;
     DepartmentSimpleResponse department;
     BankAccountSimpleResponse account;
 }

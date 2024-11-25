@@ -447,7 +447,7 @@ $("#btn-remove-transaction-type").on("click", async function () {
     else {
         Toast.fire({
             icon: "error",
-            title: "Vui lòng chọn loại giao d để thực hiện!",
+            title: "Vui lòng chọn loại giao dịch để thực hiện!",
         });
     }
 });

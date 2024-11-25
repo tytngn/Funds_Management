@@ -112,4 +112,13 @@ $(document).ready(function () {
     utils.setLocalStorageObject('userInfo', null);
     // Hiển thị hoặc ẩn mật khẩu
     togglePasswordVisibility('password', 'toggle-password', 'toggle-icon');
+
+    document.getElementById('forgot-password-link').addEventListener('click', function(event) {
+        event.preventDefault(); // Ngăn chặn hành động mặc định của liên kết
+        Toast.fire({
+            icon: "info",
+            title: "Vui lòng liên hệ quản trị viên để được cấp mật khẩu mới!"
+        });
+        return;
+    });
 });

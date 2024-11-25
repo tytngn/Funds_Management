@@ -1,6 +1,6 @@
 package com.tytngn.fundsmanagement.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DepartmentRequest {
-    @NotBlank(message = "BLANK_NAME")
-    String name;
+public class NotifyToAnUserRequest {
+    Long chatId;
+    String message;
 }

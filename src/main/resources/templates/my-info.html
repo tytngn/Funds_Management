@@ -55,10 +55,10 @@
 
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_settings-panel.html -->
-         <div id="setting-panel"></div>
+         <!-- <div id="setting-panel"></div>
          <script>
           $("#setting-panel").load("partials/_settings-panel.html");
-        </script>
+        </script> -->
         <!-- partial -->
 
         <!-- partial:partials/_sidebar.html -->
@@ -87,7 +87,7 @@
                       <div class="form-group">
                         <label for="username">Tên đăng nhập</label>
                         <input type="text" class="form-control" id="username" placeholder="Nhập tên đăng nhập">
-                        <p class="card-description">Tên đăng nhập chỉ được phép chứa các chữ cái không dấu, chữ số và không có khoảng trắng</p>
+                        <p class="card-description mt-2">Tên đăng nhập chỉ được phép chứa các chữ cái không dấu, chữ số và không có khoảng trắng</p>
                       </div>
 
                       <div class="form-group">
@@ -116,6 +116,14 @@
                       <div class="form-group">
                         <label for="phone">Số điện thoại</label>
                         <input type="text" class="form-control" id="phone" placeholder="Nhập số điện thoại">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="telegram">Telegram ID</label>
+                        <input type="text" class="form-control" id="telegram" placeholder="Nhập Telegram ID">
+                        <p class="card-description mt-2">
+                          Truy cập <a href="https://web.telegram.org/a/#8133743302" target="_blank" id="telegram-link">Bot Telegram</a> để nhận thông báo về các giao dịch.
+                        </p>
                       </div>
 
                       <div class="form-group">

@@ -102,72 +102,73 @@ $(document).ready(async function () {
         $(this).val('');
     });
 
-    // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
-    $.ajax({
-        type: "GET",
-        url: "/api/departments/treasurer-in-department",
-        headers: utils.defaultHeaders(),
-        success: function (res) {
-            if (res.code === 1000) {
-                let departments = res.result;
-                let departmentDropdown = $("#department-select");
-                let userDropdown = $("#treasurer-select");
+    if(userRole === 'ADMIN' || userRole === 'ACCOUNTANT'){
+        // Gọi api để lấy phòng ban và nhân viên ở phòng ban đó
+        $.ajax({
+            type: "GET",
+            url: "/api/departments/treasurer-in-department",
+            headers: utils.defaultHeaders(),
+            success: function (res) {
+                if (res.code === 1000) {
+                    let departments = res.result;
+                    let departmentDropdown = $("#department-select");
+                    let userDropdown = $("#treasurer-select");
 
-                departmentDropdown.empty();
-                departmentDropdown.append("<option disabled selected >Chọn phòng ban</option>");
+                    departmentDropdown.empty();
+                    departmentDropdown.append("<option disabled selected >Chọn phòng ban</option>");
 
-                // Thêm các phòng ban vào dropdown
-                departments.forEach(function(department) {
-                    departmentDropdown.append(`
-                        <option value="${department.id}">${department.name}</option>
-                    `);              
-                });
-                
-                // Gắn sự kiện khi chọn phòng ban
-                departmentDropdown.on("change", function(){
-                    let selectedDepartmentId = $(this).val();
-
-                    userDropdown.prop("disabled", false);
-
-                    // Xóa các thành viên cũ trong dropdown
-                    userDropdown.empty();
-                    userDropdown.append("<option disabled selected >Chọn thủ quỹ</option>");
-
-                    // Tìm phòng ban đã chọn
-                    let selectedDepartment = departments.find(dept => dept.id === selectedDepartmentId);
-
-                    // Thêm các thành viên của phòng ban đã chọn vào dropdown
-                    if (selectedDepartment && selectedDepartment.users) {
-                        selectedDepartment.users.forEach(function(user) {
-                            userDropdown.append(`
-                                <option value="${user.id}">${user.fullname}</option>
-                            `);
-                        });
-                    } else {
-                        // Nếu không có thành viên nào
-                        userDropdown.append(`
-                            <option value="">Không có thành viên</option>
-                        `);
-                    }
+                    // Thêm các phòng ban vào dropdown
+                    departments.forEach(function(department) {
+                        departmentDropdown.append(`
+                            <option value="${department.id}">${department.name}</option>
+                        `);              
+                    });
                     
-                });
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: "Không thể lấy danh sách phòng ban<br>" + res.message,
-                });
+                    // Gắn sự kiện khi chọn phòng ban
+                    departmentDropdown.on("change", function(){
+                        let selectedDepartmentId = $(this).val();
+
+                        userDropdown.prop("disabled", false);
+
+                        // Xóa các thành viên cũ trong dropdown
+                        userDropdown.empty();
+                        userDropdown.append("<option disabled selected >Chọn thủ quỹ</option>");
+
+                        // Tìm phòng ban đã chọn
+                        let selectedDepartment = departments.find(dept => dept.id === selectedDepartmentId);
+
+                        // Thêm các thành viên của phòng ban đã chọn vào dropdown
+                        if (selectedDepartment && selectedDepartment.users) {
+                            selectedDepartment.users.forEach(function(user) {
+                                userDropdown.append(`
+                                    <option value="${user.id}">${user.fullname}</option>
+                                `);
+                            });
+                        } else {
+                            // Nếu không có thành viên nào
+                            userDropdown.append(`
+                                <option value="">Không có thành viên</option>
+                            `);
+                        }
+                        
+                    });
+                } else {
+                    Toast.fire({
+                        icon: "error",
+                        title: "Không thể lấy danh sách phòng ban<br>" + res.message,
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                var err = utils.handleAjaxError(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: err.message
+                    });
             }
-        },
-        error: function (xhr, status, error) {
-            var err = utils.handleAjaxError(xhr);
-                Toast.fire({
-                    icon: "error",
-                    title: err.message
-                });
-        }
-    });
-
-
+        });
+    }
+    
     // Nhấn nút "Xem"
     $("#btn-view-fund").on("click", async function () {    
         await loadFundData();

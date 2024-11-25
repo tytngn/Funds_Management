@@ -16,33 +16,7 @@ $(document).ready(async function () {
     await setData();
     loadTotal(); 
     loadChart();    
-    $.ajax({
-        url: "/api/funds/details", 
-        type: "GET",
-        headers: utils.defaultHeaders(),
-        beforeSend: function(){
-            Swal.showLoading();
-        },
-        success: function (response) {
-            Swal.close();
-            if (response.code === 1000) {
-                loadCarouselItems(response.result);
-            } else {
-                Toast.fire({
-                    icon: "error",
-                    title: response.message || "Error in fetching data",
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            Swal.close();
-            var err = utils.handleAjaxError(xhr);
-            Toast.fire({
-                icon: "error",
-                title: err.message
-            });
-        },
-    });
+    loadCarousel();
 });
 
 
@@ -415,6 +389,47 @@ function loadChart(){
 }
 
 
+function loadCarousel() {
+    if (userRole === "USER"){
+        $("#carousel").prop("hidden", true);
+    }
+    else {
+        $("#carousel").prop("hidden", false);
+        var url = "/api/funds/details/by-treasurer";
+        if(userRole === "ADMIN" || userRole === "ACCOUNTANT"){
+            url = "/api/funds/details";
+        }
+        $.ajax({
+            url: url, 
+            type: "GET",
+            headers: utils.defaultHeaders(),
+            beforeSend: function(){
+                Swal.showLoading();
+            },
+            success: function (response) {
+                Swal.close();
+                if (response.code === 1000) {
+                    loadCarouselItems(response.result);
+                } else {
+                    Toast.fire({
+                        icon: "error",
+                        title: response.message || "Error in fetching data",
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.close();
+                var err = utils.handleAjaxError(xhr);
+                Toast.fire({
+                    icon: "error",
+                    title: err.message
+                });
+            },
+        });
+    }    
+}
+
+
 function loadCarouselItems(data) {
     const month = new Date().getMonth(); // Lấy tháng hiện tại    
     const carouselContainer = $("#detailedReports .carousel-inner");
@@ -464,6 +479,7 @@ function loadCarouselItems(data) {
                         <div class="row">
                             <div class="col-md-6 border-right">
                                 <div class="table-responsive mb-3 mb-md-0 mt-3">
+                                    <h5 class="text-center">Số nhân viên đóng góp</h5>
                                     <table class="table table-borderless report-table">
                                         ${departmentsTableRows}
                                     </table>
@@ -485,6 +501,7 @@ function loadCarouselItems(data) {
         drawPieChart(`chart-${index}`, fund);
     });
 }
+
 
 function drawPieChart(canvasId, fund) {
     const ctx = document.getElementById(canvasId).getContext("2d");

@@ -29,7 +29,9 @@ public enum ErrorCode {
     USER_NOT_EXISTS(1007, "User not found", HttpStatus.NOT_FOUND),
     // không thể chỉnh sửa admin
     ADMIN_NOT_EDITABLE(1008, "Cannot edit admin account", HttpStatus.FORBIDDEN),
-
+    // người dùng đã bị vô hiệu hoá
+    DISABLED_USER(1009, "The user has been disabled", HttpStatus.FORBIDDEN),
+//////////////
     // username là bắt buộc
     USERNAME_REQUIRED(1009, "Username is required.", HttpStatus.BAD_REQUEST),
     // username không hợp lệ
@@ -166,8 +168,21 @@ public enum ErrorCode {
     // hoạt động dự trù không thể xoá
     BUDGET_ACTIVITY_CANNOT_BE_DELETE(1067, "Budget activity cannot be deleted.", HttpStatus.CONFLICT),
     // hoạt động dự trù cuối cùng không thể xoá
-    LAST_BUDGET_ACTIVITY_CANNOT_BE_DELETE(1068, "Cannot delete the last budget activity from the budget estimate.", HttpStatus.CONFLICT);
+    LAST_BUDGET_ACTIVITY_CANNOT_BE_DELETE(1068, "Cannot delete the last budget activity from the budget estimate.", HttpStatus.CONFLICT),
 
+    // Khoá không thể trống
+    BLANK_KEY(1070, "Key must not be blank", HttpStatus.BAD_REQUEST),
+    // Giá trị không thể trống
+    BLANK_VALUE(1071, "Value must not be blank", HttpStatus.BAD_REQUEST),
+    // Tham số không tồn tại
+    PARAMETER_NOT_EXIST(1072, "Parameter does not exist", HttpStatus.BAD_REQUEST),
+
+    // Tin nhắn Telegram không tồn tại
+    TELEGRAM_MESSAGE_NOT_EXIST(1073, "This telegram message does not exist", HttpStatus.BAD_REQUEST),
+    // Tin nhắn Telegram không thể gửi
+    TELEGRAM_MESSAGE_NOT_SENDABLE(1074, "This telegram message is not sendable", HttpStatus.BAD_REQUEST),
+    // Không có người nhận
+    NO_RECEIVER(1075, "This message has no receiver", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;

@@ -1,6 +1,7 @@
 package com.tytngn.fundsmanagement.dto.request;
 
 import com.tytngn.fundsmanagement.validator.DobConstraint;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -33,6 +34,9 @@ public class AccountUpdateRequest {
 
     int gender;
     String phone;
+
+    @Column(unique = true)
+    Long telegramId;
 
     @NotBlank(message = "BLANK_NAME")
     String bankName;
