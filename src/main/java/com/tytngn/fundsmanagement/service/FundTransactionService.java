@@ -852,6 +852,7 @@ public class FundTransactionService {
         String notificationMessage = String.format(
                 """
                 [THÔNG BÁO GIAO DỊCH ĐÃ ĐƯỢC DUYỆT]
+                
                     - Người xử lý giao dịch: %s
                     - Số tiền giao dịch: %, .2f VNĐ
                     - Quỹ: %s
@@ -904,6 +905,7 @@ public class FundTransactionService {
         String notificationMessage = String.format(
                 """
                 [THÔNG BÁO GIAO DỊCH ĐÃ BỊ TỪ CHỐI]
+                
                     - Người xử lý giao dịch: %s
                     - Số tiền giao dịch: %, .2f VNĐ
                     - Quỹ: %s

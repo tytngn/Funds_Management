@@ -98,6 +98,9 @@ $(document).ready(async function () {
                     fundOption.push({
                         id: fund.id,
                         text: fund.fundName,
+                        fullname: fund.user.fullname,
+                        phone: fund.user.phone,
+                        user: fund.user
                     });
                     fundNameDropdown.append($('<option>', {
                         value: fund.id, // Gán giá trị cho thuộc tính value
@@ -465,6 +468,10 @@ $("#btn-add-contribute").on("click", function () {
         <div class="form-group">
             <label for="modal-fund-name">Tên quỹ</label>
             <select class="form-control" id="modal-fund-name" style="width: 100%;" data-placeholder="Chọn quỹ"></select>
+            <p id="treasurer-fullname" class="text-muted mt-2"></p>
+            <p id="treasurer-phone" class="text-muted mt-2"></p>
+            <p id="treasurer-bank" class="text-muted mt-2"></p>
+            <p id="treasurer-number" class="text-muted mt-2"></p>
         </div>
 
         <div class="form-group">
@@ -515,6 +522,35 @@ $("#btn-add-contribute").on("click", function () {
         data: fundOption
     });
     $('#modal-fund-name').val("").trigger('change');
+    
+    // Xử lý sự kiện khi chọn một quỹ
+    $('#modal-fund-name').on('change', function () {
+        let selectedFundId = $(this).val();
+        let fullname = ""; 
+        let phone = "";
+        let bank = "";
+        let number = "";
+
+        // Tìm quỹ được chọn trong fundOption và lấy thông tin thủ quỹ
+        fundOption.forEach(function (fund) {
+            if (fund.id === selectedFundId) {
+                fullname = "Thủ quỹ: " + fund.user.fullname;
+                if(fund.user.phone){
+                    phone = "Số điện thoại: " + fund.user.phone;
+                }
+                if(fund.user.account){
+                    bank = "Ngân hàng: " + fund.user.account.bankName; 
+                    number = "Số tài khoản: " + fund.user.account.accountNumber;
+                }
+            }
+        });
+
+        // Hiển thị thông tin thủ quỹ trong thẻ <p>
+        $('#treasurer-fullname').text(fullname);
+        $('#treasurer-phone').text(phone);
+        $('#treasurer-bank').text(bank);
+        $('#treasurer-number').text(number);
+    });
 
     $('#modal-transaction-type').select2({
         allowClear: true,

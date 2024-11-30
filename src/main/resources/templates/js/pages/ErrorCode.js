@@ -32,7 +32,7 @@ const ErrorCode = {
 
     ROLE_EXISTS: { code: 1023, message: "Vai trò đã tồn tại", statusCode: 409 },
     ROLE_NOT_EXISTS: { code: 1024, message: "Vai trò không tồn tại", statusCode: 404 },
-    USER_NO_TREASURER_PERMISSION: { code: 1025, message: "Quyền Thủ quỹ không tồn tại trên người dùng này", statusCode: 403},
+    USER_NO_TREASURER_PERMISSION: { code: 1025, message: "Quyền Thủ quỹ không tồn tại trên người dùng này! Vui lòng liên hệ Quản trị viên để được cấp quyền!", statusCode: 403},
 
     PERMISSION_NOT_EXISTS: { code: 1026, message: "Phân quyền không tồn tại", statusCode: 404 },
 

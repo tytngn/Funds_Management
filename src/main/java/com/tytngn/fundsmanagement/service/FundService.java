@@ -522,6 +522,7 @@ public class FundService {
         return sortedResponses;
     }
 
+
     public List<FundDetailsReportResponse> getFundDetailsMonthlyReportsByTreasurer() {
         int month = LocalDate.now().getMonthValue();
         int year = LocalDate.now().getYear();

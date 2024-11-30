@@ -13,6 +13,7 @@ import java.util.Map;
 
 @Repository
 public interface PaymentReqRepository extends JpaRepository<PaymentReq, String> {
+    List<PaymentReq> findAllByStatus(int status);
 
     // Đếm tổng số đề nghị có status == 4 hoặc status == 5
     @Query("SELECT COUNT(pr) FROM PaymentReq pr WHERE pr.fund.id = :fundId " +

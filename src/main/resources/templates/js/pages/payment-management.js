@@ -732,19 +732,27 @@ $("#btn-process-payment-request").on("click", async function () {
         });
         return;
     }
-    // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái "đã duyệt" (status = 3) hoặc "từ chối" (status = 0)
-    if (selectedData.status == 0 || selectedData.status == 4 || selectedData.status == 5) {
+    // Kiểm tra nếu đề nghị thanh toán đang ở trạng thái 
+    if (selectedData.status == 4 || selectedData.status == 5) {
         Toast.fire({
             icon: "error",
-            title: "Không thể xác nhận!",
+            title: "Không thể thanh toán!",
             text: "Đề nghị thanh toán đã được xử lý",
+        });
+        return;
+    }
+    else if (selectedData.status == 0) { 
+        Toast.fire({
+            icon: "error",
+            title: "Không thể thanh toán!",
+            text: "Đề nghị thanh toán đã bị từ chối",
         });
         return;
     }
     else if (selectedData.status == 2) { 
         Toast.fire({
             icon: "error",
-            title: "Không thể xác nhận!",
+            title: "Không thể thanh toán!",
             text: "Đề nghị thanh toán chưa được xác nhận",
         });
         return;
@@ -752,7 +760,7 @@ $("#btn-process-payment-request").on("click", async function () {
     else if (selectedData.status == 1) { 
         Toast.fire({
             icon: "error",
-            title: "Không thể xác nhận!",
+            title: "Không thể thanh toán!",
             text: "Đề nghị thanh toán chưa được gửi",
         });
         return;

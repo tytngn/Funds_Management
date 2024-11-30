@@ -14,11 +14,14 @@ let selectedData; // Biến lưu dữ liệu đã chọn
 var fundOption = [];
 var transTypeOption = [];
 
+var userRole;
+
 var startDate;
 var endDate;
 
 
-$(document).ready(function () {
+$(document).ready(async function () {
+    await setData();
     // Select 
     $('.select-2').select2({
         allowClear: true,
@@ -75,10 +78,14 @@ $(document).ready(function () {
         $(this).val('');
     });
 
+    var urlFund = "/api/fund-permissions/withdraw";
+    if (userRole === 'ADMIN'){
+        urlFund = "/api/funds/active";
+    } 
     // Gọi api để lấy tên quỹ và Nạp dữ liệu lên mảng fundOption
     $.ajax({
         type: "GET",
-        url: "/api/fund-permissions/withdraw",
+        url: urlFund,
         headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code === 1000) {
@@ -282,6 +289,26 @@ $(document).ready(function () {
 
     });
 });
+
+
+// Hiển thị dữ liệu theo role của người dùng
+async function setData() {
+    const userInfo = await utils.getUserInfo(); // Lấy thông tin người dùng từ localStorage 
+    if (!userInfo) {
+        throw new Error("Không thể lấy thông tin người dùng");
+    }
+    
+    const roles = userInfo.roles.map(role => role.id); // Lấy danh sách các role của user
+
+    // Đối với Nhân viên
+    if (roles.includes('USER')) {
+        userRole = "USER";
+    } 
+    // Đối với Quản trị viên
+    if (roles.includes('ADMIN')) {
+        userRole = "ADMIN";
+    } 
+}
 
 
 // Gọi api lấy dữ liệu danh sách các giao dịch rút quỹ của người dùng
@@ -615,7 +642,7 @@ $("#btn-add-withdraw").on("click", function () {
                         }
                         Toast.fire({
                             icon: "success",
-                            title: "Đã thêm giao dịch",
+                            title: "Đã thêm giao dịch!",
                             timer: 3000,
                         });
                     }
